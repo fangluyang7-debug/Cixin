@@ -1,0 +1,27 @@
+{
+  "inputPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-first80.json",
+  "outValidPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-first80-verified.json",
+  "outInvalidPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-first80-invalid-links.jsonl",
+  "checkedAt": "2026-06-04T13:48:43.010Z",
+  "options": {
+    "itemCount": 80,
+    "concurrency": 8,
+    "timeoutMs": 12000,
+    "retries": 1,
+    "skipProduct": true,
+    "skipImage": false,
+    "strictImageContentType": true
+  },
+  "stats": {
+    "sourceCount": 80,
+    "validCount": 80,
+    "invalidCount": 0,
+    "productCheckedCount": 0,
+    "imageCheckedCount": 80,
+    "statusCounts": {
+      "product:unknown": 80,
+      "image:206": 80
+    },
+    "failureCounts": {}
+  }
+}

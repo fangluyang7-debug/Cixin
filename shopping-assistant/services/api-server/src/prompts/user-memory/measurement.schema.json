@@ -1,0 +1,26 @@
+{
+  "version": "user-memory-measurement-v1",
+  "description": "High-sensitivity body and size profile schema.",
+  "fields": {
+    "heightCm": "number",
+    "weightKg": "number",
+    "chestCm": "number",
+    "waistCm": "number",
+    "hipCm": "number",
+    "shoulderWidthCm": "number",
+    "pantsLengthCm": "number",
+    "shoeSize": "string",
+    "footLength": "string",
+    "footWidth": "string",
+    "clothingSize": "string",
+    "brandSizes": [
+      {
+        "brand": "string",
+        "category": "shoe | clothing",
+        "size": "string"
+      }
+    ]
+  },
+  "sensitivity": "high",
+  "writeRule": "Always require explicit user confirmation before long-term write."
+}

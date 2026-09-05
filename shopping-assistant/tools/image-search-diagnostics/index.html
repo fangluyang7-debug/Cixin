@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoleAI Image Search Diagnostics</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f5f3;
+      --panel: #ffffff;
+      --ink: #151515;
+      --muted: #777;
+      --line: #e4e4df;
+      --accent: #111;
+      --good: #2fa66a;
+      --warn: #bd7a19;
+      --bad: #b43b45;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(245, 245, 243, 0.92);
+      backdrop-filter: blur(16px);
+    }
+    h1, h2, h3 { margin: 0; letter-spacing: 0; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 18px; margin-bottom: 12px; }
+    h3 { font-size: 15px; }
+    main {
+      display: grid;
+      grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+    }
+    aside, section, .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    aside {
+      position: sticky;
+      top: 82px;
+      height: calc(100vh - 100px);
+      overflow: auto;
+      padding: 18px;
+    }
+    section { padding: 18px; margin-bottom: 18px; }
+    label { display: block; margin: 12px 0 6px; color: #444; font-weight: 650; }
+    input, textarea, select, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+    }
+    textarea { min-height: 72px; resize: vertical; }
+    input[type="checkbox"] { width: auto; }
+    button {
+      margin-top: 16px;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    button:disabled { opacity: 0.45; cursor: wait; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .status {
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #f0f0ed;
+      color: #444;
+      white-space: pre-wrap;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .metric {
+      padding: 12px;
+      border-radius: 8px;
+      background: #f7f7f4;
+      border: 1px solid var(--line);
+    }
+    .metric strong { display: block; font-size: 18px; margin-top: 4px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 14px;
+    }
+    .card { overflow: hidden; }
+    .card img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      background: #f0f0ed;
+      display: block;
+    }
+    .card-body { padding: 12px; }
+    .title {
+      font-weight: 760;
+      min-height: 44px;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+    .tag {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #fafafa;
+      color: #555;
+      font-size: 12px;
+    }
+    .tag.good { color: var(--good); border-color: #bde4ce; }
+    .tag.warn { color: var(--warn); border-color: #edd2a6; }
+    .tag.bad { color: var(--bad); border-color: #efbdc2; }
+    details {
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    pre {
+      overflow: auto;
+      max-height: 280px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #151515;
+      color: #f4f4f4;
+      font-size: 12px;
+    }
+    .preview {
+      width: 100%;
+      margin-top: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f0f0ed;
+      object-fit: contain;
+      max-height: 280px;
+    }
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+      aside { position: static; height: auto; }
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SoleAI 图片检索诊断台</h1>
+      <div class="hint">上传图片后同时查看 ANN embedding、正式融合候选、标签命中和视觉复核结果。</div>
+    </div>
+    <div id="runState" class="status">等待运行</div>
+  </header>
+  <main>
+    <aside>
+      <h2>输入与参数</h2>
+      <label for="apiBase">API Base URL</label>
+      <input id="apiBase" value="http://127.0.0.1:3000">
+
+      <label for="maintenanceToken">Maintenance Token</label>
+      <input id="maintenanceToken" type="password" placeholder="用于 ANN diagnose，可从 .env 读取">
+
+      <label for="imageFile">图片</label>
+      <input id="imageFile" type="file" accept="image/*">
+      <img id="preview" class="preview" alt="" hidden>
+
+      <label for="textHint">Embedding text hint</label>
+      <textarea id="textHint">shoe product similarity diagnostic</textarea>
+
+      <div class="row">
+        <div>
+          <label for="topK">ANN topK</label>
+          <input id="topK" type="number" min="1" max="100" value="50">
+        </div>
+        <div>
+          <label for="minScore">ANN minScore</label>
+          <input id="minScore" type="number" min="0" max="1" step="0.01" value="0.68">
+        </div>
+      </div>
+
+      <label for="refineText">正式链路追加筛选语句</label>
+      <textarea id="refineText" placeholder="例如：只看淘宝，500以内，有货"></textarea>
+
+      <label>
+        <input id="useBox" type="checkbox">
+        使用手动 normalized bbox 重新裁剪检索
+      </label>
+      <div class="row">
+        <div><label for="boxX">x</label><input id="boxX" type="number" min="0" max="1" step="0.01" value="0.2"></div>
+        <div><label for="boxY">y</label><input id="boxY" type="number" min="0" max="1" step="0.01" value="0.15"></div>
+        <div><label for="boxW">width</label><input id="boxW" type="number" min="0" max="1" step="0.01" value="0.6"></div>
+        <div><label for="boxH">height</label><input id="boxH" type="number" min="0" max="1" step="0.01" value="0.75"></div>
+      </div>
+
+      <button id="runBtn">运行诊断</button>
+      <div class="hint">
+        不会改 App 主链路。页面只调用现有后端接口：assets/images、sessions、turns、subject-selection、candidates、product-pool/ann/diagnose。
+      </div>
+    </aside>
+
+    <div>
+      <section>
+        <h2>运行摘要</h2>
+        <div id="summary" class="summary-grid"></div>
+        <details open>
+          <summary>识别画像 / 框选 / 过滤</summary>
+          <pre id="profileJson">{}</pre>
+        </details>
+      </section>
+
+      <section>
+        <h2>ANN Embedding 近邻结果</h2>
+        <div id="annMeta" class="status">未运行</div>
+        <div id="annResults" class="grid"></div>
+      </section>
+
+      <section>
+        <h2>正式融合候选结果</h2>
+        <div id="candidateMeta" class="status">未运行</div>
+        <div id="candidateResults" class="grid"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const state = { productDetails: new Map(), lastObjectUrl: null };
+
+    $('imageFile').addEventListener('change', () => {
+      const file = $('imageFile').files[0];
+      if (state.lastObjectUrl) URL.revokeObjectURL(state.lastObjectUrl);
+      if (!file) {
+        $('preview').hidden = true;
+        return;
+      }
+      state.lastObjectUrl = URL.createObjectURL(file);
+      $('preview').src = state.lastObjectUrl;
+      $('preview').hidden = false;
+    });
+    $('runBtn').addEventListener('click', () => run().catch(showError));
+
+    async function run() {
+      const file = $('imageFile').files[0];
+      if (!file) throw new Error('请先选择图片');
+      setBusy(true, '上传图片...');
+      clearResults();
+      const apiBase = normalizedBase();
+      const asset = await uploadImage(apiBase, file);
+
+      setBusy(true, '创建正式图片 session...');
+      const session = await postJson(apiBase, '/api/v1/sessions', {
+        assetId: asset.assetId,
+        entrySource: 'unknown',
+        categoryHint: 'shoe',
+      });
+      const sessionId = session.session?.sessionId;
+      if (!sessionId) throw new Error('sessionId 为空');
+
+      if ($('useBox').checked) {
+        setBusy(true, '应用手动 bbox 并重新检索...');
+        await postJson(apiBase, `/api/v1/sessions/${sessionId}/subject-selection`, {
+          assetId: asset.assetId,
+          selectionSource: 'diagnostic_manual',
+          box: {
+            x: num('boxX'),
+            y: num('boxY'),
+            width: num('boxW'),
+            height: num('boxH'),
+            confidence: 1,
+            label: 'diagnostic_manual_subject',
+          },
+        });
+      }
+
+      let candidatePayload;
+      const refineText = $('refineText').value.trim();
+      if (refineText) {
+        setBusy(true, '执行追加筛选 turn...');
+        const turn = await postJson(apiBase, `/api/v1/sessions/${sessionId}/turns`, {
+          message: refineText,
+        });
+        candidatePayload = turn.candidates;
+      } else {
+        setBusy(true, '读取候选列表...');
+        candidatePayload = await getJson(apiBase, `/api/v1/sessions/${sessionId}/candidates`);
+      }
+
+      setBusy(true, '读取 session 详情...');
+      const sessionDetail = await getJson(apiBase, `/api/v1/sessions/${sessionId}`);
+
+      let ann = null;
+      if ($('maintenanceToken').value.trim()) {
+        setBusy(true, '运行 ANN diagnose...');
+        ann = await postJson(apiBase, '/api/v1/product-pool/ann/diagnose', {
+          assetId: asset.assetId,
+          textHint: $('textHint').value.trim(),
+          topK: Number($('topK').value),
+          minScore: Number($('minScore').value),
+        }, { 'x-maintenance-token': $('maintenanceToken').value.trim() });
+      }
+
+      const productIds = collectProductIds(candidatePayload, ann);
+      setBusy(true, `读取商品详情 ${productIds.length} 个...`);
+      await loadProductDetails(apiBase, productIds);
+
+      renderSummary({ asset, sessionId, sessionDetail, candidatePayload, ann });
+      renderAnn(ann);
+      renderCandidates(candidatePayload);
+      setBusy(false, '完成');
+    }
+
+    async function uploadImage(apiBase, file) {
+      const form = new FormData();
+      form.append('variantType', 'compressed_recognition');
+      form.append('isPrimaryRecognitionAsset', 'true');
+      form.append('sourceType', 'demo');
+      form.append('file', file);
+      const response = await fetch(`${apiBase}/api/v1/assets/images`, {
+        method: 'POST',
+        body: form,
+      });
+      return unwrap(await response.json(), response);
+    }
+
+    async function getJson(apiBase, path) {
+      const response = await fetch(`${apiBase}${path}`);
+      return unwrap(await response.json(), response);
+    }
+
+    async function postJson(apiBase, path, body, headers = {}) {
+      const response = await fetch(`${apiBase}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...headers },
+        body: JSON.stringify(body),
+      });
+      return unwrap(await response.json(), response);
+    }
+
+    function unwrap(payload, response) {
+      if (!response.ok || payload.success === false) {
+        const message = payload.error?.message || payload.error?.code || response.statusText;
+        throw new Error(message);
+      }
+      return payload.data;
+    }
+
+    function collectProductIds(candidatePayload, ann) {
+      const ids = new Set();
+      for (const item of candidatePayload?.items || []) {
+        const productId = item.rawPayload?.productPoolSource?.productId;
+        if (productId) ids.add(productId);
+      }
+      for (const item of ann?.ann?.topResults || []) {
+        if (item.productId) ids.add(item.productId);
+      }
+      return [...ids].slice(0, 80);
+    }
+
+    async function loadProductDetails(apiBase, productIds) {
+      state.productDetails.clear();
+      await Promise.all(productIds.map(async (productId) => {
+        try {
+          const detail = await getJson(apiBase, `/api/v1/product-pool/products/${productId}`);
+          state.productDetails.set(productId, detail);
+        } catch (error) {
+          state.productDetails.set(productId, { error: error.message });
+        }
+      }));
+    }
+
+    function renderSummary({ asset, sessionId, sessionDetail, candidatePayload, ann }) {
+      const profile = sessionDetail.productProfile || sessionDetail.productProfileSnapshot || {};
+      const preprocess = sessionDetail.queryImagePreprocess || {};
+      $('summary').innerHTML = [
+        metric('Asset', asset.assetId),
+        metric('Session', sessionId),
+        metric('候选数', candidatePayload?.items?.length ?? 0),
+        metric('ANN 返回', ann?.ann?.returnedCount ?? '未运行'),
+      ].join('');
+      $('profileJson').textContent = pretty({
+        productProfile: profile,
+        queryImagePreprocess: preprocess,
+        activeFilter: sessionDetail.activeFilter,
+        candidateSnapshot: {
+          id: candidatePayload?.candidateSnapshotId,
+          degraded: candidatePayload?.degraded,
+          appliedFilter: candidatePayload?.appliedFilter,
+          fallback: candidatePayload?.fallback,
+        },
+      });
+    }
+
+    function renderAnn(ann) {
+      if (!ann) {
+        $('annMeta').textContent = '未填写 Maintenance Token，已跳过 ANN diagnose。正式候选仍会显示 annScore/tagMatchScore。';
+        $('annResults').innerHTML = '';
+        return;
+      }
+      $('annMeta').textContent = [
+        `Embedding: ${ann.queryEmbedding.provider} / ${ann.queryEmbedding.modelName}`,
+        `dimension=${ann.queryEmbedding.dimension}`,
+        `vectorHash=${ann.queryEmbedding.vectorHash}`,
+        `ANN: ${ann.ann.provider}, topK=${ann.ann.topK}, minScore=${ann.ann.minScore}`,
+        `returned=${ann.ann.returnedCount}, passed=${ann.ann.passedMinScoreCount}, maxScore=${fmt(ann.ann.maxScore)}`,
+      ].join('\n');
+      $('annResults').innerHTML = (ann.ann.topResults || []).map((item, index) => {
+        const detail = state.productDetails.get(item.productId) || {};
+        return productCard({
+          rank: index + 1,
+          title: item.title || detail.title,
+          imageUrl: detail.imageUrl,
+          platform: item.platform,
+          price: item.priceAmount,
+          shopName: item.shopName,
+          tags: [
+            pill('ANN', fmt(item.score), item.passedMinScore ? 'good' : 'warn'),
+            pill('raw', fmt(item.rawScore)),
+            pill('role', item.imageRole || '-'),
+            pill('brand', item.brand || '-'),
+          ],
+          raw: {
+            annResult: item,
+            productDetail: compactProductDetail(detail),
+          },
+        });
+      }).join('');
+    }
+
+    function renderCandidates(candidatePayload) {
+      const items = candidatePayload?.items || [];
+      $('candidateMeta').textContent = [
+        `snapshot=${candidatePayload?.candidateSnapshotId || '-'}`,
+        `degraded=${candidatePayload?.degraded === true}`,
+        `items=${items.length}`,
+      ].join('\n');
+      $('candidateResults').innerHTML = items.map((item, index) => {
+        const source = item.rawPayload?.productPoolSource || {};
+        const productId = source.productId;
+        const detail = state.productDetails.get(productId) || {};
+        const match = item.matchSummary || {};
+        return productCard({
+          rank: index + 1,
+          title: item.title,
+          imageUrl: item.coverImageUrl || detail.imageUrl,
+          platform: item.platformName,
+          price: item.price?.amount,
+          shopName: item.shopName,
+          tags: [
+            pill('final', fmt(match.finalScore ?? source.finalScore), 'good'),
+            pill('ann', fmt(match.annScore ?? source.annScore), source.annPassedMinScore ? 'good' : 'warn'),
+            pill('tag', fmt(match.tagMatchScore ?? source.tagMatchScore)),
+            pill('vision', fmt(match.visualMatchConfidence), 'good'),
+            pill('recall', (source.recallSources || []).join('+') || '-'),
+          ],
+          raw: {
+            candidate: item,
+            productPoolSource: source,
+            normalizedTags: detail.normalizedTags,
+            embeddings: detail.embeddings,
+            tagAudits: detail.tagAudits,
+            visualVerification: source.visualVerification,
+          },
+        });
+      }).join('');
+    }
+
+    function productCard(input) {
+      return `
+        <article class="card">
+          ${input.imageUrl ? `<img src="${esc(input.imageUrl)}" loading="lazy" alt="">` : '<div class="preview"></div>'}
+          <div class="card-body">
+            <div class="title">#${input.rank} ${esc(input.title || '未命名商品')}</div>
+            <div class="hint">${esc(input.platform || '-')} · ${esc(input.shopName || '-')} · ¥${esc(input.price ?? '-')}</div>
+            <div class="tags">${input.tags.join('')}</div>
+            <details>
+              <summary>原始诊断数据</summary>
+              <pre>${esc(pretty(input.raw))}</pre>
+            </details>
+          </div>
+        </article>
+      `;
+    }
+
+    function compactProductDetail(detail) {
+      if (!detail) return null;
+      return {
+        productId: detail.productId,
+        imageUrl: detail.imageUrl,
+        normalizedTags: detail.normalizedTags,
+        embeddings: detail.embeddings,
+        tagAudits: detail.tagAudits,
+      };
+    }
+
+    function metric(label, value) {
+      return `<div class="metric"><span>${esc(label)}</span><strong>${esc(value ?? '-')}</strong></div>`;
+    }
+
+    function pill(label, value, tone = '') {
+      return `<span class="tag ${tone}">${esc(label)} ${esc(value ?? '-')}</span>`;
+    }
+
+    function setBusy(busy, text) {
+      $('runBtn').disabled = busy;
+      $('runState').textContent = text;
+    }
+
+    function showError(error) {
+      setBusy(false, `错误：${error.message}`);
+      console.error(error);
+    }
+
+    function clearResults() {
+      $('summary').innerHTML = '';
+      $('profileJson').textContent = '{}';
+      $('annMeta').textContent = '运行中';
+      $('annResults').innerHTML = '';
+      $('candidateMeta').textContent = '运行中';
+      $('candidateResults').innerHTML = '';
+    }
+
+    function normalizedBase() {
+      return $('apiBase').value.trim().replace(/\/+$/, '');
+    }
+
+    function num(id) {
+      return Number($(id).value);
+    }
+
+    function fmt(value) {
+      const n = Number(value);
+      return Number.isFinite(n) ? n.toFixed(3) : '-';
+    }
+
+    function pretty(value) {
+      return JSON.stringify(value, null, 2);
+    }
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+      }[char]));
+    }
+  </script>
+</body>
+</html>

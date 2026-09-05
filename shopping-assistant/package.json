@@ -1,0 +1,53 @@
+{
+  "name": "shopping-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intelligent shopping assistant MVP workspace.",
+  "packageManager": "npm@11.12.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "services/api-server",
+    "apps/judge-entry-web"
+  ],
+  "scripts": {
+    "api:dev": "npm --workspace services/api-server run start:dev",
+    "api:build": "npm --workspace services/api-server run build",
+    "api:test": "npm --workspace services/api-server run test",
+    "api:test:unit": "npm --workspace services/api-server run test:unit --",
+    "api:test:e2e": "npm --workspace services/api-server run test:e2e",
+    "api:test:ci": "npm --workspace services/api-server run test:ci",
+    "api:smoke:cache": "npm --workspace services/api-server run smoke:cache",
+    "api:smoke:conversation": "npm --workspace services/api-server run smoke:conversation",
+    "api:audit:natural-language": "npm --workspace services/api-server run audit:natural-language --",
+    "api:audit:natural-language:both": "npm --workspace services/api-server run audit:natural-language:both",
+    "api:audit:image-semantic:cloud": "npm --workspace services/api-server run audit:image-semantic:cloud",
+    "api:audit:natural-language:local": "npm --workspace services/api-server run audit:natural-language:local",
+    "api:smoke:cloud": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cloud-smoke-full.ps1",
+    "product-pool:import": "node scripts/import-product-pool.mjs",
+    "product-pool:import:seed": "node scripts/import-product-pool.mjs --file samples/product-pool/generated/taobao_real_shoes_20260604-first80-verified.json",
+    "product-pool:import:fake": "node scripts/import-product-pool.mjs --file samples/product-pool/generated/fake-shoe-product-pool-50.json",
+    "product-pool:seed-price-history": "node scripts/seed-product-price-history.mjs",
+    "image-worker:dev": "cd services/image-worker && python -m app.main",
+    "web:dev": "npm --workspace apps/judge-entry-web run dev",
+    "web:build": "npm --workspace apps/judge-entry-web run build",
+    "product-pool:normalize:taobao": "node scripts/normalize-octoparse-taobao.mjs",
+    "product-pool:normalize:collected": "node scripts/normalize-collected-products.mjs",
+    "product-pool:verify-links": "node scripts/verify-product-links.mjs",
+    "product-pool:split": "node scripts/split-product-pool-payload.mjs",
+    "product-pool:split:platforms": "node scripts/split-product-pool-by-platform.mjs",
+    "product-pool:split:balanced": "node scripts/split-product-pool-balanced-platforms.mjs",
+    "product-pool:export-cloud-keys": "node scripts/export-cloud-product-pool-keys.mjs",
+    "product-pool:prepare:platforms": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-product-pool-platform-groups.ps1",
+    "product-pool:prepare:balanced": "node scripts/prepare-product-pool-balanced-upload.mjs",
+    "product-pool:prepare:quota": "node scripts/prepare-product-pool-quota-upload.mjs",
+    "octoparse:normalize:taobao": "node scripts/normalize-octoparse-taobao.mjs",
+    "octoparse:verify-links": "node scripts/verify-product-links.mjs"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0"
+  }
+}

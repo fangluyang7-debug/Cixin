@@ -1,0 +1,15 @@
+{
+  "version": "user-memory-shoe-preference-v1",
+  "description": "Category-specific user preference schema for shoes.",
+  "scope": "shoe",
+  "fields": {
+    "preferredColors": ["black", "white", "gray", "blue", "red", "green"],
+    "preferredStyles": ["running", "basketball", "skate", "casual", "training", "outdoor"],
+    "favoriteBrands": "Array of brands preferred specifically for shoes.",
+    "dislikedBrands": "Array of brands rejected specifically for shoes.",
+    "shoeSize": "User's preferred/default shoe size if explicitly confirmed.",
+    "fitPreference": "true_to_size | loose | snug",
+    "usageScenes": ["running", "commute", "basketball", "daily", "travel"]
+  },
+  "writeRule": "Do not make this block active until the user confirms the memory proposal."
+}

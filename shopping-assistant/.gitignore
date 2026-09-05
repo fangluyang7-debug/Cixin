@@ -1,0 +1,61 @@
+# dependencies
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.pt
+*.pth
+*.onnx
+*.safetensors
+
+# build outputs
+dist/
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.tmp/
+
+# local config and secrets
+.env
+.env.*
+!.env.example
+!.env.local-product-pool.example
+
+# local databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# generated mobile artifacts
+*.apk
+*.aab
+
+# editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# logs
+logs/
+artifacts/
+*.log
+npm-debug.log*
+~$*
+*.tmp
+*.bak
+*.swp
+
+# crawler/debug artifacts
+data/browser-profiles/
+data/crawler-debug/
+data/crawler-output/
+tools/data-pipeline/
+tools/data-pipeline/data/
+淘宝网-商品列表页采集*.json
+samples/product-pool/generated/taobao-*
+samples/product-pool/generated/collected_*
+samples/product-pool/generated/image/
+user_image_sample.jpg

@@ -1,0 +1,78 @@
+@baseUrl = http://localhost:3000
+
+### Health check
+GET {{baseUrl}}/api/v1/health
+
+### Register image asset
+POST {{baseUrl}}/api/v1/assets/images
+Content-Type: application/json
+
+{
+  "variantType": "compressed_recognition",
+  "sourceType": "demo",
+  "clientContext": {
+    "smoke": "day1-p0"
+  }
+}
+
+### Register image asset with multipart relay
+# Use an HTTP client that supports file variables, then bind `file` to a jpg/png/webp.
+POST {{baseUrl}}/api/v1/assets/images
+Content-Type: multipart/form-data
+
+variantType=compressed_recognition
+sourceType=demo
+file=<attach image/jpeg file>
+
+### Create query session
+# Replace assetId with data.assetId from the previous response.
+POST {{baseUrl}}/api/v1/sessions
+Content-Type: application/json
+
+{
+  "assetId": "asset_replace_me",
+  "entrySource": "judge_demo",
+  "categoryHint": "shoe"
+}
+
+### Read session
+# Replace sessionId with data.session.sessionId from the create-session response.
+GET {{baseUrl}}/api/v1/sessions/sess_replace_me
+
+### Read current candidates
+# Replace sessionId with data.session.sessionId from the create-session response.
+GET {{baseUrl}}/api/v1/sessions/sess_replace_me/candidates
+
+### Read candidate detail
+# Replace candidateItemId with data.items[0].candidateItemId from the candidates response.
+GET {{baseUrl}}/api/v1/candidates/item_replace_me
+
+### Read session suggestions
+# Replace sessionId with data.session.sessionId from the create-session response.
+GET {{baseUrl}}/api/v1/sessions/sess_replace_me/suggestions
+
+### Refine session with natural language
+# Replace sessionId with data.session.sessionId from the create-session response.
+POST {{baseUrl}}/api/v1/sessions/sess_replace_me/turns
+Content-Type: application/json
+
+{
+  "message": "只看500以内有货的结果"
+}
+
+### Trigger fallback with strict budget
+# Replace sessionId with data.session.sessionId from the create-session response.
+POST {{baseUrl}}/api/v1/sessions/sess_replace_me/turns
+Content-Type: application/json
+
+{
+  "message": "只看100以内有货的结果"
+}
+
+### Error contract: missing asset
+POST {{baseUrl}}/api/v1/sessions
+Content-Type: application/json
+
+{
+  "assetId": "asset_missing"
+}

@@ -1,0 +1,10 @@
+process.env.NODE_ENV = 'test';
+process.env.DATABASE_URL = 'file:./test.db';
+process.env.JWT_SECRET = 'test-only-jwt-secret';
+process.env.MAINTENANCE_API_TOKEN = 'test-maintenance-token';
+process.env.OBJECT_STORAGE_PROVIDER = 'tencent_cos';
+process.env.PRODUCT_DATA_PROVIDER = 'local_product_pool';
+process.env.SEARCH_PROVIDER = 'local_product_pool';
+process.env.EMBEDDING_PROVIDER = 'volcengine_doubao_vision';
+process.env.ENABLE_LOCAL_IMAGE_WORKER = 'false';
+process.env.PRODUCT_POOL_RESUME_IMPORT_ON_START = 'false';
