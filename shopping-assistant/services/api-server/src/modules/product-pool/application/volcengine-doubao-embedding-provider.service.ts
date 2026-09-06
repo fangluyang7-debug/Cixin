@@ -51,23 +51,22 @@ export class VolcengineDoubaoEmbeddingProviderService implements EmbeddingProvid
   private async callEmbedding(input: EmbeddingContent[], _tags?: Record<string, unknown>) {
     const baseUrl = this.config.get<string>('embedding.baseUrl');
     const apiKey = this.config.get<string>('embedding.apiKey');
-    const modelName = this.config.get<string>('embedding.modelName') ?? 'doubao-embedding-vision';
-    if (!baseUrl || !apiKey) {
+    const modelName = this.config.get<string>('embedding.modelName');
+    const dimension = this.config.get<number>('embedding.dimension');
+    if (!baseUrl || !apiKey || !modelName) {
       throw new InternalServerErrorException('EMBEDDING_PROVIDER_NOT_CONFIGURED');
     }
 
     const endpoint = this.buildEmbeddingEndpoint(baseUrl);
+    const body: Record<string, unknown> = { model: modelName, input };
+    if (dimension !== undefined) body.dimensions = dimension;
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        model: modelName,
-        input,
-        dimensions: this.config.get<number>('embedding.dimension') ?? 1024,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (!response.ok) {

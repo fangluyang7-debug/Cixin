@@ -5,6 +5,17 @@ export default () => ({
   runtime: {
     nodeEnv: process.env.NODE_ENV ?? "development",
     allowMockProviders: false,
+    platformAdapter: process.env.RUNTIME_PLATFORM_ADAPTER ?? "auto",
+    networkProbeUrl: optionalString(process.env.RUNTIME_NETWORK_PROBE_URL),
+    networkProbeTimeoutMs: Number(process.env.RUNTIME_NETWORK_PROBE_TIMEOUT_MS ?? 3000),
+    minimumPerformanceSamples: Number(
+      process.env.RUNTIME_MINIMUM_PERFORMANCE_SAMPLES ?? 3,
+    ),
+    switchThreshold: Number(process.env.RUNTIME_SWITCH_THRESHOLD ?? 0.05),
+    lowBatteryPercent: Number(process.env.RUNTIME_LOW_BATTERY_PERCENT ?? 20),
+    highTemperatureCelsius: Number(
+      process.env.RUNTIME_HIGH_TEMPERATURE_CELSIUS ?? 75,
+    ),
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? "dev-secret-change-before-deploy",
@@ -151,12 +162,10 @@ export default () => ({
     queryEmbeddingKind: process.env.QUERY_EMBEDDING_KIND ?? "visual",
     searchQueryEmbeddingKind:
       process.env.SEARCH_QUERY_EMBEDDING_KIND ?? "multimodal",
-    modelName:
-      optionalString(process.env.EMBEDDING_MODEL_NAME) ??
-      "doubao-embedding-vision",
+    modelName: optionalString(process.env.EMBEDDING_MODEL_NAME),
     baseUrl: optionalString(process.env.EMBEDDING_API_BASE_URL),
     apiKey: optionalString(process.env.EMBEDDING_API_KEY),
-    dimension: Number(process.env.EMBEDDING_DIMENSION ?? 1024),
+    dimension: parseOptionalPositiveInteger(process.env.EMBEDDING_DIMENSION),
     localWorkerBaseUrl: optionalString(process.env.LOCAL_IMAGE_WORKER_BASE_URL),
     localWorkerTimeoutMs: Number(
       process.env.LOCAL_IMAGE_WORKER_TIMEOUT_MS ?? 60000,

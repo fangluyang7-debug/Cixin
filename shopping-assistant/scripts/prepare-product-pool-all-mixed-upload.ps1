@@ -1,6 +1,6 @@
 param(
   [string]$DataRoot = "E:\学习资料\data",
-  [string]$BaseUrl = "https://apiserver.zeabur.app",
+  [string]$BaseUrl = "http://localhost:3000",
   [string]$BatchSource = "",
   [int]$GroupSize = 1000,
   [int]$BatchSize = 50,

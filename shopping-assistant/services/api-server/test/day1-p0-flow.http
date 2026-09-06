@@ -31,7 +31,7 @@ Content-Type: application/json
 
 {
   "assetId": "asset_replace_me",
-  "entrySource": "judge_demo",
+  "entrySource": "test_app",
   "categoryHint": "shoe"
 }
 

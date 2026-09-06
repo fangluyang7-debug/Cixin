@@ -1,5 +1,5 @@
 param(
-  [string]$BaseUrl = "https://apiserver.zeabur.app",
+  [string]$BaseUrl = "http://localhost:3000",
   [string]$ImagePath = "",
   [string]$EnvFile = ".env",
   [string]$MaintenanceToken = "",

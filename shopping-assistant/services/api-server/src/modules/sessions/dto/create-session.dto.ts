@@ -7,7 +7,7 @@ export interface InitialSubjectSelectionDto {
 
 export class CreateSessionDto {
   assetId: string;
-  entrySource?: "android_app" | "judge_demo" | "unknown";
+  entrySource?: "android_app" | "test_app" | "unknown";
   categoryHint?: string;
   filters?: Record<string, unknown>;
   initialSubjectSelection?: InitialSubjectSelectionDto;

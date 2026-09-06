@@ -21850,7 +21850,7 @@ class _PaymentActionSheetState extends State<PaymentActionSheet> {
                             );
                         },
                         icon: const Icon(Icons.lock_rounded),
-                        label: const Text('模拟支付'),
+                        label: const Text('打开商品链接'),
                       ),
                     ),
                   ],

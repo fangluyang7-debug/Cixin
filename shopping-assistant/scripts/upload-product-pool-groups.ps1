@@ -1,5 +1,5 @@
 param(
-  [string]$BaseUrl = "https://apiserver.zeabur.app",
+  [string]$BaseUrl = "http://localhost:3000",
   [string]$GroupsRoot = "samples\product-pool\generated\collected_all_20260606-groups-1000x50",
   [int]$StartGroupIndex = 1,
   [int]$EndGroupIndex = 0,

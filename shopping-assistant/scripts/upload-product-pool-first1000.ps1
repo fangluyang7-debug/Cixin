@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$BaseUrl = "https://apiserver.zeabur.app"
+$BaseUrl = "http://localhost:3000"
 $SourceFile = "samples\product-pool\generated\collected_shoes_20260605-full.json"
 $ChunkSize = 50
 $MaxChunks = 20

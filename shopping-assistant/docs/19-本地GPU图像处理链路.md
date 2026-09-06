@@ -4,7 +4,7 @@
 
 本地 GPU Worker 负责离线商品图鞋主体提取和本地图片 embedding。NestJS 主后端仍负责商品池、COS、数据库、ANN、搜索会话和前端接口。
 
-本链路不部署到 Zeabur，默认在开发机本地运行。
+本链路只在明确连接了真实 GPU/NPU Worker 的开发机上运行。
 
 重要边界：
 
@@ -27,16 +27,16 @@ NestJS API Server / 离线维护脚本
 ## 3. 后端环境变量
 
 ```env
-ENABLE_LOCAL_IMAGE_WORKER=true
+ENABLE_LOCAL_IMAGE_WORKER=false
 IMAGE_EMBEDDING_PREPROCESSOR=local_gpu_worker
 EMBEDDING_PROVIDER=local_gpu_worker
-LOCAL_IMAGE_WORKER_BASE_URL=http://127.0.0.1:7800
-LOCAL_IMAGE_WORKER_TIMEOUT_MS=60000
-EMBEDDING_MODEL_NAME=open_clip:ViT-B-32:laion2b_s34b_b79k
-EMBEDDING_DIMENSION=512
+LOCAL_IMAGE_WORKER_BASE_URL=
+LOCAL_IMAGE_WORKER_TIMEOUT_MS=
+EMBEDDING_MODEL_NAME=
+EMBEDDING_DIMENSION=
 ```
 
-这些变量只应用于本地离线商品处理或本地验证环境，并且必须显式设置 `ENABLE_LOCAL_IMAGE_WORKER=true` 才会进入 worker 分支。Zeabur 等云端实时服务不得配置为依赖 `LOCAL_IMAGE_WORKER_BASE_URL=http://127.0.0.1:7800`。
+这些变量只应用于本地离线商品处理或本地验证环境。只有在真实 Worker、模型文件、运行时和维度完成探测后，才允许填写并启用；不能根据示例值推断硬件能力。
 
 ## 4. 本地 Worker 启动
 
@@ -63,7 +63,7 @@ python -m app.main
 ## 6. 验收命令
 
 ```powershell
-Invoke-RestMethod http://127.0.0.1:7800/v1/health
+Invoke-RestMethod <configured-worker-url>/v1/health
 npm --workspace services/api-server run db:init
 npm run api:build
 ```

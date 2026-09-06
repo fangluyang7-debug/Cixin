@@ -1,6 +1,6 @@
 param(
   [string]$DataRoot = "",
-  [string]$BaseUrl = "https://apiserver.zeabur.app",
+  [string]$BaseUrl = "http://localhost:3000",
   [string]$BatchSource = "",
   [int]$PerPlatformLimit = 1000,
   [int]$GroupSize = 1000,

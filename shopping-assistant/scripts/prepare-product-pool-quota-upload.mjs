@@ -11,7 +11,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 process.chdir(repoRoot);
 
 const dataRoot = resolveDataRoot(args.dataRoot);
-const baseUrl = args.baseUrl ?? 'https://apiserver.zeabur.app';
+const baseUrl = args.baseUrl ?? 'http://localhost:3000';
 const batchSource = args.batchSource ?? `collected_quota_mixed_${dateStamp()}`;
 const batchSize = positiveInt(args.batchSize, 50);
 const groupSize = positiveInt(args.groupSize, 1000);

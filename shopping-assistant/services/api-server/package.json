@@ -16,11 +16,7 @@
     "test:e2e": "jest --config test/jest-e2e.json --runInBand",
     "test:ci": "npm run test:unit -- --ci --runInBand && npm run test:e2e -- --ci && npm run smoke:cache && npm run smoke:conversation",
     "smoke:cache": "ts-node scripts/cache-smoke.ts",
-    "smoke:conversation": "ts-node scripts/conversation-routing-smoke.ts",
-    "audit:natural-language": "ts-node scripts/cloud-natural-language-e2e-audit.ts",
-    "audit:natural-language:both": "npm run audit:natural-language -- --mode current_ann_then_refine && npm run audit:natural-language -- --mode light_tag_ann_fusion",
-    "audit:image-semantic:cloud": "ts-node scripts/cloud-image-semantic-workflow.ts",
-    "audit:natural-language:local": "ts-node scripts/natural-language-robustness-audit.ts"
+    "smoke:conversation": "ts-node scripts/conversation-routing-smoke.ts"
   },
   "dependencies": {
     "@nestjs/cli": "^11.0.10",

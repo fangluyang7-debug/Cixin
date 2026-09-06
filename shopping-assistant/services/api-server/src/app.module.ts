@@ -16,6 +16,7 @@ import { ProductPoolModule } from './modules/product-pool/product-pool.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserMemoryModule } from './modules/user-memory/user-memory.module';
 import { TrendOutfitModule } from './modules/trend-outfit/trend-outfit.module';
+import { RuntimeModule } from './modules/runtime/runtime.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { TrendOutfitModule } from './modules/trend-outfit/trend-outfit.module';
     TurnsModule,
     SuggestionsModule,
     TrendOutfitModule,
+    RuntimeModule,
     DetailsModule,
     FallbackModule,
     HealthModule,

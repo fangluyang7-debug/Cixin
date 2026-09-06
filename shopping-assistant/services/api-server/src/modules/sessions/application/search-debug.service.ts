@@ -110,7 +110,7 @@ export class SearchDebugService {
           userId: null,
           status: 'processing',
           stage: 'debug_preprocessing',
-          entrySource: 'judge_demo',
+          entrySource: 'test_app',
           categoryHint,
           degraded: false,
           currentTurnIndex: 0,

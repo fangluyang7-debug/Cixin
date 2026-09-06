@@ -133,6 +133,13 @@ function normalizeProductPoolV2Product(product, index, payload) {
     nonEmptyString(source.productId) ??
     `product-${index + 1}`;
 
+  const productUrl =
+    nonEmptyString(source.productUrl) ??
+    nonEmptyString(source.searchUrl);
+  if (!productUrl) {
+    throw new Error(`Product ${externalId} is missing an authorized product URL.`);
+  }
+
   const item = {
     externalId,
     platform: normalizePlatform(source.platform),
@@ -142,10 +149,7 @@ function normalizeProductPoolV2Product(product, index, payload) {
     stockStatus: normalizeStockStatus(nonEmptyString(listing.stockStatus)),
     shopName: nonEmptyString(shop.name),
     shopType: nonEmptyString(shop.type),
-    productUrl:
-      nonEmptyString(source.productUrl) ??
-      nonEmptyString(source.searchUrl) ??
-      `https://example.com/products/${encodeURIComponent(externalId)}`,
+    productUrl,
     brandHint: nonEmptyString(attributes.brand),
     rawPayload: {
       schemaVersion: payload.schemaVersion ?? null,
@@ -422,13 +426,12 @@ function printUsage() {
   console.log(`
 Usage:
   node scripts/import-product-pool.mjs --file samples/product-pool/generated/taobao_real_shoes_20260604-first80-verified.json
-  node scripts/import-product-pool.mjs --file samples/product-pool/generated/fake-shoe-product-pool-50.json --dry-run
   node scripts/import-product-pool.mjs --file input.json --base-url http://localhost:3000 --out normalized.json
-  node scripts/import-product-pool.mjs --file input.json --base-url https://apiserver.zeabur.app --env-file .env
-  node scripts/import-product-pool.mjs --file input.json --base-url https://apiserver.zeabur.app --env-file .env --wait
-  node scripts/import-product-pool.mjs --file input.json --base-url https://apiserver.zeabur.app --env-file .env --wait --fail-on-import-errors --expect-embeddings-per-product 2
-  node scripts/import-product-pool.mjs --file input.json --base-url https://apiserver.zeabur.app --env-file .env --wait --continue-on-wait-timeout --warn-on-expectation-failure
-  node scripts/import-product-pool.mjs --file input.json --base-url https://apiserver.zeabur.app --env-file .env --standardize-images --image-target-size 320
+  node scripts/import-product-pool.mjs --file input.json --base-url <configured-api-url> --env-file .env
+  node scripts/import-product-pool.mjs --file input.json --base-url <configured-api-url> --env-file .env --wait
+  node scripts/import-product-pool.mjs --file input.json --base-url <configured-api-url> --env-file .env --wait --fail-on-import-errors --expect-embeddings-per-product 2
+  node scripts/import-product-pool.mjs --file input.json --base-url <configured-api-url> --env-file .env --wait --continue-on-wait-timeout --warn-on-expectation-failure
+  node scripts/import-product-pool.mjs --file input.json --base-url <configured-api-url> --env-file .env --standardize-images --image-target-size 320
 `);
 }
 

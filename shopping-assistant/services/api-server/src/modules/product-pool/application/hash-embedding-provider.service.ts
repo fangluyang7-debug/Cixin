@@ -33,7 +33,7 @@ export class HashEmbeddingProviderService implements EmbeddingProvider {
     const normalized = this.normalize(vector);
     return {
       provider: this.config.get<string>('embedding.provider') ?? 'hash',
-      modelName: this.config.get<string>('embedding.modelName') ?? 'hash-image-text-512',
+      modelName: this.config.get<string>('embedding.modelName') ?? 'hash-provider',
       dimension,
       vector: normalized,
       vectorHash: createHash('sha256').update(JSON.stringify(normalized)).digest('hex'),
@@ -58,8 +58,11 @@ export class HashEmbeddingProviderService implements EmbeddingProvider {
   }
 
   private resolveDimension() {
-    const configured = this.config.get<number>('embedding.dimension') ?? 512;
-    return Number.isFinite(configured) && configured > 0 ? configured : 512;
+    const configured = this.config.get<number>('embedding.dimension');
+    if (!configured || !Number.isFinite(configured) || configured <= 0) {
+      throw new Error('HASH_EMBEDDING_DIMENSION_NOT_CONFIGURED');
+    }
+    return configured;
   }
 
   private tokenize(text: string) {

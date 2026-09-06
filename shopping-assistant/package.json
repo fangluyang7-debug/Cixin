@@ -9,7 +9,7 @@
   },
   "workspaces": [
     "services/api-server",
-    "apps/judge-entry-web"
+    "apps/test-entry-web"
   ],
   "scripts": {
     "api:dev": "npm --workspace services/api-server run start:dev",
@@ -20,18 +20,13 @@
     "api:test:ci": "npm --workspace services/api-server run test:ci",
     "api:smoke:cache": "npm --workspace services/api-server run smoke:cache",
     "api:smoke:conversation": "npm --workspace services/api-server run smoke:conversation",
-    "api:audit:natural-language": "npm --workspace services/api-server run audit:natural-language --",
-    "api:audit:natural-language:both": "npm --workspace services/api-server run audit:natural-language:both",
-    "api:audit:image-semantic:cloud": "npm --workspace services/api-server run audit:image-semantic:cloud",
-    "api:audit:natural-language:local": "npm --workspace services/api-server run audit:natural-language:local",
     "api:smoke:cloud": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cloud-smoke-full.ps1",
     "product-pool:import": "node scripts/import-product-pool.mjs",
     "product-pool:import:seed": "node scripts/import-product-pool.mjs --file samples/product-pool/generated/taobao_real_shoes_20260604-first80-verified.json",
-    "product-pool:import:fake": "node scripts/import-product-pool.mjs --file samples/product-pool/generated/fake-shoe-product-pool-50.json",
     "product-pool:seed-price-history": "node scripts/seed-product-price-history.mjs",
     "image-worker:dev": "cd services/image-worker && python -m app.main",
-    "web:dev": "npm --workspace apps/judge-entry-web run dev",
-    "web:build": "npm --workspace apps/judge-entry-web run build",
+    "web:dev": "npm --workspace apps/test-entry-web run dev",
+    "web:build": "npm --workspace apps/test-entry-web run build",
     "product-pool:normalize:taobao": "node scripts/normalize-octoparse-taobao.mjs",
     "product-pool:normalize:collected": "node scripts/normalize-collected-products.mjs",
     "product-pool:verify-links": "node scripts/verify-product-links.mjs",

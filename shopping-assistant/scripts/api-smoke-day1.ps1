@@ -106,7 +106,7 @@ if (-not $assetId) {
 
 $sessionBody = @{
   assetId = $assetId
-  entrySource = "judge_demo"
+  entrySource = "test_app"
   categoryHint = "shoe"
 }
 $session = Invoke-Api -Method "POST" -Path "/api/v1/sessions" -Body $sessionBody

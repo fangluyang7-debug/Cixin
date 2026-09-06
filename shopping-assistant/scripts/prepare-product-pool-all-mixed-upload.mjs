@@ -11,7 +11,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 process.chdir(repoRoot);
 
 const dataRoot = path.resolve(args.dataRoot ?? path.join('E:/', '学习资料', 'data'));
-const baseUrl = args.baseUrl ?? 'https://apiserver.zeabur.app';
+const baseUrl = args.baseUrl ?? 'http://localhost:3000';
 const batchSource = args.batchSource ?? `collected_mixed_unuploaded_${dateStamp()}`;
 const groupSize = parsePositiveInteger(args.groupSize, 1000);
 const batchSize = parsePositiveInteger(args.batchSize, 50);

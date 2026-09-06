@@ -5,7 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const args = parseArgs(process.argv.slice(2));
-const baseUrl = trimTrailingSlash(args.baseUrl ?? process.env.API_BASE_URL ?? 'https://apiserver.zeabur.app');
+const baseUrl = trimTrailingSlash(args.baseUrl ?? process.env.API_BASE_URL ?? 'http://localhost:3000');
 const outPath = path.resolve(args.out ?? 'samples/product-pool/generated/cloud-product-keys.jsonl');
 const limit = Math.min(parsePositiveInteger(args.limit) ?? 200, 200);
 const platforms = parseCsv(args.platforms);

@@ -31,7 +31,7 @@ Content-Type: application/json
 
 {
   "assetId": "{{assetId}}",
-  "entrySource": "judge_web",
+  "entrySource": "test_app",
   "categoryHint": "shoe"
 }
 
