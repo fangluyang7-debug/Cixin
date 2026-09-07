@@ -161,6 +161,7 @@ app.innerHTML = `
       <nav class="topbar-links" aria-label="debug navigation">
         <a class="ops-entry-link" href="/catalog.html">商品池展示</a>
         <a class="ops-entry-link" href="/product-pool.html">商品池运维中心</a>
+        <a class="ops-entry-link" href="/runtime.html">Runtime 调度盘</a>
       </nav>
       <label class="api-field">
         <span>API Base</span>

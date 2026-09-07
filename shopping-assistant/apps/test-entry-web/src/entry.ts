@@ -43,6 +43,7 @@ app.innerHTML = `
         <a href="#screens">界面截图</a>
         <a href="/catalog.html">真实商品池</a>
         <a href="/debug.html">Web 测试</a>
+        <a href="/runtime.html">调度盘</a>
       </nav>
     </header>
 
@@ -121,6 +122,7 @@ app.innerHTML = `
             <a href="/catalog.html">打开只读商品池</a>
             <a href="/debug.html">打开 Web 上传测试</a>
             <a href="/product-pool.html">运维中心</a>
+            <a href="/runtime.html">调度盘</a>
           </div>
         </div>
         <figure class="pipeline-figure">

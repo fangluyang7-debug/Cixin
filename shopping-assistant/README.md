@@ -65,4 +65,6 @@ flutter run -d <device> --dart-define=ENABLE_BACKEND=true --dart-define=API_BASE
 - `POST /api/v1/runtime/telemetry`
 - `POST /api/v1/runtime/verify`
 
+每次显式计划或图片搜索都会生成 `runId`。使用 `GET /api/v1/runtime/runs/:runId` 可以回放 taskGraph、executionPlan、候选评估、Telemetry、Verify 和 Replan 事件；当前记录保存在 API 进程内，服务重启后清空。完整字段约定见 [`docs/runtime-api-contract.md`](docs/runtime-api-contract.md)。
+
 商品来源只能使用已授权 API 或经过确认来源的商品数据；`marketplace` provider 未完成真实平台探测前不可调度。图片、数据库、模型 API、对象存储和电商接口均需由部署者配置，仓库不宣称任何云端地址已经部署，也不在示例文件中放置密钥。

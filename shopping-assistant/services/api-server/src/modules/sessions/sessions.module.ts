@@ -10,6 +10,7 @@ import { FallbackModule } from '../fallback/fallback.module';
 import { CandidatesModule } from '../candidates/candidates.module';
 import { SuggestionsModule } from '../suggestions/suggestions.module';
 import { UserMemoryModule } from '../user-memory/user-memory.module';
+import { RuntimeModule } from '../runtime/runtime.module';
 import { SessionsService } from './application/sessions.service';
 import { SearchEventsService } from './application/search-events.service';
 import { SEARCH_EVENT_ADAPTER } from './application/search-event-adapter.interface';
@@ -40,6 +41,7 @@ import { SearchDebugController } from './controllers/search-debug.controller';
     CandidatesModule,
     SuggestionsModule,
     UserMemoryModule,
+    RuntimeModule,
   ],
   controllers: [SessionsController, SearchDebugController],
   providers: [

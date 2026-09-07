@@ -10,6 +10,7 @@ import { ResourceAwareSchedulerService } from "../../core/runtime/scheduler.serv
 import { RuntimeSnapshotService } from "../../core/runtime/runtime-snapshot.service";
 import { TelemetryService } from "../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../core/runtime/tool-registry.service";
+import { RuntimeRunService } from "../../core/runtime/runtime-run.service";
 import { createShoppingPlugin } from "../../core/runtime/shopping-plugin";
 import { RuntimeController } from "./controllers/runtime.controller";
 
@@ -38,6 +39,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     PlatformDiscoveryService,
     ResourceAwareSchedulerService,
     RuntimeSnapshotService,
+    RuntimeRunService,
     AgentRuntimeService,
     ShoppingPluginRegistration,
   ],
@@ -47,6 +49,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     TelemetryService,
     ResourceAwareSchedulerService,
     AgentRuntimeService,
+    RuntimeRunService,
   ],
 })
 export class RuntimeModule {}

@@ -12,12 +12,18 @@ import { AssetsService } from '../../assets/application/assets.service';
 import { UploadedImageFile } from '../../assets/dto/uploaded-image-file';
 import { SearchDebugService } from '../application/search-debug.service';
 import { NormalizedSubjectBoxDto } from '../dto/subject-selection.dto';
+import { RuntimeRunService } from '../../../core/runtime/runtime-run.service';
+import {
+  RuntimeOperationStep,
+  TaskGraph,
+} from '../../../core/runtime/runtime.contracts';
 
 @Controller('api/v1/debug')
 export class SearchDebugController {
   constructor(
     private readonly assetsService: AssetsService,
     private readonly searchDebugService: SearchDebugService,
+    private readonly runtimeRuns: RuntimeRunService,
   ) {}
 
   @Post('image-search')
@@ -43,22 +49,45 @@ export class SearchDebugController {
       file,
     );
 
-    const result = await this.searchDebugService.run({
-      assetId: asset.assetId,
-      box: this.parseBox(body),
-      categoryHint: this.optionalString(body.categoryHint),
-      topK: this.optionalNumber(body.topK),
-      minScore: this.optionalNumber(body.minScore),
-      resultLimit: this.optionalNumber(body.resultLimit),
-      embeddingKind: this.optionalEmbeddingKind(body.embeddingKind),
-      runDetailed: this.optionalBoolean(body.runDetailed),
-      runRefined: this.optionalBoolean(body.runRefined),
-    });
+    const runtimeRun = await this.runtimeRuns.start(buildImageSearchTaskGraph(asset.assetId));
 
-    return ok({
-      upload: asset,
-      ...result,
-    });
+    try {
+      const result = await this.searchDebugService.run({
+        assetId: asset.assetId,
+        box: this.parseBox(body),
+        categoryHint: this.optionalString(body.categoryHint),
+        topK: this.optionalNumber(body.topK),
+        minScore: this.optionalNumber(body.minScore),
+        resultLimit: this.optionalNumber(body.resultLimit),
+        embeddingKind: this.optionalEmbeddingKind(body.embeddingKind),
+        runDetailed: this.optionalBoolean(body.runDetailed),
+        runRefined: this.optionalBoolean(body.runRefined),
+      });
+
+      const operationTimeline = Array.isArray(result.timeline)
+        ? result.timeline.map((step) => ({
+            key: step.key,
+            label: step.label,
+            startedAtMs: step.startedAtMs,
+            endedAtMs: step.endedAtMs,
+            durationMs: step.durationMs,
+            status: step.status,
+            ...(step.error ? { error: step.error } : {}),
+          })) satisfies RuntimeOperationStep[]
+        : [];
+      this.runtimeRuns.recordOperationTimeline(runtimeRun.runId, operationTimeline);
+      return ok({
+        upload: asset,
+        ...result,
+        runtime: this.runtimeRuns.complete(runtimeRun.runId, 'image_search_completed'),
+      });
+    } catch (error) {
+      this.runtimeRuns.fail(
+        runtimeRun.runId,
+        error instanceof Error ? error.message : 'IMAGE_SEARCH_FAILED',
+      );
+      throw error;
+    }
   }
 
   private parseBox(body: Record<string, unknown>): NormalizedSubjectBoxDto {
@@ -109,4 +138,42 @@ export class SearchDebugController {
     if (text === 'visual' || text === 'multimodal') return text;
     throw new BadRequestException('INVALID_DEBUG_EMBEDDING_KIND');
   }
+}
+
+function buildImageSearchTaskGraph(assetId: string): TaskGraph {
+  return {
+    graphId: `image-search-${assetId}`,
+    goal: `使用图片 ${assetId} 完成可解释的商品候选检索`,
+    planner: 'shopping-debug-entry',
+    createdAt: new Date().toISOString(),
+    nodes: [
+      {
+        taskId: 'quality-check',
+        toolId: 'image.quality_check',
+        inputRef: `asset:${assetId}`,
+        fallbackPolicy: { enabled: true, actions: ['请求用户重新上传图片'], maxAttempts: 2, replanAtStageBoundary: true },
+      },
+      {
+        taskId: 'crop',
+        toolId: 'image.crop',
+        inputRef: `asset:${assetId}`,
+        dependencies: ['quality-check'],
+        fallbackPolicy: { enabled: true, actions: ['使用原图继续处理'], maxAttempts: 2, replanAtStageBoundary: true },
+      },
+      {
+        taskId: 'embedding',
+        toolId: 'image.embedding',
+        inputRef: `task:crop`,
+        dependencies: ['crop'],
+        fallbackPolicy: { enabled: true, actions: ['降低输入分辨率'], maxAttempts: 2, replanAtStageBoundary: true },
+      },
+      {
+        taskId: 'vector-search',
+        toolId: 'catalog.vector_search',
+        inputRef: `task:embedding`,
+        dependencies: ['embedding'],
+        fallbackPolicy: { enabled: true, actions: ['切换到结构化标签召回'], maxAttempts: 2, replanAtStageBoundary: true },
+      },
+    ],
+  };
 }

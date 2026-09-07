@@ -293,5 +293,50 @@ export interface RuntimeSnapshot {
   }>;
   performanceSamples: PerformanceSample[];
   missingRequirements: MissingRequirement[];
+  activeRun: RuntimeRun | null;
+  recentRuns: RuntimeRun[];
   capturedAt: string;
+}
+
+export type RuntimeRunStatus = "planning" | "ready" | "blocked" | "completed" | "failed";
+
+export interface RuntimeVerificationEvent {
+  taskId: string;
+  toolId: string;
+  passed: boolean;
+  reasons: string[];
+  recommendedActions: string[];
+  recordedAt: string;
+}
+
+export interface RuntimeReplanEvent {
+  reason: string;
+  telemetryCount: number;
+  recordedAt: string;
+}
+
+export interface RuntimeOperationStep {
+  key: string;
+  label: string;
+  startedAtMs: number;
+  endedAtMs: number;
+  durationMs: number;
+  status: "ok" | "error" | "skipped";
+  error?: string;
+}
+
+export interface RuntimeRun {
+  runId: string;
+  goal: string;
+  taskGraph: TaskGraph | null;
+  executionPlan: ExecutionPlan | null;
+  telemetry: TelemetryRecord[];
+  operationTimeline: RuntimeOperationStep[];
+  verifications: RuntimeVerificationEvent[];
+  replanEvents: RuntimeReplanEvent[];
+  status: RuntimeRunStatus;
+  outcome?: string;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
 }

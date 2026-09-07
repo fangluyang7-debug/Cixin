@@ -18,6 +18,8 @@ npm run api:dev
 
 - `GET /api/v1/runtime/tools`
 - `GET /api/v1/runtime/snapshot`
+- `GET /api/v1/runtime/runs`
+- `GET /api/v1/runtime/runs/:runId`
 - `POST /api/v1/runtime/plan`
 - `POST /api/v1/runtime/agent/plan`
 - `POST /api/v1/runtime/replan`
@@ -25,6 +27,10 @@ npm run api:dev
 - `POST /api/v1/runtime/verify`
 
 Runtime 只在平台能力、模型探测、当前资源状态和真实性能样本都满足要求时生成可执行计划。没有 Agent Planner 时，`/agent/plan` 会返回 `AGENT_PLANNER_NOT_CONFIGURED`。
+
+`/plan`、`/agent/plan` 和图片搜索调试入口都会生成 `runId`。后续的 `/telemetry`、`/verify` 和 `/replan` 可以携带同一个 `runId`，运行快照会聚合对应的 taskGraph、executionPlan、候选评估、真实性能样本、验证结果和重规划事件。当前轨迹保存在进程内，服务重启后清空；持久化属于 P1。
+
+接口字段和请求示例见 [`docs/runtime-api-contract.md`](../../docs/runtime-api-contract.md)。
 
 ## 业务接口
 

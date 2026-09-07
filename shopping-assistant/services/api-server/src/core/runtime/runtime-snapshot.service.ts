@@ -3,6 +3,7 @@ import { MissingRequirement, RuntimeSnapshot } from "./runtime.contracts";
 import { PerformanceRegistryService } from "./performance-registry.service";
 import { PlatformDiscoveryService } from "./platform-discovery.service";
 import { ToolRegistryService } from "./tool-registry.service";
+import { RuntimeRunService } from "./runtime-run.service";
 
 @Injectable()
 export class RuntimeSnapshotService {
@@ -10,6 +11,7 @@ export class RuntimeSnapshotService {
     private readonly tools: ToolRegistryService,
     private readonly platforms: PlatformDiscoveryService,
     private readonly performance: PerformanceRegistryService,
+    private readonly runs: RuntimeRunService,
   ) {}
 
   async getSnapshot(): Promise<RuntimeSnapshot> {
@@ -40,6 +42,8 @@ export class RuntimeSnapshotService {
       })),
       performanceSamples: this.performance.list(),
       missingRequirements: uniqueRequirements(missingRequirements),
+      activeRun: this.runs.latest(),
+      recentRuns: this.runs.list(),
       capturedAt: new Date().toISOString(),
     };
   }

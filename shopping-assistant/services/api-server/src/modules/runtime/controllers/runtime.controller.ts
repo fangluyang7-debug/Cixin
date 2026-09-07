@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from "@nestjs/common";
+import { Body, Controller, Get, NotFoundException, Param, Post } from "@nestjs/common";
 import { ok } from "../../../common/dto/api-response.dto";
 import {
   CheckpointPolicy,
@@ -14,6 +14,7 @@ import { ResourceAwareSchedulerService } from "../../../core/runtime/scheduler.s
 import { RuntimeSnapshotService } from "../../../core/runtime/runtime-snapshot.service";
 import { TelemetryService } from "../../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../../core/runtime/tool-registry.service";
+import { RuntimeRunService } from "../../../core/runtime/runtime-run.service";
 
 @Controller("api/v1/runtime")
 export class RuntimeController {
@@ -24,6 +25,7 @@ export class RuntimeController {
     private readonly agent: AgentRuntimeService,
     private readonly telemetry: TelemetryService,
     private readonly performance: PerformanceRegistryService,
+    private readonly runs: RuntimeRunService,
   ) {}
 
   @Get("tools")
@@ -36,58 +38,107 @@ export class RuntimeController {
     return ok(await this.snapshot.getSnapshot());
   }
 
+  @Get("runs")
+  listRuns() {
+    return ok({ runs: this.runs.list() });
+  }
+
+  @Get("runs/:runId")
+  getRun(@Param("runId") runId: string) {
+    const run = this.runs.get(runId);
+    if (!run) throw new NotFoundException("RUNTIME_RUN_NOT_FOUND");
+    return ok(run);
+  }
+
   @Post("plan")
   async plan(@Body() body: unknown) {
-    const graph = parseTaskGraph(body);
-    return ok(await this.scheduler.plan(graph));
+    const input = asRecord(body);
+    const graph = parseTaskGraph(input.taskGraph ?? input);
+    const runId = asNonEmptyString(input.runId);
+    if (runId) {
+      const plan = await this.scheduler.plan(graph);
+      this.runs.updatePlan(runId, plan, graph);
+      return ok({ ...plan, runId });
+    }
+    const run = await this.runs.start(graph);
+    return ok({ ...run.executionPlan!, runId: run.runId });
   }
 
   @Post("agent/plan")
   async planAgent(@Body() body: unknown) {
     const input = asRecord(body);
     if (input.taskGraph) {
-      return ok(await this.agent.scheduleGraph(parseTaskGraph(input.taskGraph)));
+      const run = await this.runs.start(parseTaskGraph(input.taskGraph));
+      return ok({
+        status: run.status,
+        taskGraph: run.taskGraph,
+        executionPlan: run.executionPlan,
+        missingRequirements: run.executionPlan?.missingRequirements ?? [],
+        runId: run.runId,
+      });
     }
     const goal = asNonEmptyString(input.goal);
     if (!goal) {
+      const run = this.runs.startBlockedGoal(
+        "未提供 Agent 目标",
+        "AGENT_GOAL_OR_TASK_GRAPH_REQUIRED",
+        "请求必须提供 goal 或 taskGraph。",
+      );
       return ok({
-        status: "blocked",
+        status: run.status,
         taskGraph: null,
-        executionPlan: null,
-        missingRequirements: [
-          {
-            code: "AGENT_GOAL_OR_TASK_GRAPH_REQUIRED",
-            message: "请求必须提供 goal 或 taskGraph。",
-          },
-        ],
+        executionPlan: run.executionPlan,
+        missingRequirements: run.executionPlan?.missingRequirements ?? [],
+        runId: run.runId,
       });
     }
-    return ok(
-      await this.agent.planGoal({
-        goal,
-        context: isRecord(input.context) ? input.context : undefined,
-      }),
-    );
+    const result = await this.agent.planGoal({
+      goal,
+      context: isRecord(input.context) ? input.context : undefined,
+    });
+    if (result.taskGraph && result.executionPlan) {
+      const run = this.runs.createPlanned(result.taskGraph, result.executionPlan);
+      return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
+    }
+    const requirement = result.missingRequirements[0] ?? {
+      code: "AGENT_PLAN_BLOCKED",
+      message: "Agent 计划被阻断。",
+    };
+    const run = this.runs.startBlockedGoal(goal, requirement.code, requirement.message);
+    return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
   }
 
   @Post("replan")
   async replan(@Body() body: unknown) {
     const input = asRecord(body);
     const telemetry = parseTelemetryArray(input.telemetry);
-    return ok(
-      await this.agent.observeAndReplan({
-        taskGraph: parseTaskGraph(input.taskGraph),
-        telemetry,
-      }),
-    );
+    const result = await this.agent.observeAndReplan({
+      taskGraph: parseTaskGraph(input.taskGraph),
+      telemetry,
+    });
+    const runId = asNonEmptyString(input.runId);
+    if (runId && result.executionPlan) {
+      for (const record of telemetry) this.runs.recordTelemetry(runId, record);
+      this.runs.recordReplan(
+        runId,
+        asNonEmptyString(input.reason) ?? "runtime_observation",
+        telemetry.length,
+        result.executionPlan,
+      );
+    }
+    return ok({ ...result, runId: runId ?? null });
   }
 
   @Post("telemetry")
   recordTelemetry(@Body() body: unknown) {
-    const record = parseTelemetry(body);
+    const input = asRecord(body);
+    const record = parseTelemetry(input);
+    const runId = asNonEmptyString(input.runId);
+    if (runId) this.runs.recordTelemetry(runId, record);
     return ok({
       sample: this.telemetry.record(record),
       performanceSamples: this.performance.list(),
+      runId: runId ?? null,
     });
   }
 
@@ -96,8 +147,20 @@ export class RuntimeController {
     const input = asRecord(body);
     const assignment = parseAssignment(input.assignment);
     const tool = this.tools.require(assignment.toolId);
+    const telemetry = parseTelemetry(input.telemetry);
+    const verification = this.agent.verify(assignment, tool, telemetry);
+    const runId = asNonEmptyString(input.runId);
+    if (runId) {
+      this.runs.recordTelemetry(runId, telemetry);
+      this.runs.recordVerification(
+        runId,
+        { taskId: assignment.taskId, toolId: assignment.toolId },
+        verification,
+      );
+    }
     return ok({
-      verification: this.agent.verify(assignment, tool, parseTelemetry(input.telemetry)),
+      verification,
+      runId: runId ?? null,
     });
   }
 }
