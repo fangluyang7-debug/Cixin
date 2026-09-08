@@ -127,12 +127,24 @@ interface LifecycleStage {
 }
 
 const POLL_INTERVAL_MS = 1000;
+const EVENT_TYPES = [
+  'task_graph_received',
+  'candidate_evaluated',
+  'executor_selected',
+  'plan_blocked',
+  'telemetry_recorded',
+  'verification_failed',
+  'replan_requested',
+] as const;
 const compactWindow = new URLSearchParams(window.location.search).has('window');
+const embedMode = new URLSearchParams(window.location.search).has('embed');
 const app = document.querySelector<HTMLElement>('#app');
 if (!app) throw new Error('App root not found.');
 
 const initialApiBase = localStorage.getItem('debug-api-base') ?? import.meta.env.PUBLIC_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
-app.classList.toggle('compact-window', compactWindow);
+app.classList.toggle('compact-window', compactWindow || embedMode);
+app.classList.toggle('embed-mode', embedMode);
+document.body.classList.toggle('embed-mode', embedMode);
 app.innerHTML = `
   <main class="runtime-shell">
     <header class="runtime-topbar">
@@ -154,9 +166,16 @@ app.innerHTML = `
       <div class="connection-line">
         <span id="connectionDot" class="status-dot pending"></span>
         <span id="connectionText">正在读取 Runtime snapshot</span>
-        <span id="pollHint">每 1 秒轮询 /runtime/snapshot</span>
+        <span id="pollHint">snapshot 1s · SSE /runtime/events</span>
         <span id="capturedAt"></span>
       </div>
+      <section class="panel event-log-panel">
+        <div class="panel-heading">
+          <h2>实时调度事件</h2>
+          <span id="liveHint">等待 SSE</span>
+        </div>
+        <div id="eventLog" class="event-log"></div>
+      </section>
       <section id="runSummary" class="run-summary empty-panel"><p>尚未捕获运行轨迹</p></section>
       <section class="panel lifecycle-panel">
         <div class="panel-heading">
@@ -201,20 +220,86 @@ app.innerHTML = `
 const apiBaseInput = requireElement<HTMLInputElement>('apiBase');
 const refreshButton = requireElement<HTMLButtonElement>('refreshButton');
 let refreshInFlight = false;
+let eventSource: EventSource | null = null;
+const eventLogItems: Array<{ type: string; message: string; emittedAt: string; runId?: string; taskId?: string; executorId?: string }> = [];
 
 refreshButton.addEventListener('click', () => void refresh(true));
 apiBaseInput.addEventListener('change', () => {
   localStorage.setItem('debug-api-base', apiBaseInput.value.trim());
+  connectLiveEvents();
   void refresh(true);
 });
 window.addEventListener('storage', (event) => {
   if (event.key === 'runtime-active-run-id' || event.key === 'debug-api-base') {
+    if (event.key === 'debug-api-base' && event.newValue) {
+      apiBaseInput.value = event.newValue;
+      connectLiveEvents();
+    }
     void refresh(false);
   }
 });
 
 void refresh(false);
+connectLiveEvents();
+renderEventLog();
 window.setInterval(() => void refresh(false), POLL_INTERVAL_MS);
+
+function connectLiveEvents() {
+  eventSource?.close();
+  const liveHint = requireElement('liveHint');
+  liveHint.textContent = '正在连接 SSE';
+  const source = new EventSource(`${apiBaseInput.value.trim().replace(/\/$/, '')}/api/v1/runtime/events`);
+  eventSource = source;
+  source.onopen = () => {
+    liveHint.textContent = 'SSE 已连接';
+  };
+  source.onerror = () => {
+    liveHint.textContent = 'SSE 断开，浏览器将自动重连';
+  };
+  for (const type of EVENT_TYPES) {
+    source.addEventListener(type, (event) => {
+      const payload = parseEventData(event.data);
+      if (!payload) return;
+      eventLogItems.unshift({
+        type,
+        message: payload.message ?? type,
+        emittedAt: payload.emittedAt ?? new Date().toISOString(),
+        runId: payload.runId,
+        taskId: payload.taskId,
+        executorId: payload.executorId,
+      });
+      if (eventLogItems.length > 80) eventLogItems.length = 80;
+      renderEventLog();
+      void refresh(false);
+    });
+  }
+}
+
+function parseEventData(raw: string) {
+  try {
+    return JSON.parse(raw) as {
+      message?: string;
+      emittedAt?: string;
+      runId?: string;
+      taskId?: string;
+      executorId?: string;
+    };
+  } catch {
+    return null;
+  }
+}
+
+function renderEventLog() {
+  requireElement('eventLog').innerHTML = eventLogItems.length
+    ? eventLogItems.map((item) => `
+        <article class="live-event ${item.type}">
+          <span class="event-kind">${escapeHtml(item.type)}</span>
+          <strong>${escapeHtml(item.message)}</strong>
+          <span>${escapeHtml(item.taskId ?? item.runId ?? formatDate(item.emittedAt))}</span>
+        </article>
+      `).join('')
+    : empty('还没有 Scheduler 事件。左侧搜索一次后，这里会实时追加日志。');
+}
 
 async function refresh(manual: boolean) {
   if (refreshInFlight) return;

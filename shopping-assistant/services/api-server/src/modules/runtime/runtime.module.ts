@@ -11,6 +11,7 @@ import { RuntimeSnapshotService } from "../../core/runtime/runtime-snapshot.serv
 import { TelemetryService } from "../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../core/runtime/tool-registry.service";
 import { RuntimeRunService } from "../../core/runtime/runtime-run.service";
+import { RuntimeEventBusService } from "../../core/runtime/runtime-event-bus.service";
 import { createShoppingPlugin } from "../../core/runtime/shopping-plugin";
 import { RuntimeController } from "./controllers/runtime.controller";
 
@@ -40,6 +41,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     ResourceAwareSchedulerService,
     RuntimeSnapshotService,
     RuntimeRunService,
+    RuntimeEventBusService,
     AgentRuntimeService,
     ShoppingPluginRegistration,
   ],
@@ -50,6 +52,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     ResourceAwareSchedulerService,
     AgentRuntimeService,
     RuntimeRunService,
+    RuntimeEventBusService,
   ],
 })
 export class RuntimeModule {}

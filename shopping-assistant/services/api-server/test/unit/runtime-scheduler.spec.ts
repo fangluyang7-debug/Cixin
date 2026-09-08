@@ -11,6 +11,7 @@ import {
 } from "../../src/core/runtime/runtime.contracts";
 import { ToolRegistryService } from "../../src/core/runtime/tool-registry.service";
 import { createShoppingPlugin } from "../../src/core/runtime/shopping-plugin";
+import { RuntimeEventBusService } from "../../src/core/runtime/runtime-event-bus.service";
 
 describe("ResourceAwareSchedulerService", () => {
   it("blocks a local neural task until real performance data exists", async () => {
@@ -26,6 +27,21 @@ describe("ResourceAwareSchedulerService", () => {
     expect(plan.evaluations["task-1"][0].reasons).toContain(
       "MODEL_UNSUPPORTED:NO_LOCAL_NEURAL_MODEL_RUNTIME_DISCOVERED",
     );
+  });
+
+  it("emits graph, candidate, and blocked events for a scheduler plan", async () => {
+    const registry = new ToolRegistryService();
+    registry.registerPlugin(createShoppingPlugin(new ConfigService()));
+    const events = new RuntimeEventBusService();
+    const scheduler = createScheduler(registry, [localSnapshot()], undefined, events);
+
+    await scheduler.plan(graph("image.embedding"), { runId: "run_demo" });
+
+    const types = events.replay().map((event) => event.type);
+    expect(types[0]).toBe("task_graph_received");
+    expect(types).toContain("candidate_evaluated");
+    expect(types.at(-1)).toBe("plan_blocked");
+    expect(events.replay()[0].runId).toBe("run_demo");
   });
 
   it("filters hard constraints before scoring measured candidates", async () => {
@@ -100,9 +116,8 @@ describe("ResourceAwareSchedulerService", () => {
 function createScheduler(
   registry: ToolRegistryService,
   snapshots: ReturnType<typeof localSnapshot>[],
-  performance = new PerformanceRegistryService(
-    new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
-  ),
+  performance?: PerformanceRegistryService,
+  events?: RuntimeEventBusService,
 ) {
   const platformDiscovery = {
     discover: jest.fn().mockResolvedValue(snapshots),
@@ -110,8 +125,12 @@ function createScheduler(
   return new ResourceAwareSchedulerService(
     registry,
     platformDiscovery,
-    performance,
+    performance ??
+      new PerformanceRegistryService(
+        new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
+      ),
     new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
+    events,
   );
 }
 

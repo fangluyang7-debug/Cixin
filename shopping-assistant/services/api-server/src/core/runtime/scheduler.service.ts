@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   BackendType,
@@ -20,6 +20,7 @@ import {
 import { PerformanceRegistryService } from "./performance-registry.service";
 import { PlatformDiscoveryService, PlatformSnapshot } from "./platform-discovery.service";
 import { ToolRegistryService } from "./tool-registry.service";
+import { RuntimeEventBusService } from "./runtime-event-bus.service";
 
 @Injectable()
 export class ResourceAwareSchedulerService {
@@ -30,10 +31,18 @@ export class ResourceAwareSchedulerService {
     private readonly platforms: PlatformDiscoveryService,
     private readonly performance: PerformanceRegistryService,
     private readonly config: ConfigService,
+    @Optional() private readonly events?: RuntimeEventBusService,
   ) {}
 
-  async plan(graph: TaskGraph): Promise<ExecutionPlan> {
+  async plan(graph: TaskGraph, context: { runId?: string } = {}): Promise<ExecutionPlan> {
     const generatedAt = new Date().toISOString();
+    this.events?.emit({
+      type: "task_graph_received",
+      runId: context.runId,
+      graphId: graph.graphId,
+      message: graph.goal,
+      payload: { nodeCount: graph.nodes.length, planner: graph.planner ?? null },
+    });
     const topology = buildTopology(graph);
     const snapshots = await this.platforms.discover();
     const evaluations: Record<string, CandidateEvaluation[]> = {};
@@ -54,6 +63,26 @@ export class ResourceAwareSchedulerService {
 
       const taskEvaluations = await this.evaluateTask(task, tool, snapshots);
       evaluations[task.taskId] = taskEvaluations;
+      for (const evaluation of taskEvaluations) {
+        this.events?.emit({
+          type: "candidate_evaluated",
+          runId: context.runId,
+          graphId: graph.graphId,
+          taskId: task.taskId,
+          toolId: task.toolId,
+          executorId: evaluation.executorId,
+          message: evaluation.accepted
+            ? `${evaluation.executorId} accepted`
+            : `${evaluation.executorId} rejected`,
+          payload: {
+            accepted: evaluation.accepted,
+            backend: evaluation.backend,
+            placement: evaluation.placement,
+            reasons: evaluation.reasons,
+            score: evaluation.score,
+          },
+        });
+      }
       const accepted = taskEvaluations.filter((evaluation) => evaluation.accepted);
       if (accepted.length === 0) {
         missingRequirements.push(...this.collectMissingRequirements(task, taskEvaluations));
@@ -92,9 +121,23 @@ export class ResourceAwareSchedulerService {
         status: "planned",
       });
       this.lastSelections.set(task.taskId, selected.executorId);
+      this.events?.emit({
+        type: "executor_selected",
+        runId: context.runId,
+        graphId: graph.graphId,
+        taskId: task.taskId,
+        toolId: task.toolId,
+        executorId: selected.executorId,
+        message: `${task.taskId} -> ${selected.executorId}`,
+        payload: {
+          backend: selected.backend,
+          placement: selected.placement,
+          score: selected.score,
+        },
+      });
     }
 
-    return {
+    const plan: ExecutionPlan = {
       graphId: graph.graphId,
       status: missingRequirements.length === 0 ? "ready" : "blocked",
       executionOrder: topology.executionOrder,
@@ -104,6 +147,20 @@ export class ResourceAwareSchedulerService {
       evaluations,
       generatedAt,
     };
+    if (plan.status === "blocked") {
+      this.events?.emit({
+        type: "plan_blocked",
+        runId: context.runId,
+        graphId: graph.graphId,
+        taskId: missingRequirements[0]?.taskId,
+        message: missingRequirements[0]?.message ?? "计划被阻断",
+        payload: {
+          codes: missingRequirements.map((item) => item.code),
+          count: missingRequirements.length,
+        },
+      });
+    }
+    return plan;
   }
 
   private async evaluateTask(

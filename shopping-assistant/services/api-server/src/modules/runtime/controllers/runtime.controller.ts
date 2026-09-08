@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, NotFoundException, Param, Post, Sse } from "@nestjs/common";
 import { ok } from "../../../common/dto/api-response.dto";
 import {
   CheckpointPolicy,
@@ -15,6 +15,7 @@ import { RuntimeSnapshotService } from "../../../core/runtime/runtime-snapshot.s
 import { TelemetryService } from "../../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../../core/runtime/tool-registry.service";
 import { RuntimeRunService } from "../../../core/runtime/runtime-run.service";
+import { RuntimeEventBusService } from "../../../core/runtime/runtime-event-bus.service";
 
 @Controller("api/v1/runtime")
 export class RuntimeController {
@@ -26,6 +27,7 @@ export class RuntimeController {
     private readonly telemetry: TelemetryService,
     private readonly performance: PerformanceRegistryService,
     private readonly runs: RuntimeRunService,
+    private readonly events: RuntimeEventBusService,
   ) {}
 
   @Get("tools")
@@ -36,6 +38,11 @@ export class RuntimeController {
   @Get("snapshot")
   async getSnapshot() {
     return ok(await this.snapshot.getSnapshot());
+  }
+
+  @Sse("events")
+  streamEvents() {
+    return this.events.sse();
   }
 
   @Get("runs")
@@ -56,7 +63,7 @@ export class RuntimeController {
     const graph = parseTaskGraph(input.taskGraph ?? input);
     const runId = asNonEmptyString(input.runId);
     if (runId) {
-      const plan = await this.scheduler.plan(graph);
+      const plan = await this.scheduler.plan(graph, { runId });
       this.runs.updatePlan(runId, plan, graph);
       return ok({ ...plan, runId });
     }
@@ -112,16 +119,26 @@ export class RuntimeController {
   async replan(@Body() body: unknown) {
     const input = asRecord(body);
     const telemetry = parseTelemetryArray(input.telemetry);
+    const runId = asNonEmptyString(input.runId);
+    const reason = asNonEmptyString(input.reason) ?? "runtime_observation";
+    if (runId) {
+      this.events.emit({
+        type: "replan_requested",
+        runId,
+        message: reason,
+        payload: { telemetryCount: telemetry.length },
+      });
+    }
     const result = await this.agent.observeAndReplan({
       taskGraph: parseTaskGraph(input.taskGraph),
       telemetry,
+      runId,
     });
-    const runId = asNonEmptyString(input.runId);
     if (runId && result.executionPlan) {
       for (const record of telemetry) this.runs.recordTelemetry(runId, record);
       this.runs.recordReplan(
         runId,
-        asNonEmptyString(input.reason) ?? "runtime_observation",
+        reason,
         telemetry.length,
         result.executionPlan,
       );

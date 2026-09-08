@@ -11,13 +11,17 @@ import {
   VerificationResult,
 } from "./runtime.contracts";
 import { ResourceAwareSchedulerService } from "./scheduler.service";
+import { RuntimeEventBusService } from "./runtime-event-bus.service";
 
 @Injectable()
 export class RuntimeRunService {
   private readonly runs = new Map<string, RuntimeRun>();
   private readonly maxRecentRuns = 20;
 
-  constructor(private readonly scheduler: ResourceAwareSchedulerService) {}
+  constructor(
+    private readonly scheduler: ResourceAwareSchedulerService,
+    private readonly events: RuntimeEventBusService,
+  ) {}
 
   async start(taskGraph: TaskGraph): Promise<RuntimeRun> {
     const now = new Date().toISOString();
@@ -35,7 +39,7 @@ export class RuntimeRunService {
       updatedAt: now,
     };
     this.store(run);
-    const plan = await this.scheduler.plan(taskGraph);
+    const plan = await this.scheduler.plan(taskGraph, { runId: run.runId });
     return this.updatePlan(run.runId, plan);
   }
 
@@ -43,7 +47,7 @@ export class RuntimeRunService {
     if (!runId || !this.get(runId)) {
       return this.start(taskGraph);
     }
-    const plan = await this.scheduler.plan(taskGraph);
+    const plan = await this.scheduler.plan(taskGraph, { runId });
     return this.updatePlan(runId, plan, taskGraph);
   }
 
@@ -112,6 +116,21 @@ export class RuntimeRunService {
     run.telemetry = [...run.telemetry, record].slice(-100);
     run.updatedAt = new Date().toISOString();
     this.store(run);
+    this.events.emit({
+      type: "telemetry_recorded",
+      runId,
+      taskId: record.taskId,
+      toolId: record.toolId,
+      executorId: record.executorId,
+      message: `${record.toolId} ${record.success ? "success" : "failed"} · ${record.latencyMs}ms`,
+      payload: {
+        latencyMs: record.latencyMs,
+        memoryPeakMb: record.memoryPeakMb,
+        quality: record.quality ?? null,
+        fallbackOccurred: record.fallbackOccurred,
+        success: record.success,
+      },
+    });
     return run;
   }
 
@@ -137,6 +156,19 @@ export class RuntimeRunService {
     run.verifications = [...run.verifications, event].slice(-100);
     run.updatedAt = event.recordedAt;
     this.store(run);
+    if (!result.passed) {
+      this.events.emit({
+        type: "verification_failed",
+        runId,
+        taskId: record.taskId,
+        toolId: record.toolId,
+        message: result.reasons.join(" · ") || `${record.toolId} verification failed`,
+        payload: {
+          reasons: result.reasons,
+          recommendedActions: result.recommendedActions,
+        },
+      });
+    }
     return run;
   }
 

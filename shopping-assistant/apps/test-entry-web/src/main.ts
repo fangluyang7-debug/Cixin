@@ -158,6 +158,8 @@ const categoryOptions = [
   .join('');
 
 app.innerHTML = `
+  <div class="vm-console">
+    <div class="vm-app">
   <main class="debug-shell">
     <header class="topbar">
       <div>
@@ -296,6 +298,11 @@ app.innerHTML = `
       </section>
     </section>
   </main>
+    </div>
+    <aside class="vm-runtime" aria-label="Runtime 调度盘">
+      <iframe title="Runtime 调度盘" src="/runtime.html?embed=1"></iframe>
+    </aside>
+  </div>
 `;
 
 const apiBaseInput = requireElement<HTMLInputElement>('apiBase');

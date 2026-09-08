@@ -53,8 +53,8 @@ export class AgentRuntimeService {
     return this.scheduleGraph(taskGraph);
   }
 
-  async scheduleGraph(taskGraph: TaskGraph): Promise<AgentPlanResult> {
-    const executionPlan = await this.scheduler.plan(taskGraph);
+  async scheduleGraph(taskGraph: TaskGraph, runId?: string): Promise<AgentPlanResult> {
+    const executionPlan = await this.scheduler.plan(taskGraph, { runId });
     return {
       status: executionPlan.status,
       taskGraph,
@@ -69,11 +69,12 @@ export class AgentRuntimeService {
   async observeAndReplan(input: {
     taskGraph: TaskGraph;
     telemetry: TelemetryRecord[];
+    runId?: string;
   }) {
     for (const record of input.telemetry) {
       this.telemetry.record(record);
     }
-    return this.scheduleGraph(input.taskGraph);
+    return this.scheduleGraph(input.taskGraph, input.runId);
   }
 
   verify(

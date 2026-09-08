@@ -11,8 +11,38 @@
 }
 
 body {
-  min-width: 1120px;
+  min-width: 0;
   margin: 0;
+}
+
+.debug-shell {
+  min-height: 100%;
+}
+
+.vm-console {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(460px, 0.82fr);
+  height: 100vh;
+  overflow: hidden;
+  background: #eef2ef;
+}
+
+.vm-app {
+  min-width: 0;
+  overflow: auto;
+}
+
+.vm-runtime {
+  min-width: 0;
+  border-left: 1px solid #d3dcd7;
+  background: #eef2f0;
+}
+
+.vm-runtime iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 button,
@@ -523,6 +553,18 @@ details pre {
 @media (max-width: 1260px) {
   body {
     min-width: 0;
+  }
+
+  .vm-console {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .vm-runtime {
+    height: 72vh;
+    border-left: 0;
+    border-top: 1px solid #d3dcd7;
   }
 
   .workspace {

@@ -59,13 +59,14 @@ flutter run -d <device> --dart-define=ENABLE_BACKEND=true --dart-define=API_BASE
 
 - `GET /api/v1/runtime/tools`
 - `GET /api/v1/runtime/snapshot`
+- `GET /api/v1/runtime/events`
 - `POST /api/v1/runtime/plan`
 - `POST /api/v1/runtime/agent/plan`
 - `POST /api/v1/runtime/replan`
 - `POST /api/v1/runtime/telemetry`
 - `POST /api/v1/runtime/verify`
 
-Web 调度盘 `/runtime.html` 每 1 秒轮询 `GET /api/v1/runtime/snapshot`。图片搜索页在每次真实搜索前会额外调用 `POST /api/v1/runtime/plan`，并提供「打开调度盘」入口。
+Web 调度盘 `/runtime.html` 每 1 秒轮询 `GET /api/v1/runtime/snapshot`，并用 `GET /api/v1/runtime/events` 接收 Scheduler 实时事件。图片搜索页是左应用 / 右调度盘控制台；每次真实搜索前会额外调用 `POST /api/v1/runtime/plan`。
 
 每次显式计划或图片搜索都会生成 `runId`。使用 `GET /api/v1/runtime/runs/:runId` 可以回放 taskGraph、executionPlan、候选评估、Telemetry、Verify 和 Replan 事件；当前记录保存在 API 进程内，服务重启后清空。完整字段约定见 [`docs/runtime-api-contract.md`](docs/runtime-api-contract.md)。
 

@@ -1,7 +1,12 @@
 import { RuntimeRunService } from "../../src/core/runtime/runtime-run.service";
 import { ExecutionPlan, TaskGraph, TelemetryRecord } from "../../src/core/runtime/runtime.contracts";
 import { ResourceAwareSchedulerService } from "../../src/core/runtime/scheduler.service";
+import { RuntimeEventBusService } from "../../src/core/runtime/runtime-event-bus.service";
 import { buildImageSearchTaskGraph } from "../../src/core/runtime/image-search-task-graph";
+
+function createRunService(scheduler: ResourceAwareSchedulerService) {
+  return new RuntimeRunService(scheduler, new RuntimeEventBusService());
+}
 
 describe("RuntimeRunService", () => {
   it("keeps the runId and scheduler result together for a planned graph", async () => {
@@ -9,7 +14,7 @@ describe("RuntimeRunService", () => {
     const scheduler = {
       plan: jest.fn().mockResolvedValue(plan),
     } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
 
     const run = await service.start(graph());
 
@@ -18,11 +23,15 @@ describe("RuntimeRunService", () => {
     expect(run.executionPlan).toBe(plan);
     expect(run.status).toBe("ready");
     expect(service.latest()?.runId).toBe(run.runId);
+    expect(scheduler.plan).toHaveBeenCalledWith(
+      expect.objectContaining({ graphId: "graph-1", goal: "检索商品" }),
+      { runId: run.runId },
+    );
   });
 
   it("records telemetry and verification events without fabricating measurements", () => {
     const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
     const run = service.startBlockedGoal("测试", "NO_PLANNER", "没有规划器");
     const telemetry: TelemetryRecord = {
       executionId: "exec-1",
@@ -50,7 +59,7 @@ describe("RuntimeRunService", () => {
 
   it("can persist a plan already produced by an external Agent Planner", () => {
     const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
     const planned = executionPlan("ready");
 
     const run = service.createPlanned(graph(), planned);
@@ -65,7 +74,7 @@ describe("RuntimeRunService", () => {
     const scheduler = {
       plan: jest.fn().mockResolvedValue(plan),
     } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
     const first = await service.start(graph());
 
     const attached = await service.attachGraph(first.runId, {
@@ -82,7 +91,7 @@ describe("RuntimeRunService", () => {
     const scheduler = {
       plan: jest.fn().mockResolvedValue(executionPlan("blocked")),
     } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
 
     const run = await service.attachGraph("run_missing", graph());
 
@@ -92,7 +101,7 @@ describe("RuntimeRunService", () => {
 
   it("keeps business operation timing separate from executor telemetry", () => {
     const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
-    const service = new RuntimeRunService(scheduler);
+    const service = createRunService(scheduler);
     const run = service.startBlockedGoal("图片搜索", "BLOCKED", "等待资源");
 
     service.recordOperationTimeline(run.runId, [{

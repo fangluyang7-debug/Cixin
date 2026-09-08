@@ -10,6 +10,24 @@ GET /api/v1/runtime/snapshot
 
 返回 `tools`、`platforms`、`performanceSamples`、全局 `missingRequirements`、当前 `activeRun` 和最近 `recentRuns`。`activeRun` 为最近更新的运行记录，当前版本最多保留最近 20 条运行记录，保存在 API 进程内。
 
+## 实时事件流
+
+```http
+GET /api/v1/runtime/events
+```
+
+SSE 流。新连接会先回放进程内最近 200 条事件，再持续推送 Scheduler 关键节点：
+
+- `task_graph_received`
+- `candidate_evaluated`
+- `executor_selected`
+- `plan_blocked`
+- `telemetry_recorded`
+- `verification_failed`
+- `replan_requested`
+
+事件 `data` 为 JSON，包含 `type`、`message`、`emittedAt`，以及可选的 `runId`、`graphId`、`taskId`、`toolId`、`executorId` 和 `payload`。连接保活使用 `heartbeat` 事件，不进入回放缓冲。
+
 ## 创建或更新计划
 
 ```http
