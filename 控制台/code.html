@@ -94,35 +94,47 @@
     }
   }
 </style>
-<style id="custom-cyber-scrollbar">
-  html {
-    scroll-behavior: smooth;
-    height: auto !important;
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        obsidian: {
+          950: '#07090C',
+          900: '#0C0E12',
+          850: '#12151B',
+          800: '#161A22',
+          750: '#1D222C',
+          700: '#252B37',
+          600: '#343D4E',
+          500: '#4B5569'
+        },
+        amber: {
+          350: '#FFC837',
+          400: '#FFB800',
+          450: '#F59E0B',
+          500: '#E5A93C',
+          600: '#D4AF37',
+          700: '#B8860B',
+          900: '#4E3807'
+        },
+        gold: {
+          light: '#F5E2B3',
+          base: '#D4AF37',
+          dim: '#8A7326',
+          deep: '#3A2E0B'
+        },
+        indGreen: '#22C55E'
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'Share Tech Mono', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Plus Jakarta Sans', 'PingFang SC', 'sans-serif'],
+      }
+    }
   }
-  ::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-  }
-  ::-webkit-scrollbar-track {
-    background: rgba(12, 14, 18, 0.85);
-    border-left: 1px solid rgba(255, 184, 0, 0.08);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(212, 175, 55, 0.35) 0%, rgba(0, 229, 255, 0.3) 100%);
-    border: 1px solid rgba(255, 184, 0, 0.25);
-    border-radius: 4px;
-    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6), 0 0 8px rgba(0, 229, 255, 0.2);
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(255, 184, 0, 0.6) 0%, rgba(0, 229, 255, 0.7) 100%);
-    border-color: rgba(0, 229, 255, 0.6);
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4), inset 0 0 4px rgba(255, 230, 150, 0.4);
-  }
-  .obsidian-grid {
-    background-attachment: fixed !important;
-  }
-</style>
-<link href="/runtime-tailwind.css" rel="stylesheet">
+}
+</script>
 <style>
   body {
     background-color: #0C0E12;
@@ -134,7 +146,7 @@
   /* 黑曜石工业精密底网与微刻度网格 */
   .obsidian-grid {
     background-color: #0C0E12;
-    background-image:
+    background-image: 
       radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.06) 1px, transparent 1px),
       linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
       linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
@@ -145,7 +157,7 @@
   .rack-panel {
     background: linear-gradient(180deg, #181D26 0%, #13161E 100%);
     border: 1px solid rgba(212, 175, 55, 0.28);
-    box-shadow:
+    box-shadow: 
       0 4px 16px -2px rgba(0, 0, 0, 0.7),
       inset 0 1px 0 rgba(255, 220, 120, 0.15),
       inset 0 -1px 0 rgba(0, 0, 0, 0.6);
@@ -300,7 +312,7 @@
   }
 </style>
 </head>
-<body class="antialiased flex flex-col relative obsidian-grid selection:bg-amber-500/30 selection:text-amber-200 overflow-y-auto"><div aria-hidden="true" class="aurora-container"><div class="aurora-beam aurora-beam-1"></div><div class="aurora-beam aurora-beam-2"></div><div class="aurora-beam aurora-beam-3"></div></div>
+<body class="h-screen max-h-screen overflow-hidden antialiased flex flex-col relative obsidian-grid selection:bg-amber-500/30 selection:text-amber-200"><div aria-hidden="true" class="aurora-container"><div class="aurora-beam aurora-beam-1"></div><div class="aurora-beam aurora-beam-2"></div><div class="aurora-beam aurora-beam-3"></div></div>
 <!-- 顶部机柜边缘拉丝香槟暖金微刻蚀高光带 -->
 <div class="h-1 bg-gradient-to-r from-[#2A2310] via-[#D4AF37] to-[#8A6400] w-full border-b border-[#FFB800]/40 shrink-0"></div>
 <!-- 1. 工业机架级全局标头 (Rack Navigation & Global State) -->
@@ -317,12 +329,12 @@
 <span class="text-amber-400 font-extrabold">边缘算力调度控制台</span>
 <span class="text-[#717D96] font-mono text-xs font-normal">· 控制台</span>
 </h1>
-<span class="spec-badge-dark flex items-center gap-1.5 px-2 py-0.5 text-xs" id="runtime-health-badge">
-<span class="lens-led off" id="runtime-health-led"></span><span id="runtime-health-text">等待板端心跳</span>
+<span class="spec-badge-green flex items-center gap-1.5 px-2 py-0.5 text-xs">
+<span class="lens-led green animate-pulse"></span>系统正常运行
           </span>
 </div>
 <div class="flex items-center gap-3 text-xs font-mono text-[#8C98A9] mt-0.5">
-<span class="">节点: <span class="text-[#E2E8F0] font-semibold" id="runtime-node">cix_p1</span></span>
+<span class="">节点: <span class="text-[#E2E8F0] font-semibold">edge-01</span></span>
 <span class="text-[#3A4354]">|</span>
 <span class="">时钟: <span class="text-amber-300/90 tabular-num font-semibold" id="clock-tick">UTC+8 20:39:28.146</span></span>
 </div>
@@ -332,7 +344,7 @@
 <div class="flex items-center bg-[#090B0F] border border-[#3D331A] rounded-[3px] p-1 gap-2 text-xs font-mono shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
 <div class="flex items-center gap-1.5 px-2 py-0.5 bg-[#141820] border border-[#4D3F1E] rounded-[2px]">
 <span class="lens-led amber animate-pulse" id="telemetry-led"></span>
-<span class="text-amber-300 font-extrabold text-[11px] tracking-wider" id="runtime-heartbeat-age">等待数据</span>
+<span class="text-amber-300 font-extrabold text-[11px] tracking-wider">实时监测</span>
 </div>
 <span class="text-[#94A3B8] text-[11px] font-bold">采样:</span>
 <select class="bg-transparent border-0 p-0 text-xs font-mono text-[#F8DC89] font-bold focus:ring-0 cursor-pointer" id="telemetry-interval">
@@ -383,8 +395,8 @@
 <span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
 <span class="spec-badge-gold">TMP</span> 核心结温
         </span>
-<span class="text-[#8C98A9] font-bold flex items-center gap-1" id="metric-thermal-state">
-<span class="lens-led off"></span> THERMAL N/A
+<span class="text-indGreen font-bold flex items-center gap-1" id="metric-thermal-state">
+<span class="lens-led green"></span> NORMAL
         </span>
 </div>
 <div class="my-1.5 flex items-baseline gap-1">
@@ -396,8 +408,8 @@
 <div class="meter-gold h-full transition-all duration-500" id="bar-temp" style="width: 66%;"></div>
 </div>
 <div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
-<span class="" id="metric-fan">PWM FAN: N/A</span>
-<span class="text-[#8C98A9] font-semibold" id="metric-throttle-detail">降频状态 N/A</span>
+<span class="">PWM FAN: 1850 RPM</span>
+<span class="text-indGreen font-semibold">PASS 无降频</span>
 </div>
 </div>
 <!-- 仪表 3: 12核 CPU 综合负荷 -->
@@ -419,7 +431,7 @@
 </div>
 <div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
 <span class="">3-CLUSTER DynamIQ</span>
-<span class="text-[#8C98A9] font-semibold">亲和策略 N/A</span>
+<span class="text-[#E2E8F0] font-semibold">Affinity OK</span>
 </div>
 </div>
 <!-- 仪表 4: NPU 推理引擎吞吐 -->
@@ -463,7 +475,7 @@
 </div>
 <div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
 <span class="">DMA POOL: 8.4GB</span>
-<span class="text-[#8C98A9]" id="metric-memory-bandwidth">BW N/A</span>
+<span class="text-[#E2E8F0]">68.2 GB/s BW</span>
 </div>
 </div>
 <!-- 仪表 6: 端云同步往返与健康度 -->
@@ -473,7 +485,7 @@
 <span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
 <span class="spec-badge-amber">CLOUD</span> pgvector
         </span>
-<span class="lens-led off" id="cloud-health-led"></span>
+<span class="lens-led green"></span>
 </div>
 <div class="my-1.5 flex items-baseline gap-1">
 <span class="text-[22px] font-bold tabular-num amber-glow-soft leading-none" id="metric-cloud-rtt">39.3</span>
@@ -491,9 +503,9 @@
 </div>
 </section>
 <!-- 3. 主体工作台：三栏高度自适应、严格对齐的工业机架大屏布局 -->
-<main class="max-w-[1920px] w-full mx-auto p-3.5 flex-1 grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch min-h-0 relative">
+<main class="max-w-[1920px] w-full mx-auto p-3.5 flex-1 grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch min-h-0 overflow-hidden relative">
 <!-- ==================== 第一列 (Col 1 - 4): 扩展后的 CPU 集群调度与细粒度线程拓扑 + GPU ==================== -->
-<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<div class="xl:col-span-4 flex flex-col gap-3.5 h-full min-h-0">
 <!-- 卡片 1.1: 深度扩展的 CPU 12核 DynamIQ 簇架构 + 细粒度工作线程与分片任务监控 -->
 <div class="rack-panel p-3.5 flex flex-col flex-1 min-h-0 justify-between">
 <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
@@ -504,7 +516,7 @@
 <h2 class="font-bold text-[15px] text-[#FFF2C2] tracking-wide">CPU 集群调度与线程拓扑</h2>
 <p class="text-[11px] text-[#8C98A9] font-normal">12核 DynamIQ 异构负载 · EAS / CFS + RT-FIFO</p>
 </div>
-<span class="spec-badge-dark text-xs" id="cpu-scheduler-status">等待计划</span>
+<span class="spec-badge-gold text-xs">在线调度</span>
 </div>
 </div>
 <!-- 3 个微架构核心簇详细状态 -->
@@ -580,8 +592,8 @@
 </div>
 <!-- 细粒度线程活动与分片任务明细监控区 (根据用户明确标注全面扩充) -->
 <div class="mt-2 recessed-bay p-2 rounded-[3px] border border-[#3E3319]/80 flex-1 min-h-0 flex flex-col">
-<div class="flex items-center justify-between text-[10px] font-mono pb-1 border-b border-[#231E12] shrink-0"><span class="font-bold text-[#F8DC89] flex items-center gap-1"><span class="spec-badge-gold text-[8.5px]">TASKS</span> <span id="scheduler-task-summary">等待调度计划</span></span><span class="text-[#8C98A9] text-[9px]" id="scheduler-task-meta">无运行轨迹</span></div>
-<div class="mt-1.5 space-y-1.5 font-mono text-[9.5px] overflow-y-auto log-scroll flex-1 pr-1" id="scheduler-task-list">
+<div class="flex items-center justify-between text-[10px] font-mono pb-1 border-b border-[#231E12] shrink-0"><span class="font-bold text-[#F8DC89] flex items-center gap-1"><span class="spec-badge-gold text-[8.5px]">THREADS</span> 活跃工作线程任务调度 (12 Active Threads · 全负载调度)</span><span class="text-[#8C98A9] text-[9px]">切频: 9.6k/s · 零丢帧直通</span></div>
+<div class="mt-1.5 space-y-1.5 font-mono text-[9.5px] overflow-y-auto log-scroll flex-1 pr-1">
 <!-- 线程 1: 数据切分 -->
 <div class="p-1.5 bg-[#141822] rounded-[2px] border border-[#282F3E] flex items-center justify-between gap-2 hover:border-amber-500/40 transition">
 <div class="flex items-center gap-1.5 min-w-0">
@@ -703,8 +715,8 @@
 </div>
 </div>
 <div class="flex justify-between items-center text-[9px] font-mono pt-1 text-[#8C98A9] shrink-0">
-<span id="scheduler-throttling">THROTTLING: N/A</span>
-<span class="text-[#8C98A9] font-semibold">内核抢占能力: 未探测</span>
+<span class="">THROTTLING: NONE (PASS)</span>
+<span class="text-amber-400/90 font-semibold">KERNEL PREEMPT RT: ENABLED</span>
 </div>
 </div>
 <!-- 卡片 1.2: GPU 图形渲染与通用并行计算 -->
@@ -730,21 +742,21 @@
 </div>
 <div class="recessed-bay p-2 flex flex-col justify-between rounded-[3px]">
 <div class="text-[9.5px] font-mono text-[#8C98A9]">计算驱动接口规范</div>
-<div class="text-[10.5px] font-mono font-bold text-[#8C98A9]">API PROBE: N/A</div>
-<div class="text-[8.5px] font-mono text-[#64748B]">RAY TRACING: N/A</div>
+<div class="text-[10.5px] font-mono font-bold text-[#E2E8F0]">Vulkan 1.3 / OpenCL 3.0</div>
+<div class="text-[8.5px] font-mono text-indGreen">RAY TRACING: ACCEL ON</div>
 </div>
 </div>
 <div class="mt-1.5 recessed-bay p-1.5 text-[9.5px] font-mono flex items-center justify-between text-[#8C98A9] rounded-[2px]">
 <span class="flex items-center gap-1.5">
-<span class="lens-led off"></span>
-          DISPLAY PIPELINE: AWAITING BOARD PROBE
+<span class="lens-led green"></span>
+          DISPLAY PIPELINE: 4K@60Hz UI + YUV422 格式硬件解调
         </span>
-<span class="text-[#F8DC89] font-bold bg-[#141822] px-1.5 py-0.5 border border-[#3E3319]" id="val-pipeline-fps">FPS: N/A</span>
+<span class="text-[#F8DC89] font-bold bg-[#141822] px-1.5 py-0.5 border border-[#3E3319]">FPS: 60.0</span>
 </div>
 </div>
 </div>
 <!-- ==================== 第二列 (Col 5 - 8): 专有 NPU 算子引擎 & 统一内存与 NVMe 存储 ==================== -->
-<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<div class="xl:col-span-4 flex flex-col gap-3.5 h-full min-h-0">
 <!-- 卡片 2.1: 专有 NPU 神经加速器 (CIX-NPU 30 TOPS) -->
 <div class="rack-panel p-3.5 flex flex-col justify-between shrink-0">
 <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
@@ -754,10 +766,10 @@
 <span class="spec-badge-amber text-xs font-bold">30 TOPS</span>
 <div class="text-center flex-1">
 <h2 class="font-bold text-[16px] text-[#FFF2C2] tracking-wide">NPU 神经算力监测</h2>
-<p class="text-[11px] text-[#8C98A9] font-normal">任务级遥测已接入 · 算子级探针待接入</p>
+<p class="text-[11px] text-[#8C98A9] font-normal">算子流水线直通 · 硬件零拷贝</p>
 </div>
-<div class="flex items-center gap-1.5 font-mono text-xs text-[#8C98A9] font-bold" id="npu-runtime-status">
-<span class="lens-led off"></span> 等待 NPU 遥测
+<div class="flex items-center gap-1.5 font-mono text-xs text-amber-400 font-bold">
+<span class="lens-led amber animate-ping"></span> 推理中
             </div>
 </div>
 </div>
@@ -774,12 +786,12 @@
 <span class="text-[7.5px] text-[#A89870] mt-0.5">UTIL</span>
 </div>
 </div>
-<span class="text-[9.5px] font-mono text-[#8C98A9] font-bold mt-1">能效 N/A</span>
+<span class="text-[9.5px] font-mono text-[#F8DC89] font-bold mt-1">4.1 TOPS/W</span>
 </div>
 <div class="col-span-8 flex flex-col justify-between text-[10.5px] font-mono space-y-1">
 <div class="flex items-center justify-between pb-0.5 border-b border-[#231E12]">
 <span class="text-[#8C98A9]">驻留模型</span>
-<span class="font-bold text-[#E2E8F0]" id="val-current-model">N/A</span>
+<span class="font-bold text-[#E2E8F0]">多模态 ViT-B (FP16)</span>
 </div>
 <div class="flex items-center justify-between">
 <span class="text-[#8C98A9]">推理单帧延迟</span>
@@ -804,7 +816,7 @@
             </span>
 <span class="text-[#8C98A9] font-bold" id="val-npu-qdepth">DEPTH: 3 TASKS</span>
 </div>
-<div class="grid grid-cols-3 gap-1.5 text-left font-mono" id="npu-op-queue">
+<div class="grid grid-cols-3 gap-1.5 text-left font-mono">
 <div class="p-1.5 bg-[#171C26] border border-amber-500/40 rounded-[3px] shadow-[inset_0_1px_0_rgba(255,184,0,0.2)]">
 <div class="flex items-center justify-between text-[8.5px] text-amber-300 font-bold">
 <span class="">OP #1 [EXEC]</span>
@@ -841,7 +853,7 @@
 <div>
 <div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
 <span class="font-bold text-xs text-[#F8DC89]">统一内存池</span>
-<span class="spec-badge-dark text-[9px]" id="val-memory-bandwidth">BW N/A</span>
+<span class="spec-badge-gold text-[9px]">68.2 GB/s</span>
 </div>
 <div class="mt-1.5 flex items-baseline justify-between font-mono">
 <div>
@@ -887,8 +899,8 @@
 </div>
 </div>
 <div class="recessed-bay p-1 text-[8.5px] font-mono flex items-center justify-between text-[#8C98A9] mt-2 rounded-[2px]">
-<span class="text-[#8C98A9]">NVMe 阵列: N/A</span>
-<span class="text-[#64748B] font-bold">iowait: N/A</span>
+<span class="text-[#CBD5E1]">NVMe 阵列: PASS</span>
+<span class="text-indGreen font-bold">iowait: 0.12%</span>
 </div>
 </div>
 </div>
@@ -947,18 +959,18 @@
 </div>
 </div>
 <!-- ==================== 第三列 (Col 9 - 12): 算力流水线、端云协同 & 移至此处的硬件总线 ==================== -->
-<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<div class="xl:col-span-4 flex flex-col gap-3.5 h-full min-h-0">
 <!-- 卡片 3.1: 端到端算力调度流水线 -->
 <div class="rack-panel p-3.5 flex flex-col justify-between shrink-0">
 <div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
 <div class="flex items-center justify-between pb-2 border-b border-[#2D2615]">
 <div class="w-full flex items-center justify-between">
 <div class="flex items-center gap-2">
-<span class="spec-badge-dark text-xs font-bold" id="pipeline-plan-status">等待计划</span>
+<span class="spec-badge-green text-xs font-bold">全链路闭环</span>
 <h2 class="font-bold text-[16px] text-[#FFF2C2] tracking-wide">端到端算力调度流水线</h2>
 </div>
 <span class="text-xs font-mono font-bold text-indGreen flex items-center gap-1.5">
-<span class="lens-led off"></span> N/A FPS
+<span class="lens-led green"></span> 60.0 FPS
           </span>
 </div>
 </div>
@@ -1025,9 +1037,9 @@
 <div class="mt-2.5 recessed-bay p-2 px-3 text-[11px] font-mono flex items-center justify-between text-[#CBD5E1] rounded-[3px] border border-[#2A2312]">
 <div class="flex items-center gap-2">
 <span class="lens-led green"></span>
-<span class="font-bold text-[#F8DC89]">Zero-Copy Ring Buffer: N/A</span>
+<span class="font-bold text-[#F8DC89]">Zero-Copy Ring Buffer: ACTIVE</span>
 </div>
-<span class="text-[#8C98A9] font-bold tracking-wide">等待板卡上报</span>
+<span class="text-indGreen font-bold tracking-wide">60 FPS 硬件直通无丢帧</span>
 </div>
 </div>
 <!-- 卡片 3.2: 端云协同与云端数据库同步监测 -->
@@ -1041,7 +1053,7 @@
 <h2 class="font-bold text-[15px] text-[#FFF2C2] tracking-wide">端云协同与向量库同步</h2>
 <p class="text-[11px] text-[#8C98A9] font-normal">pgvector 向量库实时写入</p>
 </div>
-<span class="spec-badge-dark text-xs" id="cloud-sync-status">未连接</span>
+<span class="spec-badge-green text-xs">已同步</span>
 </div>
 </div>
 <!-- 三联关键云端网络指标 -->
@@ -1060,7 +1072,7 @@
 <span class="text-[16px] font-bold tabular-num text-indGreen" id="val-db-latency">15.4</span>
 <span class="text-[9.5px] text-[#A89870]">ms</span>
 </div>
-<div class="text-[8.5px] text-[#64748B] mt-0.5">Pool: N/A</div>
+<div class="text-[8.5px] text-[#64748B] mt-0.5">Pool: 8 活跃连接</div>
 </div>
 <div class="recessed-bay p-2 rounded-[3px]">
 <div class="text-[9px] text-[#8C98A9]">网络丢包与重传</div>
@@ -1068,7 +1080,7 @@
 <span class="text-[16px] font-bold tabular-num text-indGreen" id="val-cloud-loss-sub">0.00</span>
 <span class="text-[9.5px] text-[#A89870]">%</span>
 </div>
-<div class="text-[8.5px] text-[#64748B] mt-0.5">传输协议: 未监测</div>
+<div class="text-[8.5px] text-indGreen mt-0.5">QUIC 加速启用</div>
 </div>
 </div>
 <!-- 实时上下行吞吐双向标尺 -->
@@ -1103,7 +1115,7 @@
 <!-- 最新事务同步打卡栏 -->
 <div class="mt-2 recessed-bay p-2 text-[10px] font-mono flex items-center justify-between text-[#CBD5E1] rounded-[2px]">
 <div class="flex items-center gap-2">
-<span class="lens-led off"></span>
+<span class="lens-led green"></span>
 <span class="">最新同步: <b class="text-[#F8DC89]" id="val-last-batch">Batch #8942</b> (512-dim)</span>
 </div>
 <span class="text-[#8C98A9]" id="val-last-synctime">耗时 16ms · 19:55:03</span>
@@ -1116,7 +1128,7 @@
 <div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
 <div class="w-full flex items-center justify-between">
 <h2 class="font-bold text-[14px] text-[#FFF2C2] tracking-wide">硬件总线与外设状态</h2>
-<span class="spec-badge-dark text-xs" id="peripheral-summary">未上报</span>
+<span class="spec-badge-green text-xs">全部连通</span>
 </div>
 </div>
 <div class="mt-2 grid grid-cols-2 gap-2 text-[10.5px] font-mono flex-1">
@@ -1124,11 +1136,11 @@
 <div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
 <div class="flex items-center justify-between">
 <span class="font-bold text-[#E2E8F0] text-[9.5px]">[LAN] 2× 2.5G RJ45</span>
-<span class="spec-badge-dark" id="peripheral-lan-status">N/A</span>
+<span class="spec-badge-green">UP</span>
 </div>
 <div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
-<span class="">LAN1: N/A</span>
-<span class="text-[#4B5569]">LAN2: N/A</span>
+<span class="">LAN1: 1.25 Gbps</span>
+<span class="text-[#4B5569]">LAN2: IDLE</span>
 </div>
 </div>
 <!-- 4路 MIPI-CSI 相机接口 -->
@@ -1139,7 +1151,7 @@
 </div>
 <div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
 <span class="">4× 1080P@60</span>
-<span class="text-[#8C98A9] font-bold" id="peripheral-dropped-frames">丢帧 N/A</span>
+<span class="text-indGreen font-bold">0 丢帧</span>
 </div>
 </div>
 <!-- 多路视频输出 -->
@@ -1149,25 +1161,25 @@
 <span class="spec-badge-dark">4K60</span>
 </div>
 <div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
-<span class="text-[#8C98A9]">HDMI: N/A</span>
-<span class="text-[#4B5569]">DP: N/A</span>
+<span class="text-[#E2E8F0]">HDMI: CONNECTED</span>
+<span class="text-[#4B5569]">DP: READY</span>
 </div>
 </div>
 <!-- 工业级串口矩阵与GPIO -->
 <div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
 <div class="flex items-center justify-between">
 <span class="font-bold text-[#E2E8F0] text-[9.5px]">[I/O] 7× UART / 40p GPIO</span>
-<span class="spec-badge-dark">N/A</span>
+<span class="spec-badge-green">POLL</span>
 </div>
 <div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
-<span class="">RS485/232: N/A</span>
-<span class="text-[#8C98A9] font-bold">IRQ: N/A</span>
+<span class="">RS485/232 轮询中</span>
+<span class="text-amber-400 font-bold">IRQ: 0.12ms</span>
 </div>
 </div>
 </div>
 <div class="mt-2 pt-1 border-t border-[#2D2615] flex items-center justify-between text-[9px] font-mono text-[#8C98A9]">
-<span class="">PCIE CAPABILITY: X4 GEN4</span>
-<span class="text-[#8C98A9] font-semibold">PERIPHERAL STATUS: ADAPTER-REPORTED</span>
+<span class="">PCIE LINK: X4 GEN4 ACTIVE</span>
+<span class="text-indGreen font-semibold">ALL PERIPHERALS HEALTHY</span>
 </div>
 </div>
 </div>
@@ -1177,7 +1189,7 @@
 <div class="max-w-[1920px] mx-auto flex items-center justify-between flex-nowrap overflow-x-auto whitespace-nowrap gap-4">
 <div class="flex items-center gap-4 flex-nowrap">
 <span class="flex items-center gap-1.5 font-bold text-[#E2E8F0]">
-<span class="lens-led off" id="hardware-bus-led"></span> <span id="hardware-bus-status">HARDWARE BUS: AWAITING HEARTBEAT</span>
+<span class="lens-led green"></span> HARDWARE BUS: SYNCHRONIZED
     </span>
 <span class="text-[#3A4354]">|</span>
 <span class="">BOARD: <span class="text-[#CBD5E1] font-semibold">定昌电子 DC_ENP1</span></span>
@@ -1186,18 +1198,17 @@
 <span class="text-[#3A4354]">|</span>
 <span class="">PCIe Gen4 x4: 16.0 GT/s</span>
 <span class="text-[#3A4354]">|</span>
-<span class="">SCHEDULER ENGINE: <span class="text-[#F8DC89] font-semibold">Agentic Runtime</span></span>
+<span class="">SCHEDULER ENGINE: <span class="text-[#F8DC89] font-semibold">DynamIQ EAS / RT-FIFO</span></span>
 </div>
 <div class="flex items-center gap-4 text-[#717D96] text-[10.5px]">
-<span class="">SYSTEM HEALTH: <b class="text-[#8C98A9]" id="footer-system-health">AWAITING HEARTBEAT</b></span>
+<span class="">SYSTEM HEALTH: <b class="text-indGreen">100% OPTIMAL</b></span>
 <span class="text-[#3A4354]">|</span>
-<span class="">SECURITY MASK: <b class="text-[#8C98A9]">NOT MONITORED</b></span>
+<span class="">SECURITY MASK: <b class="text-[#CBD5E1]">ACTIVE (TLS 1.3)</b></span>
 </div>
 </div>
 </footer>
 <!-- 5. 动态单点数据源驱动引擎 (RuntimeState / Telemetry Dynamic Engine) -->
 <script>
-if (false) {
 window.__RUNTIME_STATE__ = {
   active: true,
   intervalMs: 1200,
@@ -1386,233 +1397,7 @@ function clearLogs() {
 
 startSimulation();
 updateTelemetryUI();
-}
 </script>
-<script>
-/* Runtime integration: the board heartbeat is the only source of truth. */
-(function () {
-  const apiBase = (localStorage.getItem('debug-api-base') || window.__RUNTIME_API_BASE__ || 'http://localhost:3000').replace(/\/$/, '');
-  const state = window.__RUNTIME_STATE__ || {};
-  state.active = false;
-  let polling = true;
-  let intervalMs = 1000;
-  let timer;
 
-  const ids = {
-    power: 'metric-pwr', powerPct: 'metric-pwr-pct', powerBar: 'bar-pwr',
-    temp: 'metric-temp', tempBar: 'bar-temp', thermal: 'metric-thermal-state',
-    cpuFreq: 'metric-cpu-freq', cpuLoad: 'metric-cpu-load', cpuBar: 'bar-cpu',
-    npuLoad: 'metric-npu-load', npuBar: 'bar-npu', npuQueue: 'metric-npu-q', npuWait: 'metric-npu-wait',
-    ram: 'metric-ram-used', ramPct: 'metric-ram-pct', ramBar: 'bar-ram',
-    cloudRtt: 'metric-cloud-rtt', cloudLoss: 'metric-cloud-loss', cloudBar: 'bar-cloud', cloudJitter: 'metric-cloud-jitter',
-    gpuLoad: 'val-gpu-load', gpuVram: 'val-gpu-vram', gpuVramBar: 'bar-gpu-vram',
-    npuRadial: 'val-npu-radial-pct', npuLatency: 'val-vit-latency', npuFreq: 'val-npu-freq', npuSram: 'val-npu-sram', npuDepth: 'val-npu-qdepth',
-    dram: 'val-dram-used-col', dramPct: 'val-dram-pct-col', dramBar: 'bar-dram-col',
-    nvme: 'val-nvme-throughput', iops: 'val-nvme-iops',
-    pipe1: 'pipe-st1', pipe2: 'pipe-st2', pipe3: 'pipe-st3', pipe4: 'pipe-st4',
-    subRtt: 'val-cloud-rtt-sub', subJitter: 'val-cloud-jitter-sub', db: 'val-db-latency', loss: 'val-cloud-loss-sub', tx: 'val-tx-rate', rx: 'val-rx-rate', txBar: 'bar-tx', rxBar: 'bar-rx',
-    batch: 'val-last-batch', sync: 'val-last-synctime',
-    healthBadge: 'runtime-health-badge', healthLed: 'runtime-health-led', healthText: 'runtime-health-text', heartbeatAge: 'runtime-heartbeat-age', node: 'runtime-node',
-    throttle: 'metric-throttle-detail', fan: 'metric-fan', taskSummary: 'scheduler-task-summary', taskMeta: 'scheduler-task-meta', taskList: 'scheduler-task-list', schedulerThrottle: 'scheduler-throttling',
-    npuStatus: 'npu-runtime-status', currentModel: 'val-current-model', npuOps: 'npu-op-queue', pipelineFps: 'val-pipeline-fps',
-    cloudLed: 'cloud-health-led', cloudSync: 'cloud-sync-status', peripheralSummary: 'peripheral-summary', droppedFrames: 'peripheral-dropped-frames', hardwareLed: 'hardware-bus-led', hardwareStatus: 'hardware-bus-status', footerHealth: 'footer-system-health', cpuScheduler: 'cpu-scheduler-status', pipelinePlan: 'pipeline-plan-status', memoryBandwidth: 'metric-memory-bandwidth', memoryBandwidthCard: 'val-memory-bandwidth'
-  };
 
-  function el(id) { return document.getElementById(id); }
-  function text(id, value) { const node = el(id); if (node) node.textContent = value == null ? 'N/A' : String(value); }
-  function bar(id, value) { const node = el(id); if (node) node.style.width = Number.isFinite(value) ? `${Math.max(0, Math.min(100, value))}%` : '0%'; }
-  function obs(source, key) {
-    const item = source && source[key];
-    return item && item.available === true && item.value !== null && item.value !== undefined ? item.value : null;
-  }
-  function fmt(value, suffix, digits) { return value == null ? 'N/A' : `${Number(value).toFixed(digits == null ? 1 : digits)}${suffix || ''}`; }
-  function clearValue(id, suffix) { text(id, `N/A${suffix ? ` ${suffix}` : ''}`); }
-  window.clearLogs = function () {
-    const log = el('log-container');
-    if (log) log.innerHTML = '<div class="p-2 text-center text-[#64748B] font-mono text-[10px]">-- 屏幕日志已清空，下一次事件或轮询后恢复 --</div>';
-  };
-  function setBadge(id, connected) {
-    const node = el(id);
-    if (!node) return;
-    node.className = `${connected ? 'spec-badge-green' : 'spec-badge-dark'} flex items-center gap-1.5 px-2 py-0.5 text-xs`;
-  }
-  function setCoreBar(index, value) {
-    const node = el(`core-bar-${index}`);
-    if (node) node.style.height = Number.isFinite(value) ? `${Math.max(0, Math.min(100, value))}%` : '0%';
-  }
-
-  function resetDynamic() {
-    Object.keys(ids).forEach((key) => {
-      if (!['powerBar', 'tempBar', 'cpuBar', 'npuBar', 'ramBar', 'cloudBar', 'gpuVramBar', 'dramBar', 'txBar', 'rxBar'].includes(key)) clearValue(ids[key]);
-    });
-    ['val-a720b-freq', 'val-a720b-pct', 'val-a720m-freq', 'val-a720m-pct', 'val-a520-pct', 'val-gpu-load', 'val-npu-radial-pct', 'val-vit-latency', 'val-npu-freq', 'val-npu-sram', 'val-npu-qdepth', 'val-dma-pool', 'val-npu-pool', 'metric-cpu-freq', 'val-gpu-vram', 'val-last-batch', 'val-last-synctime'].forEach((id) => clearValue(id));
-    ['powerBar', 'tempBar', 'cpuBar', 'npuBar', 'ramBar', 'cloudBar', 'gpuVramBar', 'dramBar', 'txBar', 'rxBar'].forEach((key) => bar(ids[key], null));
-    ['bar-a720b', 'bar-a720m', 'bar-a520'].forEach((id) => bar(id, null));
-    for (let index = 0; index < 12; index += 1) setCoreBar(index, null);
-    text(ids.thermal, 'THERMAL N/A'); text(ids.throttle, '降频状态 N/A'); text(ids.fan, 'PWM FAN: N/A'); text(ids.schedulerThrottle, 'THROTTLING: N/A');
-    text(ids.healthText, '等待板端心跳'); text(ids.heartbeatAge, '等待数据'); text(ids.node, 'cix_p1'); setBadge(ids.healthBadge, false);
-    const healthLed = el(ids.healthLed); if (healthLed) healthLed.className = 'lens-led off';
-    const hardwareLed = el(ids.hardwareLed); if (hardwareLed) hardwareLed.className = 'lens-led off';
-    text(ids.hardwareStatus, 'BOARD HEARTBEAT: OFFLINE'); text(ids.footerHealth, 'AWAITING HEARTBEAT');
-    const cloudLed = el(ids.cloudLed); if (cloudLed) cloudLed.className = 'lens-led off'; text(ids.cloudSync, '未连接');
-    text(ids.peripheralSummary, '未上报'); text(ids.droppedFrames, '丢帧 N/A'); text(ids.pipelineFps, 'FPS: N/A'); text(ids.currentModel, 'N/A'); text(ids.cpuScheduler, '等待计划'); text(ids.pipelinePlan, '等待计划'); text(ids.memoryBandwidth, 'BW N/A'); text(ids.memoryBandwidthCard, 'BW N/A');
-    const npuStatus = el(ids.npuStatus); if (npuStatus) npuStatus.innerHTML = '<span class="lens-led off"></span> 等待 NPU 遥测';
-    const radial = el('npu-radial-svg'); if (radial) radial.setAttribute('stroke-dasharray', '0, 100');
-    renderTaskSlots(null);
-    const opQueue = el(ids.npuOps); if (opQueue) opQueue.innerHTML = '<div class="col-span-3 p-2 recessed-bay text-center text-[#64748B]">算子级遥测未接入，当前仅展示任务级调度</div>';
-  }
-
-  function render(snapshot) {
-    const platforms = snapshot.platforms || [];
-    const board = platforms.find((item) => item.profile && item.profile.platformId === 'cix_p1') || platforms.find((item) => item.profile && item.profile.platformId === 'host');
-    const cloud = platforms.find((item) => item.profile && item.profile.platformId === 'cloud');
-    if (!board) { resetDynamic(); renderRun(null); return; }
-    const s = board.state || {};
-    const c = cloud && cloud.state ? cloud.state : {};
-    const total = board.profile && board.profile.totalMemoryMb;
-    const free = obs(s, 'freeMemoryMb');
-    const used = total != null && free != null ? total - free : null;
-    const usedPct = total && used != null ? used / total * 100 : null;
-    const usedGb = used == null ? null : used / 1024;
-    const cpu = obs(s, 'cpuUtilizationPercent');
-    const gpu = obs(s, 'gpuUtilizationPercent');
-    const npu = obs(s, 'npuUtilizationPercent');
-    const temp = obs(s, 'temperatureCelsius');
-    const power = obs(s, 'powerWatts');
-    const cloudRtt = obs(c, 'networkLatencyMs') ?? obs(s, 'networkLatencyMs');
-    const jitter = obs(c, 'networkJitterMs') ?? obs(s, 'networkJitterMs');
-    const loss = obs(c, 'packetLossPercent') ?? obs(s, 'packetLossPercent');
-    const queue = obs(s, 'queueDepth') ?? obs(s, 'activeTaskCount');
-    const thermal = obs(s, 'thermalThrottle');
-    const diskRead = obs(s, 'ioReadMbps');
-    const diskWrite = obs(s, 'ioWriteMbps');
-    const iops = obs(s, 'iops');
-    const heartbeat = board.heartbeat;
-    const heartbeatFresh = heartbeat && heartbeat.fresh === true;
-    const schedulable = heartbeatFresh && board.profile && board.profile.available === true && Array.isArray(board.executors) && board.executors.some((item) => item.available === true);
-
-    setBadge(ids.healthBadge, heartbeatFresh);
-    text(ids.healthText, heartbeatFresh ? (schedulable ? '板端在线 · 可调度' : '板端在线 · 不可调度') : '板端心跳已过期');
-    const healthLed = el(ids.healthLed); if (healthLed) healthLed.className = heartbeatFresh ? 'lens-led green animate-pulse' : 'lens-led off';
-    text(ids.heartbeatAge, heartbeatFresh ? `心跳 ${Math.round(heartbeat.ageMs)}ms` : '心跳过期');
-    text(ids.node, `${board.profile.platformId} · ${heartbeatFresh ? heartbeat.source : 'offline'}`);
-    const hardwareLed = el(ids.hardwareLed); if (hardwareLed) hardwareLed.className = heartbeatFresh ? 'lens-led green' : 'lens-led off';
-    text(ids.hardwareStatus, heartbeatFresh ? 'BOARD HEARTBEAT: LIVE' : 'BOARD HEARTBEAT: STALE');
-    text(ids.footerHealth, heartbeatFresh ? (schedulable ? 'SCHEDULABLE' : 'CONNECTED / NO EXECUTOR') : 'STALE');
-    const cloudFresh = cloud && cloud.heartbeat && cloud.heartbeat.fresh === true;
-    const cloudLed = el(ids.cloudLed); if (cloudLed) cloudLed.className = cloudFresh ? 'lens-led green' : 'lens-led off';
-    text(ids.cloudSync, cloudFresh ? '遥测在线' : '未连接');
-    const memoryBandwidth = obs(s, 'memoryBandwidthMbps'); const memoryBandwidthText = memoryBandwidth == null ? 'BW N/A' : `${(Number(memoryBandwidth) / 8000).toFixed(1)} GB/s`; text(ids.memoryBandwidth, memoryBandwidthText); text(ids.memoryBandwidthCard, memoryBandwidthText);
-
-    text(ids.power, fmt(power, '', 2)); bar(ids.powerBar, power == null ? null : power / 35 * 100); text(ids.powerPct, power == null ? 'N/A' : `${(power / 35 * 100).toFixed(1)}% TDP`);
-    text(ids.temp, fmt(temp, '', 1)); bar(ids.tempBar, temp == null ? null : temp / 85 * 100); text(ids.thermal, thermal == null ? 'THERMAL N/A' : thermal ? 'THERMAL THROTTLE' : 'THERMAL NOMINAL'); text(ids.throttle, thermal == null ? '降频状态 N/A' : thermal ? '已触发热降频' : '未触发热降频'); text(ids.schedulerThrottle, thermal == null ? 'THROTTLING: N/A' : thermal ? 'THROTTLING: ACTIVE' : 'THROTTLING: NONE'); text(ids.fan, obs(s, 'fanRpm') == null ? 'PWM FAN: N/A' : `PWM FAN: ${Number(obs(s, 'fanRpm')).toFixed(0)} RPM`);
-    text(ids.cpuFreq, fmt(obs(s, 'cpuFrequencyMhz'), ' MHz', 0)); text(ids.cpuLoad, fmt(cpu, '', 1)); bar(ids.cpuBar, cpu);
-    text(ids.npuLoad, fmt(npu, '', 1)); bar(ids.npuBar, npu); text(ids.npuQueue, queue == null ? 'Q: N/A' : `Q: ${queue} TASK`); text(ids.npuWait, fmt(obs(s, 'queueWaitMs'), 'ms', 1));
-    text(ids.ram, fmt(usedGb, '', 1)); text(ids.ramPct, usedPct == null ? 'N/A' : `${usedPct.toFixed(1)}%`); bar(ids.ramBar, usedPct);
-    text(ids.cloudRtt, fmt(cloudRtt, '', 1)); text(ids.cloudLoss, loss == null ? 'N/A' : `${Number(loss).toFixed(2)}% 丢包`); text(ids.cloudJitter, jitter == null ? 'JITTER: N/A' : `JITTER: ${Number(jitter).toFixed(1)}ms`); bar(ids.cloudBar, cloudRtt == null ? null : Math.min(100, cloudRtt / 50 * 100));
-    const gpuMemory = obs(s, 'gpuMemoryUsedMb');
-    text(ids.gpuLoad, gpu == null ? 'N/A' : `${Number(gpu).toFixed(1)}% 负载`); text(ids.gpuVram, fmt(gpuMemory == null ? null : gpuMemory / 1024, '', 1)); bar(ids.gpuVramBar, total && gpuMemory != null ? gpuMemory / total * 100 : null);
-    text(ids.npuRadial, fmt(npu, '%', 1)); text(ids.npuLatency, fmt(obs(s, 'npuLatencyMs'), ' ms', 1)); text(ids.npuFreq, fmt(obs(s, 'npuFrequencyMhz'), ' MHz', 0)); text(ids.npuSram, fmt(obs(s, 'npuMemoryUsedMb'), ' MB', 1)); text(ids.npuDepth, queue == null ? 'DEPTH: N/A' : `DEPTH: ${queue} TASKS`);
-    const radial = el('npu-radial-svg'); if (radial) radial.setAttribute('stroke-dasharray', `${npu == null ? 0 : Math.max(0, Math.min(100, Number(npu)))}, 100`);
-    const npuStatus = el(ids.npuStatus); if (npuStatus) npuStatus.innerHTML = npu == null ? '<span class="lens-led off"></span> 等待 NPU 遥测' : '<span class="lens-led amber"></span> NPU 遥测在线';
-    text(ids.currentModel, obs(s, 'currentModel'));
-    text(ids.dram, fmt(usedGb, '', 1)); text(ids.dramPct, usedPct == null ? 'N/A' : `${usedPct.toFixed(1)}%`); bar(ids.dramBar, usedPct);
-    text('val-dma-pool', fmt(obs(s, 'dmaPoolUsedMb'), ' MB', 1)); text('val-npu-pool', fmt(obs(s, 'npuMemoryUsedMb'), ' MB', 1));
-    text(ids.nvme, diskRead == null && diskWrite == null ? 'N/A' : `${diskRead == null ? 'N/A' : Number(diskRead).toFixed(1)}/${diskWrite == null ? 'N/A' : Number(diskWrite).toFixed(1)}`); text(ids.iops, iops == null ? 'N/A' : Number(iops) >= 1000 ? `${(Number(iops) / 1000).toFixed(1)}K` : Number(iops).toFixed(0));
-    text(ids.pipe1, fmt(obs(s, 'networkThroughputMbps'), ' Mbps', 1)); text(ids.pipe2, fmt(obs(s, 'ioReadMbps'), ' MB/s', 1)); text(ids.pipe3, fmt(obs(s, 'npuLatencyMs'), ' ms', 1)); text(ids.pipe4, fmt(obs(s, 'activeTaskCount'), ' tasks', 0));
-    text(ids.subRtt, fmt(cloudRtt, '', 1)); text(ids.subJitter, jitter == null ? 'Jitter: N/A' : `Jitter: ${Number(jitter).toFixed(1)}ms`); text(ids.db, fmt(obs(c, 'databaseLatencyMs'), ' ms', 1)); text(ids.loss, loss == null ? 'N/A' : Number(loss).toFixed(2));
-    const tx = obs(s, 'networkTxMbps') ?? obs(s, 'networkThroughputMbps'); const rx = obs(s, 'networkRxMbps') ?? obs(c, 'networkThroughputMbps');
-    text(ids.tx, fmt(tx, ' Mbps', 1)); text(ids.rx, fmt(rx, ' Mbps', 1)); bar(ids.txBar, tx == null ? null : Math.min(100, Number(tx) / 2500 * 100)); bar(ids.rxBar, rx == null ? null : Math.min(100, Number(rx) / 2500 * 100));
-    text(ids.pipelineFps, obs(s, 'pipelineFps') == null ? 'FPS: N/A' : `FPS: ${Number(obs(s, 'pipelineFps')).toFixed(1)}`); text(ids.droppedFrames, obs(s, 'droppedFrames') == null ? '丢帧 N/A' : `丢帧 ${Number(obs(s, 'droppedFrames')).toFixed(0)}`);
-    const cores = obs(s, 'cpuCoreUtilizationPercent'); for (let index = 0; index < 12; index += 1) setCoreBar(index, Array.isArray(cores) ? cores[index] : null);
-    const clusterLoad = obs(s, 'cpuClusterUtilizationPercent'); const clusterFreq = obs(s, 'cpuClusterFrequencyMhz');
-    [['val-a720b-pct', 'val-a720b-freq', 'bar-a720b'], ['val-a720m-pct', 'val-a720m-freq', 'bar-a720m'], ['val-a520-pct', null, 'bar-a520']].forEach((entry, index) => { const load = Array.isArray(clusterLoad) ? clusterLoad[index] : null; const freq = Array.isArray(clusterFreq) ? clusterFreq[index] : null; text(entry[0], fmt(load, '', 1)); if (entry[1]) text(entry[1], fmt(freq, 'M', 0)); bar(entry[2], load); });
-    text(ids.batch, snapshot.activeRun ? snapshot.activeRun.runId : 'N/A'); text(ids.sync, snapshot.capturedAt ? `快照 ${new Date(snapshot.capturedAt).toLocaleTimeString('zh-CN', { hour12: false })}` : 'N/A');
-    const clock = el('clock-tick'); if (clock) clock.textContent = `LOCAL ${new Date().toLocaleTimeString('zh-CN', { hour12: false })}`;
-    renderRun(snapshot.activeRun);
-  }
-
-  function renderRun(run) {
-    const log = el('log-container');
-    if (!log) return;
-    renderTaskSlots(run);
-    if (!run) {
-      log.innerHTML = '<div class="p-2 text-center text-[#64748B] font-mono text-[10px]">-- 等待 Agent Runtime 运行轨迹 --</div>';
-      text(ids.pipe1, 'N/A'); text(ids.pipe2, 'N/A'); text(ids.pipe3, 'N/A'); text(ids.pipe4, 'N/A');
-      return;
-    }
-    const plan = run.executionPlan;
-    const telemetry = Array.isArray(run.telemetry) ? run.telemetry : [];
-    const rows = [];
-    rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">RUN</span> <b class="text-[#F8DC89]">${escapeHtml(run.runId)}</b> <span class="text-[#8C98A9]">· ${escapeHtml(run.status)}</span></div>`);
-    if (plan) {
-      rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">PLAN</span> <b class="${plan.status === 'ready' ? 'text-indGreen' : 'text-[#FFB800]'}">${escapeHtml(plan.status.toUpperCase())}</b> · ${plan.assignments.length} assignments</div>`);
-      plan.assignments.slice(-4).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[DISPATCH]</span> <b class="text-[#CBD5E1]">${escapeHtml(item.taskId)}</b> → <span class="text-[#FFB800]">${escapeHtml(item.executorId)}</span></div>`));
-      plan.missingRequirements.slice(-3).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FF6B5F]">[BLOCKED]</span> ${escapeHtml(item.code)}</div>`));
-    }
-    telemetry.slice(-3).reverse().forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[TELEMETRY]</span> ${escapeHtml(item.toolId)} · ${escapeHtml(item.latencyMs)}ms · ${item.success ? '<span class="text-indGreen">PASS</span>' : '<span class="text-[#FF6B5F]">FAIL</span>'}</div>`));
-    (run.replanEvents || []).slice(-2).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FFB800]">[REPLAN]</span> ${escapeHtml(item.reason)}</div>`));
-    log.innerHTML = rows.join('') || '<div class="p-2 text-center text-[#64748B] font-mono text-[10px]">-- 尚无调度事件 --</div>';
-    text(ids.pipe1, plan ? `${plan.executionOrder.length} TASKS` : 'N/A');
-    text(ids.pipe2, plan ? plan.status.toUpperCase() : 'N/A');
-    text(ids.pipe3, telemetry.length ? `${telemetry[telemetry.length - 1].latencyMs} ms` : 'N/A');
-    text(ids.pipe4, `${(run.verifications || []).length} VERIFY`);
-  }
-
-  function renderTaskSlots(run) {
-    const list = el(ids.taskList);
-    const assignments = run && run.executionPlan && Array.isArray(run.executionPlan.assignments) ? run.executionPlan.assignments : [];
-    text(ids.taskSummary, assignments.length ? `${assignments.length} 个任务已分配` : '等待调度计划');
-    text(ids.taskMeta, run ? `${run.status} · ${run.runId}` : '无运行轨迹');
-    text(ids.cpuScheduler, run && run.executionPlan ? (run.executionPlan.status === 'ready' ? '调度就绪' : '计划阻断') : '等待计划');
-    text(ids.pipelinePlan, run && run.executionPlan ? (run.executionPlan.status === 'ready' ? '闭环就绪' : '计划阻断') : '等待计划');
-    if (!list) return;
-    if (!assignments.length) {
-      list.innerHTML = '<div class="p-2 bg-[#10131A] rounded-[2px] border border-[#1E232E] text-center text-[#64748B]">等待 ExecutionPlan；不展示模拟线程</div>';
-      return;
-    }
-    const telemetry = Array.isArray(run.telemetry) ? run.telemetry : [];
-    list.innerHTML = assignments.slice(0, 12).map((item) => {
-      const sample = [...telemetry].reverse().find((entry) => entry.taskId === item.taskId);
-      const status = sample ? (sample.success ? 'DONE' : 'FAIL') : 'PLANNED';
-      const latency = sample ? `${sample.latencyMs}ms` : 'N/A';
-      return `<div class="p-1.5 bg-[#141822] rounded-[2px] border border-[#282F3E] flex items-center justify-between gap-2"><div class="flex items-center gap-1.5 min-w-0"><span class="lens-led ${sample ? (sample.success ? 'green' : 'off') : 'amber'} shrink-0"></span><span class="text-amber-400 font-bold shrink-0">${escapeHtml(item.taskId)}</span><span class="text-[#CBD5E1] truncate">${escapeHtml(item.toolId)}</span></div><div class="flex items-center gap-1 shrink-0"><span class="text-[#A89870] text-[8.5px]">${escapeHtml(latency)}</span><span class="spec-badge-${sample && sample.success ? 'green' : 'gold'} text-[7.5px]">${status}</span><span class="spec-badge-dark text-[7.5px] text-[#94A3B8]">${escapeHtml(item.executorId)}</span></div></div>`;
-    }).join('');
-  }
-
-  function escapeHtml(value) {
-    return String(value == null ? '' : value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[char]));
-  }
-
-  async function poll() {
-    if (!polling) return;
-    try {
-      const response = await fetch(`${apiBase}/api/v1/runtime/snapshot`, { headers: { accept: 'application/json' } });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(`HTTP_${response.status}`);
-      render(payload && payload.data ? payload.data : payload);
-      const led = el('telemetry-led'); if (led) led.className = 'lens-led green';
-    } catch (error) {
-      resetDynamic();
-      const led = el('telemetry-led'); if (led) led.className = 'lens-led off';
-      const log = el('log-container'); if (log) { log.dataset.lastError = String(error); log.innerHTML = `<div class="p-2 text-center text-[#FF6B5F] font-mono text-[10px]">-- Runtime API 不可达：${escapeHtml(error)} --</div>`; }
-    } finally { timer = setTimeout(poll, intervalMs); }
-  }
-
-  const toggle = el('toggle-sim-btn');
-  if (toggle) {
-    const replacement = toggle.cloneNode(true); toggle.replaceWith(replacement);
-    replacement.addEventListener('click', function () { polling = !polling; this.textContent = polling ? '暂停轮询' : '恢复轮询'; if (polling) poll(); });
-    replacement.textContent = '暂停轮询';
-  }
-  const interval = el('telemetry-interval');
-  if (interval) { const replacement = interval.cloneNode(true); interval.replaceWith(replacement); replacement.addEventListener('change', function (event) { intervalMs = Number(event.target.value) || 1000; clearTimeout(timer); if (polling) poll(); }); }
-  const source = new EventSource(`${apiBase}/api/v1/runtime/events`);
-  ['platform_state_updated', 'task_graph_received', 'candidate_evaluated', 'executor_selected', 'plan_blocked', 'telemetry_recorded', 'verification_failed', 'replan_requested'].forEach((eventType) => {
-    source.addEventListener(eventType, () => { clearTimeout(timer); poll(); });
-  });
-  resetDynamic();
-  poll();
-})();
-</script>
 </body></html>

@@ -12,6 +12,7 @@ import { TelemetryService } from "../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../core/runtime/tool-registry.service";
 import { RuntimeRunService } from "../../core/runtime/runtime-run.service";
 import { RuntimeEventBusService } from "../../core/runtime/runtime-event-bus.service";
+import { PlatformStateRegistryService } from "../../core/runtime/platform-state-registry.service";
 import { createShoppingPlugin } from "../../core/runtime/shopping-plugin";
 import { RuntimeController } from "./controllers/runtime.controller";
 
@@ -42,6 +43,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     RuntimeSnapshotService,
     RuntimeRunService,
     RuntimeEventBusService,
+    PlatformStateRegistryService,
     AgentRuntimeService,
     ShoppingPluginRegistration,
   ],
@@ -53,6 +55,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     AgentRuntimeService,
     RuntimeRunService,
     RuntimeEventBusService,
+    PlatformStateRegistryService,
   ],
 })
 export class RuntimeModule {}

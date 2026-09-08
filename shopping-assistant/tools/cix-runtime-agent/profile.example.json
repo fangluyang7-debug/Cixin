@@ -1,0 +1,20 @@
+{
+  "profile": {
+    "runtimeVersion": "replace-with-real-cix-runtime-version",
+    "missingCapabilities": []
+  },
+  "executors": [
+    {
+      "executorId": "cix-p1-npu",
+      "backend": "npu",
+      "placement": "local",
+      "available": false,
+      "availabilityReason": "ENABLE_ONLY_AFTER_REAL_MODEL_PROBE",
+      "supportedComputeClasses": ["neural_inference"],
+      "supportedModels": [],
+      "totalMemoryMb": null,
+      "source": "cix-vendor-probe",
+      "capabilities": ["neural_inference"]
+    }
+  ]
+}

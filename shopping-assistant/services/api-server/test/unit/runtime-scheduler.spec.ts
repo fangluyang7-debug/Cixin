@@ -111,6 +111,85 @@ describe("ResourceAwareSchedulerService", () => {
       "HIGH_PRIVACY_REQUIRES_LOCAL_EXECUTION",
     );
   });
+
+  it("rejects a saturated local CPU before dispatch", async () => {
+    const registry = new ToolRegistryService();
+    const tool = toolWithLocalCpu();
+    registry.register(tool);
+    const performance = new PerformanceRegistryService(
+      new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
+    );
+    performance.record({
+      executionId: "cpu-pressure-1",
+      taskId: "task-1",
+      toolId: tool.toolId,
+      executorId: "host-cpu",
+      startedAt: "2026-09-06T00:00:00.000Z",
+      finishedAt: "2026-09-06T00:00:00.010Z",
+      latencyMs: 10,
+      memoryPeakMb: 10,
+      energyMah: 1,
+      quality: 1,
+      fallbackOccurred: false,
+      success: true,
+    });
+    const snapshot = localSnapshot();
+    snapshot.state.cpuUtilizationPercent = metric(96);
+    const scheduler = createScheduler(registry, [snapshot], performance);
+
+    const plan = await scheduler.plan(graph(tool.toolId));
+
+    expect(plan.status).toBe("blocked");
+    expect(plan.evaluations["task-1"][0].reasons).toContain("LOCAL_CPU_PRESSURE");
+  });
+
+  it("accepts a model capability proven by a fresh platform heartbeat", async () => {
+    const registry = new ToolRegistryService();
+    const tool = {
+      ...toolWithLocalCpu(),
+      toolId: "local.npu",
+      resourceHints: {
+        computeClass: "neural_inference" as const,
+        estimatedMemoryMb: 128,
+        modelId: "vit-b",
+      },
+    } satisfies ToolDescriptor;
+    registry.register(tool);
+    const npu = {
+      ...executor("cix-p1-npu"),
+      backend: "npu" as const,
+      supportedModels: ["vit-b"],
+    };
+    const snapshot = localSnapshot([npu]);
+    snapshot.heartbeat = {
+      fresh: true,
+      executorIds: [npu.executorId],
+    };
+    const performance = new PerformanceRegistryService(
+      new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
+    );
+    performance.record({
+      executionId: "heartbeat-model-1",
+      taskId: "task-1",
+      toolId: tool.toolId,
+      executorId: npu.executorId,
+      modelId: "vit-b",
+      startedAt: "2026-09-06T00:00:00.000Z",
+      finishedAt: "2026-09-06T00:00:00.020Z",
+      latencyMs: 20,
+      memoryPeakMb: 64,
+      energyMah: 1,
+      quality: 0.95,
+      fallbackOccurred: false,
+      success: true,
+    });
+    const scheduler = createScheduler(registry, [snapshot], performance);
+
+    const plan = await scheduler.plan(graph(tool.toolId));
+
+    expect(plan.status).toBe("ready");
+    expect(plan.assignments[0].executorId).toBe("cix-p1-npu");
+  });
 });
 
 function createScheduler(

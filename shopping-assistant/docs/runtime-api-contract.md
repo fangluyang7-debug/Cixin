@@ -25,8 +25,78 @@ SSE 流。新连接会先回放进程内最近 200 条事件，再持续推送 S
 - `telemetry_recorded`
 - `verification_failed`
 - `replan_requested`
+- `platform_state_updated`
 
 事件 `data` 为 JSON，包含 `type`、`message`、`emittedAt`，以及可选的 `runId`、`graphId`、`taskId`、`toolId`、`executorId` 和 `payload`。连接保活使用 `heartbeat` 事件，不进入回放缓冲。
+
+## 开发板动态状态上报
+
+开发板或边缘代理可以主动向 Runtime 上报静态能力和动态状态。Runtime 只接受带来源和采样时间的真实观测；没有上报的指标在调度盘中显示为 `N/A`，不会被填入默认值。
+
+```http
+POST /api/v1/runtime/platforms/cix_p1/heartbeat
+Content-Type: application/json
+# 配置 RUNTIME_PLATFORM_HEARTBEAT_TOKEN 后必须携带：
+x-runtime-agent-token: <shared-secret>
+
+{
+  "reportedAt": "2026-09-08T12:00:00.000Z",
+  "source": "cix-agent-1.0",
+  "profile": {
+    "platformId": "cix_p1",
+    "available": true,
+    "os": "HarmonyOS/Linux",
+    "arch": "arm64",
+    "runtimeVersion": "NeuralONE 1.0",
+    "cpuLogicalCores": 12,
+    "totalMemoryMb": 65536,
+    "backends": [],
+    "missingCapabilities": [],
+    "source": "cix-agent",
+    "observedAt": "2026-09-08T12:00:00.000Z"
+  },
+  "executors": [],
+  "state": {
+    "cpuUtilizationPercent": 48.2,
+    "cpuFrequencyMhz": 2800,
+    "cpuCoreUtilizationPercent": [45, 51, 49, 47, 32, 38, 36, 35, 12, 15, 10, 9],
+    "cpuClusterFrequencyMhz": [2800, 2400, 1800],
+    "cpuClusterUtilizationPercent": [48, 35, 12],
+    "gpuUtilizationPercent": 34.1,
+    "npuUtilizationPercent": 72.4,
+    "temperatureCelsius": 55.0,
+    "freeMemoryMb": 42000,
+    "networkLatencyMs": 39.6,
+    "networkThroughputMbps": 1200,
+    "networkTxMbps": 1180,
+    "networkRxMbps": 360,
+    "batteryPercent": null,
+    "diskFreeMb": 420000,
+    "activeTaskCount": 3,
+    "queueDepth": 2,
+    "queueWaitMs": 1.8,
+    "powerWatts": 19.95,
+    "fanRpm": 1850,
+    "thermalThrottle": false,
+    "npuLatencyMs": 37.5,
+    "pipelineFps": 59.9,
+    "droppedFrames": 0,
+    "ioReadMbps": 210,
+    "ioWriteMbps": 85,
+    "iops": 45000,
+    "currentModel": "ViT-B FP16",
+    "observedAt": "2026-09-08T12:00:00.000Z"
+  }
+}
+```
+
+心跳默认有效期为 10 秒，由 `RUNTIME_PLATFORM_REPORT_TTL_MS` 配置。有效期按服务端 `receivedAt` 计算，避免开发板时钟漂移或未来时间戳让旧数据永久有效。快照中的每个平台包含 `heartbeat.fresh/reportedAt/receivedAt/source/ageMs/expiresInMs`；超过有效期后动态状态回退为适配器状态，过期元数据保留用于前端明确显示 `STALE`。
+
+`profile` 和 `executors` 是启用板卡参与调度所必需的能力证明；只上报状态会显示“板端在线 · 不可调度”，不会自动伪造执行器。若设置 `RUNTIME_PLATFORM_HEARTBEAT_TOKEN`，板端必须通过 `x-runtime-agent-token` 提交共享令牌。
+
+调度器当前会把空闲内存、性能样本、P95 延迟、质量、能耗、隐私与本地性作为原有约束，并新增以下实时保护：`thermalThrottle=true`、温度达到 `RUNTIME_CRITICAL_TEMPERATURE_CELSIUS`、CPU 执行器负载达到 `RUNTIME_MAX_CPU_UTILIZATION_PERCENT`、队列深度达到 `RUNTIME_MAX_LOCAL_QUEUE_DEPTH` 时拒绝本地候选；较高温度/低电量、队列压力、网络抖动和丢包会动态调整评分权重。
+
+完整的显示/调度映射及当前无法可靠采集的项目见 [runtime-monitor-data-map.md](./runtime-monitor-data-map.md)。
 
 ## 创建或更新计划
 

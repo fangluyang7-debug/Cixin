@@ -9,6 +9,7 @@ export const RUNTIME_EVENT_TYPES = [
   "telemetry_recorded",
   "verification_failed",
   "replan_requested",
+  "platform_state_updated",
 ] as const;
 
 export type RuntimeEventType = (typeof RUNTIME_EVENT_TYPES)[number];

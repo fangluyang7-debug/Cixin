@@ -39,6 +39,7 @@ export class RuntimeSnapshotService {
         profile: snapshot.profile,
         state: snapshot.state,
         executors: snapshot.executors,
+        heartbeat: snapshot.heartbeat,
       })),
       performanceSamples: this.performance.list(),
       missingRequirements: uniqueRequirements(missingRequirements),

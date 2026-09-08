@@ -218,6 +218,34 @@ export class ResourceAwareSchedulerService {
       } else if (freeMemoryMb < tool.resourceHints.estimatedMemoryMb) {
         reasons.push("LOCAL_MEMORY_INSUFFICIENT");
       }
+      if (snapshot.state.thermalThrottle?.available && snapshot.state.thermalThrottle.value) {
+        reasons.push("LOCAL_THERMAL_THROTTLING");
+      }
+      if (
+        snapshot.state.temperatureCelsius.available &&
+        snapshot.state.temperatureCelsius.value !== null &&
+        snapshot.state.temperatureCelsius.value >=
+          (this.config.get<number>("runtime.criticalTemperatureCelsius") ?? 85)
+      ) {
+        reasons.push("LOCAL_TEMPERATURE_CRITICAL");
+      }
+      if (
+        executor.backend === "cpu" &&
+        snapshot.state.cpuUtilizationPercent.available &&
+        snapshot.state.cpuUtilizationPercent.value !== null &&
+        snapshot.state.cpuUtilizationPercent.value >=
+          (this.config.get<number>("runtime.maxCpuUtilizationPercent") ?? 95)
+      ) {
+        reasons.push("LOCAL_CPU_PRESSURE");
+      }
+      if (
+        snapshot.state.queueDepth?.available &&
+        snapshot.state.queueDepth.value !== null &&
+        snapshot.state.queueDepth.value >=
+          (this.config.get<number>("runtime.maxLocalQueueDepth") ?? 32)
+      ) {
+        reasons.push("LOCAL_EXECUTOR_QUEUE_PRESSURE");
+      }
     } else if (executor.totalMemoryMb === null) {
       reasons.push("REMOTE_MEMORY_CAPACITY_UNAVAILABLE");
     }
@@ -226,11 +254,24 @@ export class ResourceAwareSchedulerService {
       tool.resourceHints.modelId ||
       tool.resourceHints.computeClass === "neural_inference"
     ) {
-      const probe = await snapshot.adapter.probeModel(executor, {
-        modelId: tool.resourceHints.modelId,
-        computeClass: tool.resourceHints.computeClass,
-        inputType: tool.inputType,
-      });
+      const heartbeatProvesExecutor =
+        snapshot.heartbeat?.fresh === true &&
+        snapshot.heartbeat.executorIds.includes(executor.executorId);
+      const heartbeatSupportsModel =
+        !tool.resourceHints.modelId ||
+        executor.supportedModels.includes(tool.resourceHints.modelId);
+      const probe = heartbeatProvesExecutor
+        ? {
+            supported: heartbeatSupportsModel,
+            reason: heartbeatSupportsModel
+              ? undefined
+              : "MODEL_NOT_DECLARED_BY_PLATFORM_HEARTBEAT",
+          }
+        : await snapshot.adapter.probeModel(executor, {
+            modelId: tool.resourceHints.modelId,
+            computeClass: tool.resourceHints.computeClass,
+            inputType: tool.inputType,
+          });
       if (!probe.supported) {
         reasons.push(`MODEL_UNSUPPORTED:${probe.reason ?? "UNKNOWN"}`);
       }
@@ -258,7 +299,7 @@ export class ResourceAwareSchedulerService {
       if (
         constraints.maxLatencyMs !== undefined &&
         sample.p95LatencyMs !== null &&
-        sample.p95LatencyMs > constraints.maxLatencyMs
+        sample.p95LatencyMs + networkLatencyFor(snapshot, executor) > constraints.maxLatencyMs
       ) {
         reasons.push("P95_LATENCY_BUDGET_EXCEEDED");
       }
@@ -317,6 +358,17 @@ export class ResourceAwareSchedulerService {
             (this.config.get<number>("runtime.highTemperatureCelsius") ?? 75)),
     );
     if (pressure) raw.energy *= 1.5;
+
+    const queuePressure = snapshots.some((snapshot) =>
+      (snapshot.state.queueDepth?.value ?? 0) >= 8 ||
+      (snapshot.state.activeTaskCount.value ?? 0) >= 8,
+    );
+    if (queuePressure) raw.reliability *= 1.2;
+    const networkPressure = snapshots.some((snapshot) =>
+      (snapshot.state.packetLossPercent?.value ?? 0) > 1 ||
+      (snapshot.state.networkJitterMs?.value ?? 0) > 20,
+    );
+    if (networkPressure) raw.latency *= 1.25;
 
     const bestLatency = accepted
       .map((candidate) => candidate.sample?.p95LatencyMs)
@@ -398,6 +450,12 @@ export class ResourceAwareSchedulerService {
       },
     ];
   }
+}
+
+function networkLatencyFor(snapshot: PlatformSnapshot, executor: ExecutorDescriptor) {
+  if (executor.placement !== "cloud") return 0;
+  const latency = snapshot.state.networkLatencyMs;
+  return latency?.available && latency.value !== null ? latency.value : 0;
 }
 
 function mergeConstraints(

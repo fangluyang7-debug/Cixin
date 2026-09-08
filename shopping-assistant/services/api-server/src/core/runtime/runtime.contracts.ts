@@ -176,7 +176,55 @@ export interface RuntimeState {
   batteryPercent: MetricObservation<number>;
   diskFreeMb: MetricObservation<number>;
   activeTaskCount: MetricObservation<number>;
+  /** Optional board-specific probes. A missing probe remains unavailable. */
+  cpuFrequencyMhz?: MetricObservation<number>;
+  cpuCoreUtilizationPercent?: MetricObservation<number[]>;
+  cpuClusterFrequencyMhz?: MetricObservation<number[]>;
+  cpuClusterUtilizationPercent?: MetricObservation<number[]>;
+  gpuMemoryUsedMb?: MetricObservation<number>;
+  npuMemoryUsedMb?: MetricObservation<number>;
+  gpuFrequencyMhz?: MetricObservation<number>;
+  npuFrequencyMhz?: MetricObservation<number>;
+  networkJitterMs?: MetricObservation<number>;
+  packetLossPercent?: MetricObservation<number>;
+  powerWatts?: MetricObservation<number>;
+  fanRpm?: MetricObservation<number>;
+  ioReadMbps?: MetricObservation<number>;
+  ioWriteMbps?: MetricObservation<number>;
+  networkTxMbps?: MetricObservation<number>;
+  networkRxMbps?: MetricObservation<number>;
+  iops?: MetricObservation<number>;
+  queueDepth?: MetricObservation<number>;
+  queueWaitMs?: MetricObservation<number>;
+  memoryBandwidthMbps?: MetricObservation<number>;
+  dmaPoolUsedMb?: MetricObservation<number>;
+  uptimeSeconds?: MetricObservation<number>;
+  npuLatencyMs?: MetricObservation<number>;
+  databaseLatencyMs?: MetricObservation<number>;
+  pipelineFps?: MetricObservation<number>;
+  droppedFrames?: MetricObservation<number>;
+  thermalThrottle?: MetricObservation<boolean>;
+  currentModel?: MetricObservation<string>;
   observedAt: string;
+}
+
+export interface PlatformHeartbeat {
+  platformId: RuntimePlatformId;
+  state: RuntimeState;
+  profile?: PlatformProfile;
+  executors?: ExecutorDescriptor[];
+  reportedAt: string;
+  source?: string;
+}
+
+export interface PlatformHeartbeatStatus {
+  fresh: boolean;
+  reportedAt: string;
+  receivedAt: string;
+  source: string;
+  ageMs: number;
+  expiresInMs: number;
+  executorIds: string[];
 }
 
 export interface ModelProbeRequest {
@@ -290,6 +338,7 @@ export interface RuntimeSnapshot {
     profile: PlatformProfile;
     state: RuntimeState;
     executors: ExecutorDescriptor[];
+    heartbeat: PlatformHeartbeatStatus | null;
   }>;
   performanceSamples: PerformanceSample[];
   missingRequirements: MissingRequirement[];

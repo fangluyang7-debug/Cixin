@@ -348,10 +348,10 @@ API 继续本地运行
 ### P3：开发板适配接口
 
 ```text
-定义 Edge Adapter 注册机制
-实现电脑 Host Adapter 作为临时代替
-为 CIX P1 Adapter 保留同一接口
-后续接入真实设备时不改购物业务代码
+已定义 Edge Adapter 与开发板心跳注册机制
+已实现电脑 Host Adapter 和 CIX/Linux 通用采集代理
+CIX NPU/GPU 厂商 SDK 通过 profile/metrics 探针接入
+后续补充真实执行器时不改购物业务代码
 ```
 
 ### P4：端云协同调度

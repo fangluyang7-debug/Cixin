@@ -16,6 +16,15 @@ export default () => ({
     highTemperatureCelsius: Number(
       process.env.RUNTIME_HIGH_TEMPERATURE_CELSIUS ?? 75,
     ),
+    platformReportTtlMs: Number(process.env.RUNTIME_PLATFORM_REPORT_TTL_MS ?? 10000),
+    platformHeartbeatToken: optionalString(process.env.RUNTIME_PLATFORM_HEARTBEAT_TOKEN),
+    criticalTemperatureCelsius: Number(
+      process.env.RUNTIME_CRITICAL_TEMPERATURE_CELSIUS ?? 85,
+    ),
+    maxCpuUtilizationPercent: Number(
+      process.env.RUNTIME_MAX_CPU_UTILIZATION_PERCENT ?? 95,
+    ),
+    maxLocalQueueDepth: Number(process.env.RUNTIME_MAX_LOCAL_QUEUE_DEPTH ?? 32),
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? "dev-secret-change-before-deploy",

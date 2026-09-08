@@ -4,14 +4,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
-    "build": "tsc && vite build",
+    "build:runtime-css": "tailwindcss -c tailwind.config.cjs -i ./src/runtime-tailwind.css -o ./public/runtime-tailwind.css --minify",
+    "dev": "npm run build:runtime-css && vite --host 0.0.0.0",
+    "build": "npm run build:runtime-css && tsc && vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "vite": "^6.4.1"
   },
   "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.10",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
   }
 }
