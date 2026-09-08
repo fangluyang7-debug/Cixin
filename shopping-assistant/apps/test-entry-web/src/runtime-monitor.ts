@@ -1,24 +1,43 @@
 import './runtime-monitor.css';
+import { readRuntimeRunId } from './runtime-plan';
 
 type JsonRecord = Record<string, unknown>;
 type ApiEnvelope<T> = { success: boolean; data: T | null; error?: { message?: string; code?: string } | null };
 
-interface RuntimeRun {
-  runId: string;
-  goal: string;
-  status: string;
-  taskGraph: { graphId: string; goal: string; nodes: TaskNode[] } | null;
-  executionPlan: ExecutionPlan | null;
-  telemetry: TelemetryRecord[];
-  verifications: VerificationEvent[];
-  replanEvents: ReplanEvent[];
-  outcome?: string;
-  startedAt: string;
-  updatedAt: string;
-  completedAt?: string;
+interface TaskNode {
+  taskId: string;
+  toolId: string;
+  inputRef: string;
+  dependencies?: string[];
 }
 
-interface TaskNode { taskId: string; toolId: string; inputRef: string; dependencies?: string[] }
+interface ScoreBreakdown {
+  latencyScore?: number;
+  qualityScore?: number;
+  energyScore?: number;
+  reliabilityScore?: number;
+  totalScore?: number;
+}
+
+interface Assignment {
+  taskId: string;
+  toolId: string;
+  executorId: string;
+  placement: string;
+  backend: string;
+  score: ScoreBreakdown;
+  reasons?: string[];
+}
+
+interface Evaluation {
+  executorId: string;
+  placement: string;
+  backend: string;
+  accepted: boolean;
+  reasons: string[];
+  score?: ScoreBreakdown | null;
+}
+
 interface ExecutionPlan {
   status: string;
   executionOrder: string[];
@@ -28,19 +47,92 @@ interface ExecutionPlan {
   evaluations: Record<string, Evaluation[]>;
   generatedAt: string;
 }
-interface Assignment { taskId: string; toolId: string; executorId: string; placement: string; backend: string; score: { totalScore: number } }
-interface Evaluation { executorId: string; placement: string; backend: string; accepted: boolean; reasons: string[]; score?: { totalScore: number } | null }
+
 interface Requirement { code: string; message: string; taskId?: string }
-interface TelemetryRecord { taskId: string; toolId: string; executorId: string; latencyMs: number; memoryPeakMb: number; quality?: number | null; success: boolean; fallbackOccurred: boolean; finishedAt: string }
+interface TelemetryRecord {
+  taskId: string;
+  toolId: string;
+  executorId: string;
+  latencyMs: number;
+  memoryPeakMb: number;
+  quality?: number | null;
+  success: boolean;
+  fallbackOccurred: boolean;
+  finishedAt: string;
+}
 interface VerificationEvent { taskId: string; toolId: string; passed: boolean; reasons: string[]; recordedAt: string }
 interface ReplanEvent { reason: string; telemetryCount: number; recordedAt: string }
-interface PlatformSnapshot { profile: { platformId: string; available: boolean; os: string | null; arch: string | null; cpuLogicalCores: number | null; totalMemoryMb: number | null; missingCapabilities: string[] }; state: JsonRecord; executors: Array<{ executorId: string; backend: string; placement: string; available: boolean; availabilityReason?: string; supportedComputeClasses: string[] }> }
-interface RuntimeSnapshot { platforms: PlatformSnapshot[]; performanceSamples: Array<{ toolId: string; executorId: string; sampleCount: number; p50LatencyMs: number | null; quality: number | null }>; missingRequirements: Requirement[]; activeRun: RuntimeRun | null; recentRuns: RuntimeRun[]; capturedAt: string }
+interface OperationStep {
+  key: string;
+  label: string;
+  durationMs: number;
+  status: string;
+}
+interface MetricObservation {
+  value?: number | null;
+  available?: boolean;
+  reason?: string;
+  source?: string;
+}
+interface PlatformSnapshot {
+  profile: {
+    platformId: string;
+    available: boolean;
+    os: string | null;
+    arch: string | null;
+    cpuLogicalCores: number | null;
+    totalMemoryMb: number | null;
+    missingCapabilities: string[];
+  };
+  state: JsonRecord;
+  executors: Array<{
+    executorId: string;
+    backend: string;
+    placement: string;
+    available: boolean;
+    availabilityReason?: string;
+    supportedComputeClasses: string[];
+  }>;
+}
+interface RuntimeRun {
+  runId: string;
+  goal: string;
+  status: string;
+  taskGraph: { graphId: string; goal: string; nodes: TaskNode[] } | null;
+  executionPlan: ExecutionPlan | null;
+  telemetry: TelemetryRecord[];
+  operationTimeline?: OperationStep[];
+  verifications: VerificationEvent[];
+  replanEvents: ReplanEvent[];
+  outcome?: string;
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+interface RuntimeSnapshot {
+  platforms: PlatformSnapshot[];
+  performanceSamples: Array<{ toolId: string; executorId: string; sampleCount: number; p50LatencyMs: number | null; quality: number | null }>;
+  missingRequirements: Requirement[];
+  activeRun: RuntimeRun | null;
+  recentRuns: RuntimeRun[];
+  capturedAt: string;
+}
 
+type StageStatus = 'pending' | 'active' | 'done' | 'blocked' | 'skipped' | 'failed';
+interface LifecycleStage {
+  id: 'plan' | 'execute' | 'observe' | 'verify' | 'replan';
+  label: string;
+  status: StageStatus;
+  detail: string;
+}
+
+const POLL_INTERVAL_MS = 1000;
+const compactWindow = new URLSearchParams(window.location.search).has('window');
 const app = document.querySelector<HTMLElement>('#app');
 if (!app) throw new Error('App root not found.');
 
 const initialApiBase = localStorage.getItem('debug-api-base') ?? import.meta.env.PUBLIC_API_BASE_URL ?? import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+app.classList.toggle('compact-window', compactWindow);
 app.innerHTML = `
   <main class="runtime-shell">
     <header class="runtime-topbar">
@@ -59,41 +151,81 @@ app.innerHTML = `
       </div>
     </header>
     <section class="runtime-content">
-      <div class="connection-line"><span id="connectionDot" class="status-dot pending"></span><span id="connectionText">正在读取 Runtime snapshot</span><span id="capturedAt"></span></div>
+      <div class="connection-line">
+        <span id="connectionDot" class="status-dot pending"></span>
+        <span id="connectionText">正在读取 Runtime snapshot</span>
+        <span id="pollHint">每 1 秒轮询 /runtime/snapshot</span>
+        <span id="capturedAt"></span>
+      </div>
       <section id="runSummary" class="run-summary empty-panel"><p>尚未捕获运行轨迹</p></section>
+      <section class="panel lifecycle-panel">
+        <div class="panel-heading">
+          <h2>plan → execute → observe → verify → replan</h2>
+          <span id="lifecycleHint">等待首次规划</span>
+        </div>
+        <div id="lifecycle" class="lifecycle-track"></div>
+      </section>
       <div class="monitor-grid">
-        <section class="panel platform-panel"><div class="panel-heading"><h2>平台与资源状态</h2><span id="platformCount">0 platforms</span></div><div id="platforms"></div></section>
-        <section class="panel requirements-panel"><div class="panel-heading"><h2>缺失能力 / 阻断原因</h2><span id="requirementCount">0</span></div><div id="requirements"></div></section>
+        <section class="panel platform-panel">
+          <div class="panel-heading"><h2>CPU / 内存 / 网络 / GPU / NPU</h2><span id="platformCount">0 platforms</span></div>
+          <div id="resourceGrid" class="resource-grid"></div>
+          <div id="platforms"></div>
+        </section>
+        <section class="panel requirements-panel">
+          <div class="panel-heading"><h2>缺失能力 / 阻断原因</h2><span id="requirementCount">0</span></div>
+          <div id="requirements"></div>
+        </section>
       </div>
-      <section class="panel"><div class="panel-heading"><h2>Task Graph 与 Execution Plan</h2><span id="planStatus">-</span></div><div id="taskGraph"></div></section>
+      <section class="panel">
+        <div class="panel-heading"><h2>Goal / Task Graph</h2><span id="planStatus">-</span></div>
+        <div id="taskGraph"></div>
+      </section>
+      <section class="panel">
+        <div class="panel-heading"><h2>候选执行器评分表</h2><span id="evaluationCount">0</span></div>
+        <div id="evaluations"></div>
+      </section>
       <div class="monitor-grid">
-        <section class="panel"><div class="panel-heading"><h2>候选执行器评估</h2><span id="evaluationCount">0</span></div><div id="evaluations"></div></section>
-        <section class="panel"><div class="panel-heading"><h2>Telemetry / Verify / Replan</h2><span id="telemetryCount">0 samples</span></div><div id="telemetry"></div></section>
+        <section class="panel">
+          <div class="panel-heading"><h2>最近 Telemetry 样本</h2><span id="telemetryCount">0 samples</span></div>
+          <div id="telemetry"></div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading"><h2>最近运行</h2><span>内存保留最近 20 次</span></div>
+          <div id="recentRuns"></div>
+        </section>
       </div>
-      <section class="panel"><div class="panel-heading"><h2>最近运行</h2><span>内存保留最近 20 次</span></div><div id="recentRuns"></div></section>
     </section>
   </main>
 `;
 
 const apiBaseInput = requireElement<HTMLInputElement>('apiBase');
 const refreshButton = requireElement<HTMLButtonElement>('refreshButton');
-refreshButton.addEventListener('click', () => void refresh());
+let refreshInFlight = false;
+
+refreshButton.addEventListener('click', () => void refresh(true));
 apiBaseInput.addEventListener('change', () => {
   localStorage.setItem('debug-api-base', apiBaseInput.value.trim());
-  void refresh();
+  void refresh(true);
+});
+window.addEventListener('storage', (event) => {
+  if (event.key === 'runtime-active-run-id' || event.key === 'debug-api-base') {
+    void refresh(false);
+  }
 });
 
-void refresh();
-window.setInterval(() => void refresh(), 4000);
+void refresh(false);
+window.setInterval(() => void refresh(false), POLL_INTERVAL_MS);
 
-async function refresh() {
+async function refresh(manual: boolean) {
+  if (refreshInFlight) return;
+  refreshInFlight = true;
   const dot = requireElement('connectionDot');
   const text = requireElement('connectionText');
-  refreshButton.disabled = true;
+  if (manual) refreshButton.disabled = true;
   try {
     const snapshot = await fetchJson<RuntimeSnapshot>('/api/v1/runtime/snapshot');
     dot.className = 'status-dot online';
-    text.textContent = 'Runtime API 在线，快照每 4 秒轮询';
+    text.textContent = 'Runtime API 在线';
     requireElement('capturedAt').textContent = `captured ${formatDate(snapshot.capturedAt)}`;
     renderSnapshot(snapshot);
   } catch (error) {
@@ -101,12 +233,14 @@ async function refresh() {
     text.textContent = error instanceof Error ? error.message : 'Runtime API 不可达';
     requireElement('capturedAt').textContent = '';
   } finally {
+    refreshInFlight = false;
     refreshButton.disabled = false;
   }
 }
 
 function renderSnapshot(snapshot: RuntimeSnapshot) {
-  const run = snapshot.activeRun;
+  const run = selectActiveRun(snapshot);
+  const displayStatus = deriveDisplayStatus(run);
   requireElement('platformCount').textContent = `${snapshot.platforms.length} platforms`;
   requireElement('requirementCount').textContent = String(snapshot.missingRequirements.length);
   requireElement('telemetryCount').textContent = `${run?.telemetry.length ?? 0} samples`;
@@ -114,28 +248,153 @@ function renderSnapshot(snapshot: RuntimeSnapshot) {
   requireElement('runSummary').innerHTML = run ? `
     <div><span class="summary-label">CURRENT RUN</span><strong>${escapeHtml(run.runId)}</strong></div>
     <div class="summary-goal"><span class="summary-label">GOAL</span><strong>${escapeHtml(run.goal)}</strong></div>
-    <div><span class="summary-label">STATUS</span><strong class="status-text ${statusClass(run.status)}">${escapeHtml(run.status)}</strong></div>
+    <div><span class="summary-label">STATUS</span><strong class="status-pill ${statusClass(displayStatus)}">${escapeHtml(displayStatus)}</strong></div>
     <div><span class="summary-label">UPDATED</span><strong>${escapeHtml(formatDate(run.updatedAt))}</strong></div>
-  ` : '<p>尚未捕获运行轨迹。可以从图片搜索页运行一次真实搜索。</p>';
+  ` : '<p>尚未捕获运行轨迹。从图片搜索页点「打开调度盘」，再运行一次真实搜索。</p>';
+  renderLifecycle(run);
+  renderResources(snapshot.platforms);
   renderPlatforms(snapshot.platforms);
   renderRequirements(snapshot.missingRequirements, run?.executionPlan?.missingRequirements ?? []);
   renderPlan(run);
   renderEvaluations(run);
   renderTelemetry(run);
-  renderRecentRuns(snapshot.recentRuns);
+  renderRecentRuns(snapshot.recentRuns, run?.runId);
+}
+
+function selectActiveRun(snapshot: RuntimeSnapshot) {
+  const followedId = readRuntimeRunId();
+  if (followedId) {
+    return snapshot.recentRuns.find((item) => item.runId === followedId)
+      ?? (snapshot.activeRun?.runId === followedId ? snapshot.activeRun : null)
+      ?? snapshot.activeRun;
+  }
+  return snapshot.activeRun;
+}
+
+function deriveDisplayStatus(run: RuntimeRun | null) {
+  if (!run) return 'idle';
+  if (run.telemetry.some((item) => item.fallbackOccurred) || run.outcome?.includes('fallback')) {
+    return 'fallback';
+  }
+  return run.status;
+}
+
+function renderLifecycle(run: RuntimeRun | null) {
+  const stages = buildLifecycle(run);
+  requireElement('lifecycleHint').textContent = run
+    ? `${deriveDisplayStatus(run)} · ${stages.filter((item) => item.status !== 'pending' && item.status !== 'active').length}/5 stages`
+    : '等待首次规划';
+  requireElement('lifecycle').innerHTML = stages.map((stage, index) => `
+    <article class="lifecycle-stage ${stage.status}">
+      <span class="stage-index">${index + 1}</span>
+      <strong>${escapeHtml(stage.label)}</strong>
+      <span class="stage-status">${escapeHtml(stage.status)}</span>
+      <p>${escapeHtml(stage.detail)}</p>
+    </article>
+  `).join('');
+}
+
+function buildLifecycle(run: RuntimeRun | null): LifecycleStage[] {
+  const plan = run?.executionPlan;
+  const hasPlan = Boolean(plan);
+  const planBlocked = plan?.status === 'blocked';
+  const hasAssignments = (plan?.assignments.length ?? 0) > 0;
+  const hasOps = (run?.operationTimeline?.length ?? 0) > 0;
+  const hasTelemetry = (run?.telemetry.length ?? 0) > 0;
+  const failedVerify = (run?.verifications ?? []).some((item) => !item.passed);
+  const hasVerify = (run?.verifications.length ?? 0) > 0;
+  const hasReplan = (run?.replanEvents.length ?? 0) > 0;
+  const executeDetail = hasOps
+    ? `${run?.operationTimeline?.length} 个业务阶段`
+    : planBlocked && !hasAssignments
+      ? '无可用执行器，execute 未开始'
+      : hasAssignments
+        ? '已规划执行器，Runtime 尚未真正执行'
+        : '等待规划';
+
+  return [
+    {
+      id: 'plan',
+      label: 'plan',
+      status: !run ? 'pending' : hasPlan ? (planBlocked ? 'blocked' : 'done') : run.status === 'planning' ? 'active' : 'pending',
+      detail: hasPlan ? formatDate(plan!.generatedAt) : '尚未生成 executionPlan',
+    },
+    {
+      id: 'execute',
+      label: 'execute',
+      status: !hasPlan ? 'pending' : hasOps ? 'done' : planBlocked && !hasAssignments ? 'skipped' : hasAssignments ? 'active' : 'pending',
+      detail: executeDetail,
+    },
+    {
+      id: 'observe',
+      label: 'observe',
+      status: hasTelemetry ? 'done' : hasOps || hasAssignments ? 'pending' : 'pending',
+      detail: hasTelemetry ? `${run?.telemetry.length} 条真实样本` : '还没有 Telemetry',
+    },
+    {
+      id: 'verify',
+      label: 'verify',
+      status: failedVerify ? 'failed' : hasVerify ? 'done' : 'pending',
+      detail: hasVerify ? `${run?.verifications.length} 次校验` : '尚未调用 /runtime/verify',
+    },
+    {
+      id: 'replan',
+      label: 'replan',
+      status: hasReplan ? 'done' : 'pending',
+      detail: hasReplan ? `${run?.replanEvents.length} 次重规划` : '尚未调用 /runtime/replan',
+    },
+  ];
+}
+
+function renderResources(platforms: PlatformSnapshot[]) {
+  const host = platforms.find((item) => item.profile.platformId === 'host') ?? platforms[0];
+  const cards = [
+    resourceCard('CPU', host, 'cpuUtilizationPercent', '%', []),
+    resourceCard('内存', host, 'freeMemoryMb', ' MB free', []),
+    resourceCard('网络', host, 'networkLatencyMs', ' ms', ['NETWORK_THROUGHPUT_PROBE_NOT_CONFIGURED']),
+    resourceCard('GPU', host, 'gpuUtilizationPercent', '%', ['GPU_EXECUTOR_NOT_DISCOVERED', 'GPU_UTILIZATION_SOURCE_NOT_CONFIGURED']),
+    resourceCard('NPU', host, 'npuUtilizationPercent', '%', ['NPU_EXECUTOR_NOT_DISCOVERED', 'NPU_UTILIZATION_SOURCE_NOT_CONFIGURED']),
+  ];
+  requireElement('resourceGrid').innerHTML = host
+    ? cards.join('')
+    : empty('没有发现平台，无法读取 CPU / 内存 / 网络 / GPU / NPU');
+}
+
+function resourceCard(
+  label: string,
+  platform: PlatformSnapshot | undefined,
+  key: string,
+  suffix: string,
+  extraCodes: string[],
+) {
+  const observation = asObservation(platform?.state[key]);
+  const executorGap = platform?.executors.find((item) => !item.available && extraCodes.includes(item.availabilityReason ?? ''));
+  const capabilityGap = platform?.profile.missingCapabilities.find((code) => extraCodes.includes(code));
+  const available = observation?.available === true && observation.value != null;
+  const reason = available
+    ? (observation.source ?? 'observed')
+    : observation?.reason ?? executorGap?.availabilityReason ?? capabilityGap ?? 'METRIC_UNAVAILABLE';
+  return `
+    <article class="resource-card ${available ? 'available' : 'missing'}">
+      <span>${escapeHtml(label)}</span>
+      <strong>${available ? `${escapeHtml(String(observation?.value))}${suffix}` : 'unavailable'}</strong>
+      <small>${escapeHtml(reason)}</small>
+    </article>
+  `;
 }
 
 function renderPlatforms(platforms: PlatformSnapshot[]) {
   requireElement('platforms').innerHTML = platforms.length ? platforms.map((item) => {
-    const state = item.state;
-    const executors = item.executors.map((executor) => `<span class="executor ${executor.available ? 'available' : 'unavailable'}">${escapeHtml(executor.executorId)} · ${escapeHtml(executor.backend)}</span>`).join('');
-    return `<article class="platform-row"><div class="platform-title"><strong>${escapeHtml(item.profile.platformId)}</strong><span>${item.profile.available ? 'available' : 'unavailable'} · ${escapeHtml(item.profile.os ?? 'unknown')}</span></div><div class="platform-meta"><span>CPU ${metric(state.cpuUtilizationPercent, '%')}</span><span>Memory ${metric(state.freeMemoryMb, ' MB free')}</span><span>Network ${metric(state.networkLatencyMs, ' ms')}</span></div><div class="executor-list">${executors || '<span class="muted">no executors</span>'}</div></article>`;
+    const executors = item.executors.map((executor) => `<span class="executor ${executor.available ? 'available' : 'unavailable'}">${escapeHtml(executor.executorId)} · ${escapeHtml(executor.backend)}${executor.available ? '' : ` · ${escapeHtml(executor.availabilityReason ?? 'unavailable')}`}</span>`).join('');
+    return `<article class="platform-row"><div class="platform-title"><strong>${escapeHtml(item.profile.platformId)}</strong><span>${item.profile.available ? 'available' : 'unavailable'} · ${escapeHtml(item.profile.os ?? 'unknown')}</span></div><div class="executor-list">${executors || '<span class="muted">no executors</span>'}</div></article>`;
   }).join('') : empty('没有发现平台');
 }
 
 function renderRequirements(globalRequirements: Requirement[], planRequirements: Requirement[]) {
   const requirements = uniqueRequirements([...globalRequirements, ...planRequirements]);
-  requireElement('requirements').innerHTML = requirements.length ? requirements.map((item) => `<div class="requirement"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join('') : '<div class="success-line">当前没有已知阻断原因</div>';
+  requireElement('requirements').innerHTML = requirements.length
+    ? requirements.map((item) => `<div class="requirement"><strong>${escapeHtml(item.code)}</strong><span>${escapeHtml(item.message)}</span></div>`).join('')
+    : '<div class="success-line">当前没有已知阻断原因</div>';
 }
 
 function renderPlan(run: RuntimeRun | null) {
@@ -154,20 +413,51 @@ function renderPlan(run: RuntimeRun | null) {
 }
 
 function renderEvaluations(run: RuntimeRun | null) {
-  const evaluations = Object.entries(run?.executionPlan?.evaluations ?? {}).flatMap(([taskId, items]) => items.map((item) => ({ taskId, item })));
-  requireElement('evaluationCount').textContent = String(evaluations.length);
-  requireElement('evaluations').innerHTML = evaluations.length ? evaluations.map(({ taskId, item }) => `<div class="evaluation-row"><div><strong>${escapeHtml(taskId)}</strong><span>${escapeHtml(item.executorId)} · ${escapeHtml(item.placement)}</span></div><span class="decision ${item.accepted ? 'accepted' : 'rejected'}">${item.accepted ? 'accepted' : 'rejected'}</span><span>${escapeHtml(item.reasons.join(' · ') || `score ${formatScore(item.score?.totalScore)}`)}</span></div>`).join('') : empty('Scheduler 尚未生成候选评估');
+  const grouped = Object.entries(run?.executionPlan?.evaluations ?? {});
+  requireElement('evaluationCount').textContent = String(grouped.reduce((sum, [, items]) => sum + items.length, 0));
+  if (!grouped.length) {
+    requireElement('evaluations').innerHTML = empty('Scheduler 尚未生成候选评估');
+    return;
+  }
+  requireElement('evaluations').innerHTML = grouped.map(([taskId, items]) => `
+    <article class="score-table">
+      <div class="score-table-title">
+        <strong>${escapeHtml(taskId)}</strong>
+        <span>${escapeHtml(run?.taskGraph?.nodes.find((node) => node.taskId === taskId)?.toolId ?? '')}</span>
+      </div>
+      <div class="score-head">
+        <span>executor</span><span>backend</span><span>decision</span><span>total</span><span>latency</span><span>quality</span><span>energy</span><span>reliability</span><span>reasons</span>
+      </div>
+      ${items.map((item) => `
+        <div class="score-row">
+          <strong>${escapeHtml(item.executorId)}</strong>
+          <span>${escapeHtml(item.backend)} / ${escapeHtml(item.placement)}</span>
+          <span class="decision ${item.accepted ? 'accepted' : 'rejected'}">${item.accepted ? 'accepted' : 'rejected'}</span>
+          <span>${formatScore(item.score?.totalScore)}</span>
+          <span>${formatScore(item.score?.latencyScore)}</span>
+          <span>${formatScore(item.score?.qualityScore)}</span>
+          <span>${formatScore(item.score?.energyScore)}</span>
+          <span>${formatScore(item.score?.reliabilityScore)}</span>
+          <span>${escapeHtml(item.reasons.join(' · ') || '-')}</span>
+        </div>
+      `).join('')}
+    </article>
+  `).join('');
 }
 
 function renderTelemetry(run: RuntimeRun | null) {
-  const telemetry = run?.telemetry ?? [];
+  const telemetry = [...(run?.telemetry ?? [])].slice(-8).reverse();
   const verifies = run?.verifications ?? [];
   const replans = run?.replanEvents ?? [];
-  requireElement('telemetry').innerHTML = telemetry.length || verifies.length || replans.length ? `${telemetry.map((item) => `<div class="event-row"><span class="event-kind telemetry-kind">TELEMETRY</span><strong>${escapeHtml(item.toolId)}</strong><span>${escapeHtml(item.executorId)} · ${formatMs(item.latencyMs)} · ${item.success ? 'success' : 'failed'}</span></div>`).join('')}${verifies.map((item) => `<div class="event-row"><span class="event-kind ${item.passed ? 'verify-pass' : 'verify-fail'}">VERIFY</span><strong>${escapeHtml(item.toolId)}</strong><span>${item.passed ? 'passed' : escapeHtml(item.reasons.join(' · '))}</span></div>`).join('')}${replans.map((item) => `<div class="event-row"><span class="event-kind replan-kind">REPLAN</span><strong>${escapeHtml(item.reason)}</strong><span>${item.telemetryCount} telemetry records</span></div>`).join('')}` : empty('还没有真实 Telemetry、Verify 或 Replan 事件');
+  requireElement('telemetry').innerHTML = telemetry.length || verifies.length || replans.length
+    ? `${telemetry.map((item) => `<div class="event-row"><span class="event-kind telemetry-kind">TELEMETRY</span><strong>${escapeHtml(item.toolId)}</strong><span>${escapeHtml(item.executorId)} · ${formatMs(item.latencyMs)} · ${item.success ? 'success' : 'failed'}${item.fallbackOccurred ? ' · fallback' : ''}</span></div>`).join('')}${verifies.map((item) => `<div class="event-row"><span class="event-kind ${item.passed ? 'verify-pass' : 'verify-fail'}">VERIFY</span><strong>${escapeHtml(item.toolId)}</strong><span>${item.passed ? 'passed' : escapeHtml(item.reasons.join(' · '))}</span></div>`).join('')}${replans.map((item) => `<div class="event-row"><span class="event-kind replan-kind">REPLAN</span><strong>${escapeHtml(item.reason)}</strong><span>${item.telemetryCount} telemetry records</span></div>`).join('')}`
+    : empty('还没有真实 Telemetry、Verify 或 Replan 事件');
 }
 
-function renderRecentRuns(runs: RuntimeRun[]) {
-  requireElement('recentRuns').innerHTML = runs.length ? `<div class="recent-table">${runs.map((run) => `<div class="recent-row"><strong>${escapeHtml(run.runId)}</strong><span>${escapeHtml(run.goal)}</span><span class="status-text ${statusClass(run.status)}">${escapeHtml(run.status)}</span><span>${escapeHtml(formatDate(run.updatedAt))}</span></div>`).join('')}</div>` : empty('暂无历史运行');
+function renderRecentRuns(runs: RuntimeRun[], activeId?: string) {
+  requireElement('recentRuns').innerHTML = runs.length
+    ? `<div class="recent-table">${runs.map((run) => `<div class="recent-row ${run.runId === activeId ? 'active-run' : ''}"><strong>${escapeHtml(run.runId)}</strong><span>${escapeHtml(run.goal)}</span><span class="status-text ${statusClass(deriveDisplayStatus(run))}">${escapeHtml(deriveDisplayStatus(run))}</span><span>${escapeHtml(formatDate(run.updatedAt))}</span></div>`).join('')}</div>`
+    : empty('暂无历史运行');
 }
 
 async function fetchJson<T>(path: string): Promise<T> {
@@ -185,13 +475,15 @@ async function fetchJson<T>(path: string): Promise<T> {
   } finally { window.clearTimeout(timeout); }
 }
 
+function asObservation(value: unknown): MetricObservation | null {
+  return typeof value === 'object' && value !== null ? value as MetricObservation : null;
+}
 function isEnvelope<T>(value: ApiEnvelope<T> | T): value is ApiEnvelope<T> { return typeof value === 'object' && value !== null && 'success' in value && 'data' in value; }
 function requireElement<T extends HTMLElement = HTMLElement>(id: string) { const element = document.getElementById(id); if (!element) throw new Error(`Element not found: ${id}`); return element as T; }
-function metric(value: unknown, suffix: string) { return typeof value === 'object' && value !== null && 'available' in value && (value as { available: boolean }).available ? `${escapeHtml(String((value as unknown as { value: unknown }).value ?? '-'))}${suffix}` : 'unavailable'; }
 function formatDate(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? value : date.toLocaleString('zh-CN', { hour12: false }); }
 function formatMs(value: number) { return value >= 1000 ? `${(value / 1000).toFixed(2)} s` : `${Math.round(value)} ms`; }
 function formatScore(value?: number) { return typeof value === 'number' && Number.isFinite(value) ? value.toFixed(3) : '-'; }
-function statusClass(status: string) { return status === 'ready' || status === 'completed' ? 'good' : status === 'blocked' || status === 'failed' ? 'bad' : 'pending-text'; }
+function statusClass(status: string) { return status === 'ready' || status === 'completed' || status === 'done' ? 'good' : status === 'blocked' || status === 'failed' || status === 'fallback' ? 'bad' : 'pending-text'; }
 function empty(message: string) { return `<div class="empty-panel">${escapeHtml(message)}</div>`; }
 function uniqueRequirements(items: Requirement[]) { const seen = new Set<string>(); return items.filter((item) => { const key = `${item.code}:${item.taskId ?? ''}`; if (seen.has(key)) return false; seen.add(key); return true; }); }
 function escapeHtml(value: unknown) { return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }

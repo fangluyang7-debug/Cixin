@@ -1,4 +1,5 @@
 import { renderAdaptDebugger } from './adapt-debugger';
+import { IMAGE_SEARCH_PLAN_GRAPH, openRuntimeMonitorWindow, rememberRuntimeRunId } from './runtime-plan';
 import './styles.css';
 
 type JsonRecord = Record<string, unknown>;
@@ -83,6 +84,11 @@ interface CandidateResult {
 
 interface DebugResult {
   upload?: JsonRecord;
+  runtime?: {
+    runId?: string;
+    status?: string;
+    goal?: string;
+  };
   meta?: {
     sessionId?: string;
     assetId?: string;
@@ -161,7 +167,7 @@ app.innerHTML = `
       <nav class="topbar-links" aria-label="debug navigation">
         <a class="ops-entry-link" href="/catalog.html">商品池展示</a>
         <a class="ops-entry-link" href="/product-pool.html">商品池运维中心</a>
-        <a class="ops-entry-link" href="/runtime.html">Runtime 调度盘</a>
+        <button class="ops-entry-link monitor-open-button" id="openMonitorButton" type="button">打开调度盘</button>
       </nav>
       <label class="api-field">
         <span>API Base</span>
@@ -202,8 +208,12 @@ app.innerHTML = `
           <label><input id="runRefined" type="checkbox" checked /> 深度融合复核</label>
         </div>
 
-        <button class="run-button" id="runButton" type="button">运行真实搜索链路</button>
+        <div class="action-row">
+          <button class="run-button" id="runButton" type="button">运行真实搜索链路</button>
+          <button class="monitor-button" id="openMonitorInlineButton" type="button">打开调度盘</button>
+        </div>
         <p class="status" id="statusText">未运行</p>
+        <p class="runtime-hint" id="runtimeHint">搜索时会先调用 /runtime/plan，再把同一 runId 交给图片搜索。</p>
       </aside>
 
       <section class="results-panel">
@@ -296,6 +306,14 @@ const emptyPreview = requireElement<HTMLElement>('emptyPreview');
 const selectionBox = requireElement<HTMLElement>('selectionBox');
 const runButton = requireElement<HTMLButtonElement>('runButton');
 const statusText = requireElement<HTMLElement>('statusText');
+const runtimeHint = requireElement<HTMLElement>('runtimeHint');
+
+requireElement<HTMLButtonElement>('openMonitorButton').addEventListener('click', () => {
+  openRuntimeMonitorWindow();
+});
+requireElement<HTMLButtonElement>('openMonitorInlineButton').addEventListener('click', () => {
+  openRuntimeMonitorWindow();
+});
 
 const boxInputs = {
   x: requireElement<HTMLInputElement>('boxX'),
@@ -394,9 +412,18 @@ async function runDebugSearch() {
 
   localStorage.setItem('debug-api-base', apiBaseInput.value.trim());
   runButton.disabled = true;
-  statusText.textContent = '运行中';
+  statusText.textContent = '先调用 /runtime/plan';
+  runtimeHint.textContent = '正在规划任务图...';
 
   try {
+    const plannedRunId = await planImageSearchRuntime();
+    if (plannedRunId) {
+      rememberRuntimeRunId(plannedRunId);
+      runtimeHint.textContent = `Runtime run ${plannedRunId} · 正在执行图片搜索`;
+    } else {
+      runtimeHint.textContent = 'Runtime plan 未返回 runId，搜索仍会继续并由后端创建运行轨迹。';
+    }
+
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('boxX', String(box.x));
@@ -410,6 +437,9 @@ async function runDebugSearch() {
     formData.append('embeddingKind', readInputValue('embeddingKind', 'visual'));
     formData.append('runDetailed', String(requireElement<HTMLInputElement>('runDetailed').checked));
     formData.append('runRefined', String(requireElement<HTMLInputElement>('runRefined').checked));
+    if (plannedRunId) formData.append('runtimeRunId', plannedRunId);
+
+    statusText.textContent = '运行中';
 
     const response = await fetch(`${apiBaseInput.value.trim().replace(/\/$/, '')}/api/v1/debug/image-search`, {
       method: 'POST',
@@ -421,11 +451,42 @@ async function runDebugSearch() {
     }
 
     renderResult(payload.data);
+    const runId = payload.data.runtime?.runId ?? plannedRunId;
+    if (runId) rememberRuntimeRunId(runId);
     statusText.textContent = `完成 · ${formatMs(payload.data.meta?.totalDurationMs ?? 0)}`;
+    runtimeHint.textContent = runId
+      ? `Runtime ${payload.data.runtime?.status ?? 'recorded'} · ${runId}`
+      : '搜索完成，但没有返回 Runtime runId。';
   } catch (error) {
     statusText.textContent = error instanceof Error ? error.message : '运行失败';
+    runtimeHint.textContent = '搜索失败。调度盘仍会显示这次 /runtime/plan 的 blocked 或 failed 状态。';
   } finally {
     runButton.disabled = false;
+  }
+}
+
+async function planImageSearchRuntime() {
+  try {
+    const response = await fetch(`${apiBaseInput.value.trim().replace(/\/$/, '')}/api/v1/runtime/plan`, {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        ...IMAGE_SEARCH_PLAN_GRAPH,
+        createdAt: new Date().toISOString(),
+      }),
+    });
+    const payload = (await response.json()) as ApiResponse<{ runId?: string; status?: string }>;
+    if (!response.ok || !payload.success) {
+      runtimeHint.textContent = payload.error?.message ?? payload.error?.code ?? `HTTP_${response.status}`;
+      return null;
+    }
+    return payload.data?.runId ?? null;
+  } catch (error) {
+    runtimeHint.textContent = error instanceof Error ? error.message : 'Runtime plan 调用失败';
+    return null;
   }
 }
 
@@ -436,6 +497,8 @@ function renderResult(result: DebugResult) {
   const refined = result.refinedCandidates ?? [];
 
   requireElement<HTMLElement>('summaryGrid').innerHTML = [
+    summaryItem('Runtime', result.runtime?.runId ?? '-'),
+    summaryItem('Plan', result.runtime?.status ?? '-'),
     summaryItem('Session', result.meta?.sessionId ?? '-'),
     summaryItem('Total', formatMs(result.meta?.totalDurationMs ?? 0)),
     summaryItem('Crop Ready', result.meta?.cropReadyAtMs === null ? '-' : formatMs(result.meta?.cropReadyAtMs ?? 0)),
@@ -562,6 +625,7 @@ function renderJson(id: string, value: unknown) {
 
 function renderEmptyResults() {
   requireElement<HTMLElement>('summaryGrid').innerHTML = [
+    summaryItem('Runtime', '-'),
     summaryItem('Session', '-'),
     summaryItem('Total', '0 ms'),
     summaryItem('ANN Returned', '0'),

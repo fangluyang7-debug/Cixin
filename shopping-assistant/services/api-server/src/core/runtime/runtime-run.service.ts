@@ -39,6 +39,14 @@ export class RuntimeRunService {
     return this.updatePlan(run.runId, plan);
   }
 
+  async attachGraph(runId: string | undefined, taskGraph: TaskGraph): Promise<RuntimeRun> {
+    if (!runId || !this.get(runId)) {
+      return this.start(taskGraph);
+    }
+    const plan = await this.scheduler.plan(taskGraph);
+    return this.updatePlan(runId, plan, taskGraph);
+  }
+
   createPlanned(taskGraph: TaskGraph, plan: ExecutionPlan): RuntimeRun {
     const now = new Date().toISOString();
     const run: RuntimeRun = {

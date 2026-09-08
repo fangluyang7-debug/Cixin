@@ -87,4 +87,4 @@ Telemetry 会进入性能注册表，参与后续 Scheduler 评分；没有达�
 
 ## 图片搜索关联
 
-`POST /api/v1/debug/image-search` 会在搜索前创建 Runtime run，并在响应的 `runtime` 字段返回完整运行记录；其中 `runtime.runId` 可以直接用于调度盘查询。图片搜索本身仍由购物业务服务执行，Runtime 负责目标拆解、资源评估和真实性能记录，不替代业务执行器。
+`POST /api/v1/debug/image-search` 会先读取可选的 `runtimeRunId`。图片搜索页在用户点击搜索时会额外调用 `POST /api/v1/runtime/plan`，再把返回的 `runId` 传给图片搜索，使购物操作和同一次 Runtime 规划绑定在一起。没有 `runtimeRunId` 时，后端仍会新建运行记录。响应的 `runtime` 字段返回完整运行记录，可直接用于调度盘查询。图片搜索本身仍由购物业务服务执行，Runtime 负责目标拆解、资源评估和真实性能记录，不替代业务执行器。

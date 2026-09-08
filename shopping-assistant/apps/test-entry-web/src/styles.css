@@ -234,6 +234,36 @@ pre {
   opacity: 0.56;
 }
 
+.action-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr);
+  gap: 8px;
+}
+
+.monitor-button,
+.monitor-open-button {
+  min-height: 46px;
+  border: 1px solid #176e54;
+  border-radius: 8px;
+  background: #176e54;
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.topbar-links .monitor-open-button {
+  min-height: 38px;
+  margin-left: 0;
+  padding: 10px 13px;
+  font-size: 12px;
+}
+
+.runtime-hint {
+  margin: 0;
+  color: #53645f;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .status {
   min-height: 22px;
   margin: 0;

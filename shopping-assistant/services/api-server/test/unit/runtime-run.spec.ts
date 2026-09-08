@@ -1,6 +1,7 @@
 import { RuntimeRunService } from "../../src/core/runtime/runtime-run.service";
 import { ExecutionPlan, TaskGraph, TelemetryRecord } from "../../src/core/runtime/runtime.contracts";
 import { ResourceAwareSchedulerService } from "../../src/core/runtime/scheduler.service";
+import { buildImageSearchTaskGraph } from "../../src/core/runtime/image-search-task-graph";
 
 describe("RuntimeRunService", () => {
   it("keeps the runId and scheduler result together for a planned graph", async () => {
@@ -59,6 +60,36 @@ describe("RuntimeRunService", () => {
     expect(run.status).toBe("ready");
   });
 
+  it("reuses an existing runId when attaching a later task graph", async () => {
+    const plan = executionPlan("blocked");
+    const scheduler = {
+      plan: jest.fn().mockResolvedValue(plan),
+    } as unknown as ResourceAwareSchedulerService;
+    const service = new RuntimeRunService(scheduler);
+    const first = await service.start(graph());
+
+    const attached = await service.attachGraph(first.runId, {
+      ...graph(),
+      goal: "使用图片 asset_1 完成检索",
+    });
+
+    expect(attached.runId).toBe(first.runId);
+    expect(attached.goal).toBe("使用图片 asset_1 完成检索");
+    expect(scheduler.plan).toHaveBeenCalledTimes(2);
+  });
+
+  it("starts a new run when the requested runId is missing", async () => {
+    const scheduler = {
+      plan: jest.fn().mockResolvedValue(executionPlan("blocked")),
+    } as unknown as ResourceAwareSchedulerService;
+    const service = new RuntimeRunService(scheduler);
+
+    const run = await service.attachGraph("run_missing", graph());
+
+    expect(run.runId).toMatch(/^run_/);
+    expect(run.runId).not.toBe("run_missing");
+  });
+
   it("keeps business operation timing separate from executor telemetry", () => {
     const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
     const service = new RuntimeRunService(scheduler);
@@ -75,6 +106,21 @@ describe("RuntimeRunService", () => {
 
     expect(service.get(run.runId)?.operationTimeline[0].durationMs).toBe(130);
     expect(service.get(run.runId)?.telemetry).toHaveLength(0);
+  });
+});
+
+describe("buildImageSearchTaskGraph", () => {
+  it("keeps the shopping debug graph ordered for scheduler scoring", () => {
+    const graph = buildImageSearchTaskGraph("asset_demo");
+
+    expect(graph.graphId).toBe("image-search-asset_demo");
+    expect(graph.nodes.map((node) => node.taskId)).toEqual([
+      "quality-check",
+      "crop",
+      "embedding",
+      "vector-search",
+    ]);
+    expect(graph.nodes[2].dependencies).toEqual(["crop"]);
   });
 });
 
