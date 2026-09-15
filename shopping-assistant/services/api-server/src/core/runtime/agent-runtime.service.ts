@@ -1,12 +1,14 @@
 import { Inject, Injectable, Optional } from "@nestjs/common";
 import {
   ExecutionPlan,
+  TaskConstraints,
   TaskGraph,
   TelemetryRecord,
   VerificationResult,
 } from "./runtime.contracts";
 import { ResourceAwareSchedulerService } from "./scheduler.service";
 import { TelemetryService } from "./telemetry.service";
+import { RuntimePlanningError } from "./runtime-errors";
 
 export const AGENT_PLANNER = Symbol("AGENT_PLANNER");
 
@@ -35,6 +37,7 @@ export class AgentRuntimeService {
   async planGoal(input: {
     goal: string;
     context?: Record<string, unknown>;
+    runId?: string;
   }): Promise<AgentPlanResult> {
     if (!this.planner) {
       return {
@@ -49,8 +52,14 @@ export class AgentRuntimeService {
         ],
       };
     }
-    const taskGraph = await this.planner.planGoal(input);
-    return this.scheduleGraph(taskGraph);
+    try {
+      const taskGraph = await this.planner.planGoal(input);
+      return this.scheduleGraph(taskGraph, input.runId);
+    } catch (error) {
+      if (!(error instanceof RuntimePlanningError)) throw error;
+      return { status: "blocked", taskGraph: null, executionPlan: null,
+        missingRequirements: [{ code: error.code, message: error.message }] };
+    }
   }
 
   async scheduleGraph(taskGraph: TaskGraph, runId?: string): Promise<AgentPlanResult> {
@@ -81,7 +90,8 @@ export class AgentRuntimeService {
     assignment: Parameters<TelemetryService["verify"]>[0],
     tool: Parameters<TelemetryService["verify"]>[1],
     telemetry: TelemetryRecord,
+    taskConstraints?: TaskConstraints,
   ): VerificationResult {
-    return this.telemetry.verify(assignment, tool, telemetry);
+    return this.telemetry.verify(assignment, tool, telemetry, taskConstraints);
   }
 }

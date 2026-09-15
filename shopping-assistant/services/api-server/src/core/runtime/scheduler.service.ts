@@ -1,16 +1,13 @@
 import { Injectable, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
-  BackendType,
   CandidateEvaluation,
   ExecutionAssignment,
   ExecutionLocation,
   ExecutionPlan,
   ExecutorDescriptor,
   ObjectiveWeights,
-  PerformanceSample,
   PrivacyLevel,
-  ScoreBreakdown,
   TaskConstraints,
   TaskGraph,
   TaskIntent,
@@ -21,10 +18,12 @@ import { PerformanceRegistryService } from "./performance-registry.service";
 import { PlatformDiscoveryService, PlatformSnapshot } from "./platform-discovery.service";
 import { ToolRegistryService } from "./tool-registry.service";
 import { RuntimeEventBusService } from "./runtime-event-bus.service";
+import { ResourcePredictorService, adviceFor } from "./resource-predictor.service";
 
 @Injectable()
 export class ResourceAwareSchedulerService {
   private readonly lastSelections = new Map<string, string>();
+  private readonly predictor: ResourcePredictorService;
 
   constructor(
     private readonly tools: ToolRegistryService,
@@ -32,7 +31,8 @@ export class ResourceAwareSchedulerService {
     private readonly performance: PerformanceRegistryService,
     private readonly config: ConfigService,
     @Optional() private readonly events?: RuntimeEventBusService,
-  ) {}
+    @Optional() predictor?: ResourcePredictorService,
+  ) { this.predictor = predictor ?? new ResourcePredictorService(config); }
 
   async plan(graph: TaskGraph, context: { runId?: string } = {}): Promise<ExecutionPlan> {
     const generatedAt = new Date().toISOString();
@@ -48,8 +48,30 @@ export class ResourceAwareSchedulerService {
     const evaluations: Record<string, CandidateEvaluation[]> = {};
     const assignments: ExecutionAssignment[] = [];
     const missingRequirements = [...topology.missingRequirements];
+    const executorCounts = new Map<string, number>();
+    for (const snapshot of snapshots) {
+      for (const executor of snapshot.executors) {
+        executorCounts.set(executor.executorId, (executorCounts.get(executor.executorId) ?? 0) + 1);
+      }
+    }
+    const ambiguousExecutorIds = new Set(
+      [...executorCounts.entries()].filter(([, count]) => count > 1).map(([executorId]) => executorId),
+    );
+    for (const executorId of ambiguousExecutorIds) {
+      missingRequirements.push({
+        code: "EXECUTOR_ID_AMBIGUOUS",
+        message: `执行器 ID ${executorId} 在多个平台重复，无法安全绑定执行目标。`,
+        evidence: { executorId },
+      });
+    }
+    for (const snapshot of snapshots) this.predictor.observe(snapshot.state);
 
-    for (const task of graph.nodes) {
+    for (const taskId of topology.executionOrder) {
+      const task = graph.nodes.find(node => node.taskId === taskId)!;
+      if (topology.invalidTaskIds.has(taskId)) {
+        evaluations[task.taskId] = [];
+        continue;
+      }
       const tool = this.tools.get(task.toolId);
       if (!tool) {
         evaluations[task.taskId] = [];
@@ -61,37 +83,40 @@ export class ResourceAwareSchedulerService {
         continue;
       }
 
-      const taskEvaluations = await this.evaluateTask(task, tool, snapshots);
+      const taskEvaluations = await this.evaluateTask(
+        task,
+        tool,
+        snapshots,
+        graph.demand?.deadlineMs,
+        ambiguousExecutorIds,
+      );
       evaluations[task.taskId] = taskEvaluations;
-      for (const evaluation of taskEvaluations) {
-        this.events?.emit({
-          type: "candidate_evaluated",
-          runId: context.runId,
-          graphId: graph.graphId,
-          taskId: task.taskId,
-          toolId: task.toolId,
-          executorId: evaluation.executorId,
-          message: evaluation.accepted
-            ? `${evaluation.executorId} accepted`
-            : `${evaluation.executorId} rejected`,
-          payload: {
-            accepted: evaluation.accepted,
-            backend: evaluation.backend,
-            placement: evaluation.placement,
-            reasons: evaluation.reasons,
-            score: evaluation.score,
-          },
-        });
-      }
+      const emitEvaluations = () => {
+        for (const evaluation of taskEvaluations) {
+          this.events?.emit({
+            type: "candidate_evaluated", runId: context.runId, graphId: graph.graphId,
+            taskId: task.taskId, toolId: task.toolId, executorId: evaluation.executorId,
+            message: `${evaluation.executorId} ${evaluation.accepted ? "accepted" : "rejected"}`,
+            payload: { accepted: evaluation.accepted, backend: evaluation.backend,
+              placement: evaluation.placement, modelId: evaluation.modelId,
+              modelTier: evaluation.modelTier, reasons: evaluation.reasons,
+              score: evaluation.score, forecast: evaluation.forecast },
+          });
+        }
+      };
       const accepted = taskEvaluations.filter((evaluation) => evaluation.accepted);
       if (accepted.length === 0) {
+        emitEvaluations();
         missingRequirements.push(...this.collectMissingRequirements(task, taskEvaluations));
         continue;
       }
 
       const weights = this.resolveWeights(task, tool, accepted, snapshots);
       this.applyScores(accepted, weights);
-      const selected = this.selectCandidate(task.taskId, accepted);
+      emitEvaluations();
+      const selectionKey = `${graph.graphId}:${task.taskId}`;
+      const preferredPlacement = preferredPlacementFor(task, tool);
+      const selected = this.selectCandidate(selectionKey, accepted, preferredPlacement);
       if (!selected || !selected.score) {
         missingRequirements.push({
           taskId: task.taskId,
@@ -100,7 +125,7 @@ export class ResourceAwareSchedulerService {
         });
         continue;
       }
-      const modelId = tool.resourceHints.modelId;
+      const modelId = selected.modelId;
       assignments.push({
         taskId: task.taskId,
         toolId: task.toolId,
@@ -108,19 +133,28 @@ export class ResourceAwareSchedulerService {
         placement: selected.placement,
         backend: selected.backend,
         modelId,
+        modelTier: selected.modelTier,
+        estimatedLatencyMs: selected.estimatedLatencyMs,
+        estimatedMemoryMb: selected.estimatedMemoryMb,
+        estimatedEnergyMah: selected.sample?.energyMah,
+        forecast: selected.forecast,
         score: selected.score,
         weights,
         reasons: [
           "通过硬约束过滤",
           ...selected.reasons,
-          ...(this.lastSelections.get(task.taskId) === selected.executorId
+          ...(preferredPlacement === selected.placement
+            ? [`满足 ${preferredPlacement === "local" ? "本地" : "云端"}软偏好`]
+            : []),
+          ...(this.lastSelections.get(selectionKey) === candidateKey(selected)
             ? ["保持当前执行器，避免低收益切换"]
             : []),
         ],
         plannedAt: generatedAt,
         status: "planned",
       });
-      this.lastSelections.set(task.taskId, selected.executorId);
+      this.lastSelections.set(selectionKey, candidateKey(selected));
+      if (this.lastSelections.size > 1000) this.lastSelections.delete(this.lastSelections.keys().next().value!);
       this.events?.emit({
         type: "executor_selected",
         runId: context.runId,
@@ -137,15 +171,57 @@ export class ResourceAwareSchedulerService {
       });
     }
 
+    let conservative = assignments.some(item => item.forecast?.risk === "warning");
+    // Each assignment already passed admission. A combined memory peak may only need serialization.
+    for (const group of topology.parallelGroups) {
+      for (const snapshot of snapshots) {
+        const concurrent = assignments.filter(a => group.includes(a.taskId) && a.placement === "local" && snapshot.executors.some(e => e.executorId === a.executorId));
+        if (concurrent.length < 2) continue;
+        const forecast = this.predictor.assess(snapshot.state, {
+          memoryMb: concurrent.reduce((sum, a) => sum + (a.estimatedMemoryMb ?? 0), 0),
+          durationMs: Math.max(...concurrent.map(a => a.estimatedLatencyMs ?? 0)), cpu: concurrent.some(a => a.backend === "cpu"),
+        });
+        if (forecast.action === "reject") {
+          if (forecast.reasons.includes("PREDICTED_MEMORY_REDLINE")) conservative = true;
+          else missingRequirements.push({ code: "PARALLEL_RESOURCE_REDLINE", message: "并行组资源风险无法通过降低并发消除。", evidence: { group, reasons: forecast.reasons } });
+        }
+      }
+    }
+    const parallelGroups = conservative ? topology.executionOrder.map(id => [id]) : topology.parallelGroups;
+    const finishes = new Map<string, number>();
+    let serialFinish = 0;
+    for (const taskId of topology.executionOrder) {
+      const task = graph.nodes.find(node => node.taskId === taskId)!;
+      const selected = assignments.find(item => item.taskId === taskId);
+      if (selected?.estimatedLatencyMs == null) continue;
+      const finish = Math.max(conservative ? serialFinish : 0, ...(task.dependencies ?? []).map(id => finishes.get(id) ?? Infinity)) + selected.estimatedLatencyMs;
+      serialFinish = finish;
+      finishes.set(taskId, finish);
+      if (task.constraints?.deadlineMs !== undefined && finish > task.constraints.deadlineMs) {
+        missingRequirements.push({ taskId, code: "TASK_DEADLINE_EXCEEDED", message: "依赖链预计完成时间超出任务截止预算。" });
+      }
+    }
+    const criticalPath = finishes.size === graph.nodes.length ? Math.max(0, ...finishes.values()) : null;
+    if (graph.demand && criticalPath !== null && criticalPath > graph.demand.deadlineMs) {
+      missingRequirements.push({ code: "GRAPH_DEADLINE_EXCEEDED", message: "任务图端到端预计耗时超出业务预算。" });
+    }
     const plan: ExecutionPlan = {
       graphId: graph.graphId,
       status: missingRequirements.length === 0 ? "ready" : "blocked",
       executionOrder: topology.executionOrder,
-      parallelGroups: topology.parallelGroups,
+      parallelGroups,
+      recommendedMaxConcurrency: conservative ? 1 : undefined,
       assignments,
       missingRequirements,
       evaluations,
       generatedAt,
+      estimatedCriticalPathMs: criticalPath,
+      advice: [...new Set([
+        ...(conservative ? ["资源压力或并行峰值过高，计划已限制为串行；时限按串行完成时间重新校验。"] : []),
+        ...Object.values(evaluations).flatMap(items => items.flatMap(item => item.forecast?.advice ?? [])),
+        ...adviceFor(missingRequirements.map(item => item.code)),
+        ...(missingRequirements.some(item => item.code === "PARALLEL_RESOURCE_REDLINE") ? ["将并行任务改为有依赖的串行阶段后重试。"] : []),
+      ])],
     };
     if (plan.status === "blocked") {
       this.events?.emit({
@@ -167,14 +243,31 @@ export class ResourceAwareSchedulerService {
     task: TaskIntent,
     tool: ToolDescriptor,
     snapshots: PlatformSnapshot[],
+    graphDeadlineMs: number | undefined,
+    ambiguousExecutorIds: ReadonlySet<string>,
   ) {
     const effective = mergeConstraints(tool.constraints, task.constraints);
     const evaluations: CandidateEvaluation[] = [];
     for (const snapshot of snapshots) {
       for (const executor of snapshot.executors) {
+        const variants = [
+          { modelId: tool.resourceHints.modelId, tier: "full" as const, estimatedMemoryMb: tool.resourceHints.estimatedMemoryMb },
+          ...(tool.resourceHints.modelVariants ?? []).filter(variant => variant.tier !== "light" || task.constraints?.allowDegrade === true),
+        ];
+        for (const variant of variants) {
         evaluations.push(
-          await this.evaluateCandidate(task, tool, effective, executor, snapshot),
+          await this.evaluateCandidate(
+            task,
+            { ...tool, resourceHints: { ...tool.resourceHints, modelId: variant.modelId, estimatedMemoryMb: variant.estimatedMemoryMb } },
+            effective,
+            executor,
+            snapshot,
+            variant.tier,
+            graphDeadlineMs,
+            ambiguousExecutorIds,
+          ),
         );
+        }
       }
     }
     return evaluations;
@@ -186,6 +279,9 @@ export class ResourceAwareSchedulerService {
     constraints: ToolConstraints,
     executor: ExecutorDescriptor,
     snapshot: PlatformSnapshot,
+    modelTier: "light" | "full",
+    graphDeadlineMs: number | undefined,
+    ambiguousExecutorIds: ReadonlySet<string>,
   ): Promise<CandidateEvaluation> {
     const reasons: string[] = [];
     const sample = this.performance.get(
@@ -196,12 +292,19 @@ export class ResourceAwareSchedulerService {
     if (!executor.available) {
       reasons.push(`EXECUTOR_UNAVAILABLE:${executor.availabilityReason ?? "UNKNOWN"}`);
     }
+    if (ambiguousExecutorIds.has(executor.executorId)) {
+      reasons.push("EXECUTOR_ID_AMBIGUOUS");
+    }
     if (!executor.supportedComputeClasses.includes(tool.resourceHints.computeClass)) {
       reasons.push("COMPUTE_CLASS_UNSUPPORTED");
     }
     if (!placementAllowed(executor.placement, constraints.locality)) {
       reasons.push("LOCALITY_CONSTRAINT_FAILED");
     }
+    if (snapshot.profile.platformId !== "cloud" && snapshot.heartbeat && !snapshot.heartbeat.fresh && snapshot.profile.platformId !== "host") {
+      reasons.push("PLATFORM_HEARTBEAT_STALE");
+    }
+    if (!placementAllowed(executor.placement, tool.constraints.locality)) reasons.push("TOOL_LOCALITY_CONSTRAINT_FAILED");
     if (executor.placement === "local" && !constraints.allowLocal) {
       reasons.push("LOCAL_EXECUTION_DISABLED_BY_TOOL");
     }
@@ -212,41 +315,13 @@ export class ResourceAwareSchedulerService {
       reasons.push("HIGH_PRIVACY_REQUIRES_LOCAL_EXECUTION");
     }
     if (executor.placement === "local") {
-      const freeMemoryMb = snapshot.state.freeMemoryMb.value;
+      const freeMemoryMb = this.predictor.read(snapshot.state.freeMemoryMb);
       if (freeMemoryMb === null) {
         reasons.push("LOCAL_FREE_MEMORY_UNAVAILABLE");
       } else if (freeMemoryMb < tool.resourceHints.estimatedMemoryMb) {
         reasons.push("LOCAL_MEMORY_INSUFFICIENT");
       }
-      if (snapshot.state.thermalThrottle?.available && snapshot.state.thermalThrottle.value) {
-        reasons.push("LOCAL_THERMAL_THROTTLING");
-      }
-      if (
-        snapshot.state.temperatureCelsius.available &&
-        snapshot.state.temperatureCelsius.value !== null &&
-        snapshot.state.temperatureCelsius.value >=
-          (this.config.get<number>("runtime.criticalTemperatureCelsius") ?? 85)
-      ) {
-        reasons.push("LOCAL_TEMPERATURE_CRITICAL");
-      }
-      if (
-        executor.backend === "cpu" &&
-        snapshot.state.cpuUtilizationPercent.available &&
-        snapshot.state.cpuUtilizationPercent.value !== null &&
-        snapshot.state.cpuUtilizationPercent.value >=
-          (this.config.get<number>("runtime.maxCpuUtilizationPercent") ?? 95)
-      ) {
-        reasons.push("LOCAL_CPU_PRESSURE");
-      }
-      if (
-        snapshot.state.queueDepth?.available &&
-        snapshot.state.queueDepth.value !== null &&
-        snapshot.state.queueDepth.value >=
-          (this.config.get<number>("runtime.maxLocalQueueDepth") ?? 32)
-      ) {
-        reasons.push("LOCAL_EXECUTOR_QUEUE_PRESSURE");
-      }
-    } else if (executor.totalMemoryMb === null) {
+    } else if (["cpu", "gpu", "npu"].includes(executor.backend) && executor.totalMemoryMb === null) {
       reasons.push("REMOTE_MEMORY_CAPACITY_UNAVAILABLE");
     }
 
@@ -277,20 +352,42 @@ export class ResourceAwareSchedulerService {
       }
     }
 
-    const weights = normalizeWeights(tool.defaultWeights);
+    const weights = normalizeWeights({ ...tool.defaultWeights, ...task.constraints?.weights });
+    const networkMs = executor.placement === "cloud" ? this.predictor.read(snapshot.state.networkLatencyMs) : 0;
+    const queueMs = snapshot.state.queueWaitMs === undefined ? 0 : this.predictor.read(snapshot.state.queueWaitMs);
+    const payloadBytes = constraints.estimatedDataBytes ?? 0;
+    const throughput = executor.placement === "cloud" && payloadBytes > 0 ? this.predictor.read(snapshot.state.networkThroughputMbps) : null;
+    if (networkMs === null || (executor.placement === "cloud" && payloadBytes > 0 && (throughput === null || throughput <= 0))) reasons.push("CLOUD_NETWORK_METRIC_UNAVAILABLE");
+    if (queueMs === null) reasons.push("QUEUE_WAIT_METRIC_UNAVAILABLE");
+    const transferMs = executor.placement === "cloud" && payloadBytes > 0 && throughput && throughput > 0 ? payloadBytes * 8 / (throughput * 1000) : 0;
+    const estimatedLatencyMs = sample?.p95LatencyMs == null || networkMs === null || queueMs === null ? null : sample.p95LatencyMs + networkMs + queueMs + transferMs;
+    const estimatedMemoryMb = Math.max(tool.resourceHints.estimatedMemoryMb, sample?.memoryPeakMb ?? 0);
+    if (executor.totalMemoryMb !== null && executor.totalMemoryMb < estimatedMemoryMb) reasons.push("EXECUTOR_MEMORY_CAPACITY_INSUFFICIENT");
+    const forecast = this.predictor.assess(snapshot.state, {
+      memoryMb: estimatedMemoryMb, durationMs: sample?.p95LatencyMs ?? constraints.maxLatencyMs ?? 5000,
+      cpu: executor.backend === "cpu", backend: executor.backend, local: executor.placement === "local",
+      energyMah: sample?.energyMah, interruptible: task.checkpointPolicy?.enabled === true,
+      latencyBudgetMs: Math.min(constraints.maxLatencyMs ?? Infinity, task.constraints?.deadlineMs ?? Infinity, graphDeadlineMs ?? Infinity),
+    });
+    if (forecast?.action === "reject") reasons.push(...forecast.reasons);
     if (!sample) {
       reasons.push("REAL_PERFORMANCE_PROFILE_MISSING");
     } else {
       if (sample.sampleCount < this.performance.getMinimumSamples()) {
         reasons.push("REAL_PERFORMANCE_SAMPLE_COUNT_TOO_LOW");
       }
-      if (sample.p95LatencyMs === null && weights.latency > 0) {
+      const latencyEvidenceRequired =
+        weights.latency > 0 ||
+        constraints.maxLatencyMs !== undefined ||
+        task.constraints?.deadlineMs !== undefined ||
+        graphDeadlineMs !== undefined;
+      if (sample.p95LatencyMs === null && latencyEvidenceRequired) {
         reasons.push("P95_LATENCY_METRIC_MISSING");
       }
       if (sample.memoryPeakMb === null) {
         reasons.push("PEAK_MEMORY_METRIC_MISSING");
       }
-      if (sample.energyMah === null && weights.energy > 0) {
+      if (sample.energyMah === null && (weights.energy > 0 || constraints.energyBudgetMah !== undefined)) {
         reasons.push("ENERGY_METRIC_MISSING");
       }
       if (sample.quality === null && weights.quality > 0) {
@@ -299,11 +396,12 @@ export class ResourceAwareSchedulerService {
       if (
         constraints.maxLatencyMs !== undefined &&
         sample.p95LatencyMs !== null &&
-        sample.p95LatencyMs + networkLatencyFor(snapshot, executor) > constraints.maxLatencyMs
+        estimatedLatencyMs !== null && estimatedLatencyMs > constraints.maxLatencyMs
       ) {
         reasons.push("P95_LATENCY_BUDGET_EXCEEDED");
       }
-      const minimumQuality = minimumQualityFor(tool, constraints);
+      const minimumQuality = minimumQualityFor(tool, task.constraints?.minimumQuality);
+      if (minimumQuality !== undefined && sample.quality === null) reasons.push("QUALITY_METRIC_MISSING");
       if (
         minimumQuality !== undefined &&
         sample.quality !== null &&
@@ -318,6 +416,9 @@ export class ResourceAwareSchedulerService {
       ) {
         reasons.push("ENERGY_BUDGET_EXCEEDED");
       }
+      if (executor.placement === "cloud" && constraints.costBudgetMinorUnits !== undefined) {
+        reasons.push("CLOUD_COST_METRIC_UNAVAILABLE");
+      }
     }
 
     return {
@@ -325,9 +426,14 @@ export class ResourceAwareSchedulerService {
       placement: executor.placement,
       backend: executor.backend,
       accepted: reasons.length === 0,
-      reasons,
+      reasons: [...new Set(reasons)],
       sample,
       score: null,
+      modelId: tool.resourceHints.modelId,
+      modelTier,
+      estimatedLatencyMs,
+      estimatedMemoryMb,
+      forecast,
     };
   }
 
@@ -348,30 +454,31 @@ export class ResourceAwareSchedulerService {
     if (task.constraints?.preference === "quality") raw.quality *= 1.5;
     if (task.constraints?.preference === "energy") raw.energy *= 1.5;
 
-    const pressure = snapshots.some(
-      (snapshot) =>
-        (snapshot.state.batteryPercent.value !== null &&
-          snapshot.state.batteryPercent.value <=
-            (this.config.get<number>("runtime.lowBatteryPercent") ?? 20)) ||
-        (snapshot.state.temperatureCelsius.value !== null &&
-          snapshot.state.temperatureCelsius.value >=
-            (this.config.get<number>("runtime.highTemperatureCelsius") ?? 75)),
-    );
+    const pressure = snapshots.some((snapshot) => {
+      const battery = this.predictor.read(snapshot.state.batteryPercent);
+      const temperature = this.predictor.read(snapshot.state.temperatureCelsius);
+      return (battery !== null && battery <=
+          (this.config.get<number>("runtime.lowBatteryPercent") ?? 20)) ||
+        (temperature !== null && temperature >=
+          (this.config.get<number>("runtime.highTemperatureCelsius") ?? 75));
+    });
     if (pressure) raw.energy *= 1.5;
 
-    const queuePressure = snapshots.some((snapshot) =>
-      (snapshot.state.queueDepth?.value ?? 0) >= 8 ||
-      (snapshot.state.activeTaskCount.value ?? 0) >= 8,
-    );
+    const queuePressure = snapshots.some((snapshot) => {
+      const queueDepth = this.predictor.read(snapshot.state.queueDepth);
+      const activeTasks = this.predictor.read(snapshot.state.activeTaskCount);
+      return (queueDepth ?? 0) >= 8 || (activeTasks ?? 0) >= 8;
+    });
     if (queuePressure) raw.reliability *= 1.2;
-    const networkPressure = snapshots.some((snapshot) =>
-      (snapshot.state.packetLossPercent?.value ?? 0) > 1 ||
-      (snapshot.state.networkJitterMs?.value ?? 0) > 20,
-    );
+    const networkPressure = snapshots.some((snapshot) => {
+      const packetLoss = this.predictor.read(snapshot.state.packetLossPercent);
+      const jitter = this.predictor.read(snapshot.state.networkJitterMs);
+      return (packetLoss ?? 0) > 1 || (jitter ?? 0) > 20;
+    });
     if (networkPressure) raw.latency *= 1.25;
 
     const bestLatency = accepted
-      .map((candidate) => candidate.sample?.p95LatencyMs)
+      .map((candidate) => candidate.estimatedLatencyMs)
       .filter((value): value is number => value !== null && value !== undefined)
       .sort((left, right) => left - right)[0];
     const budget = task.constraints?.maxLatencyMs ?? tool.constraints.maxLatencyMs;
@@ -383,18 +490,24 @@ export class ResourceAwareSchedulerService {
   }
 
   private applyScores(candidates: CandidateEvaluation[], weights: ObjectiveWeights) {
-    const samples = candidates
-      .map((candidate) => candidate.sample)
-      .filter((sample): sample is PerformanceSample => sample !== null);
-    const latencies = samples.map((sample) => sample.p95LatencyMs as number);
-    const qualities = samples.map((sample) => sample.quality as number);
-    const energies = samples.map((sample) => sample.energyMah as number);
+    const latencies = candidates.map(candidate => candidate.estimatedLatencyMs ?? Infinity);
+    const qualities = candidates
+      .map((candidate) => candidate.sample?.quality)
+      .filter((value): value is number => value !== null && value !== undefined);
+    const energies = candidates
+      .map((candidate) => candidate.sample?.energyMah)
+      .filter((value): value is number => value !== null && value !== undefined);
     for (const candidate of candidates) {
       const sample = candidate.sample;
       if (!sample) continue;
-      const latencyScore = lowerIsBetter(sample.p95LatencyMs as number, latencies);
-      const qualityScore = higherIsBetter(sample.quality as number, qualities);
-      const energyScore = lowerIsBetter(sample.energyMah as number, energies);
+      const latencyScore = metricScore(
+        candidate.estimatedLatencyMs,
+        latencies.filter(Number.isFinite),
+        weights.latency,
+        true,
+      );
+      const qualityScore = metricScore(sample.quality, qualities, weights.quality, false);
+      const energyScore = metricScore(sample.energyMah, energies, weights.energy, true);
       const reliabilityScore =
         0.6 * (1 - (sample.failureRate ?? 1)) +
         0.4 * (sample.noFallbackRate ?? 0);
@@ -409,26 +522,40 @@ export class ResourceAwareSchedulerService {
           weights.energy * energyScore +
           weights.reliability * reliabilityScore,
       };
+      if (candidate.forecast?.risk === "warning") {
+        candidate.score.totalScore *= candidate.modelTier === "light" ? 0.95 : 0.9;
+        candidate.reasons.push(candidate.modelTier === "light" ? "WARNING_LIGHT_SCORE_FACTOR_0.95" : "WARNING_SCORE_FACTOR_0.9");
+      }
     }
   }
 
-  private selectCandidate(taskId: string, candidates: CandidateEvaluation[]) {
+  private selectCandidate(
+    taskId: string,
+    candidates: CandidateEvaluation[],
+    preferredPlacement?: "local" | "cloud",
+  ) {
+    const configuredBoost = this.config.get<number>("runtime.placementPreferenceBoost") ?? 0.05;
+    const preferenceBoost = Number.isFinite(configuredBoost)
+      ? Math.max(0, Math.min(0.5, configuredBoost))
+      : 0.05;
+    const rankedScore = (candidate: CandidateEvaluation) =>
+      (candidate.score?.totalScore ?? -1) *
+      (candidate.placement === preferredPlacement ? 1 + preferenceBoost : 1);
     const sorted = [...candidates].sort((left, right) => {
-      const scoreDifference =
-        (right.score?.totalScore ?? -1) - (left.score?.totalScore ?? -1);
+      const scoreDifference = rankedScore(right) - rankedScore(left);
       if (Math.abs(scoreDifference) > 0.000001) return scoreDifference;
       return left.executorId.localeCompare(right.executorId);
     });
     const best = sorted[0];
     if (!best?.score) return null;
     const currentId = this.lastSelections.get(taskId);
-    const current = sorted.find((candidate) => candidate.executorId === currentId);
+    const current = sorted.find((candidate) => candidateKey(candidate) === currentId);
     const threshold = this.config.get<number>("runtime.switchThreshold") ?? 0.05;
     if (
       current &&
       current !== best &&
       current.score &&
-      best.score.totalScore <= current.score.totalScore * (1 + threshold)
+      rankedScore(best) <= rankedScore(current) * (1 + threshold)
     ) {
       current.reasons.push("HYSTERESIS_KEEP_CURRENT_EXECUTOR");
       return current;
@@ -452,10 +579,14 @@ export class ResourceAwareSchedulerService {
   }
 }
 
-function networkLatencyFor(snapshot: PlatformSnapshot, executor: ExecutorDescriptor) {
-  if (executor.placement !== "cloud") return 0;
-  const latency = snapshot.state.networkLatencyMs;
-  return latency?.available && latency.value !== null ? latency.value : 0;
+function candidateKey(candidate: CandidateEvaluation) { return `${candidate.executorId}:${candidate.modelId ?? ""}`; }
+
+function preferredPlacementFor(task: TaskIntent, tool: ToolDescriptor): "local" | "cloud" | undefined {
+  if (task.constraints?.preference === "privacy") return "local";
+  const locality = task.constraints?.locality ?? tool.constraints.locality;
+  if (locality === "local_preferred") return "local";
+  if (locality === "cloud_preferred") return "cloud";
+  return undefined;
 }
 
 function mergeConstraints(
@@ -499,10 +630,11 @@ function placementAllowed(
   return true;
 }
 
-function minimumQualityFor(tool: ToolDescriptor, constraints: ToolConstraints) {
+function minimumQualityFor(tool: ToolDescriptor, requested: number | undefined) {
   const qualityValues = [
     tool.quality.minimumConfidence,
     tool.quality.minimumScore,
+    requested,
   ].filter((value): value is number => value !== undefined);
   return qualityValues.length > 0 ? Math.max(...qualityValues) : undefined;
 }
@@ -527,29 +659,109 @@ function normalizeWeights(input: ObjectiveWeights): ObjectiveWeights {
 }
 
 function lowerIsBetter(value: number, values: number[]) {
-  return normalize(value, Math.min(...values), Math.max(...values), true);
+  const minimum = Math.min(...values);
+  const scale = Math.max(1, Math.max(...values)) * 0.01;
+  return Math.max(0, Math.min(1, (minimum + scale) / (value + scale)));
 }
 
 function higherIsBetter(value: number, values: number[]) {
-  return normalize(value, Math.min(...values), Math.max(...values), false);
+  const maximum = Math.max(...values);
+  const scale = Math.max(1, maximum) * 0.01;
+  return Math.max(0, Math.min(1, (value + scale) / (maximum + scale)));
 }
 
-function normalize(value: number, min: number, max: number, invert: boolean) {
-  if (max === min) return 1;
-  const score = invert ? (max - value) / (max - min) : (value - min) / (max - min);
-  return Math.max(0, Math.min(1, score));
+function metricScore(
+  value: number | null | undefined,
+  values: number[],
+  weight: number,
+  lowerIsPreferred: boolean,
+) {
+  if (weight === 0) return 1;
+  if (value === null || value === undefined || values.length === 0) return 0;
+  return lowerIsPreferred ? lowerIsBetter(value, values) : higherIsBetter(value, values);
 }
 
 function buildTopology(graph: TaskGraph) {
   const missingRequirements: ExecutionPlan["missingRequirements"] = [];
+  const invalidTaskIds = new Set<string>();
+  if (!graph.graphId?.trim() || !graph.goal?.trim()) {
+    missingRequirements.push({ code: "TASK_GRAPH_IDENTITY_INVALID", message: "任务图必须提供非空 graphId 和 goal。" });
+  }
+  if (graph.nodes.length === 0) missingRequirements.push({ code: "TASK_GRAPH_EMPTY", message: "任务图至少需要一个任务。" });
+  if (graph.nodes.length > 256) {
+    missingRequirements.push({ code: "TASK_GRAPH_TOO_LARGE", message: "单个任务图最多包含 256 个任务。" });
+    return { executionOrder: [], parallelGroups: [], missingRequirements, invalidTaskIds };
+  }
+  const demand = graph.demand;
+  if (demand &&
+      (typeof demand.operation !== "string" || !demand.operation.trim() || demand.operation.length > 128 ||
+       !["interactive", "deferred"].includes(demand.realtime) ||
+       !["simple", "complex"].includes(demand.complexity) ||
+       !Number.isFinite(demand.deadlineMs) || demand.deadlineMs <= 0 || demand.deadlineMs > 300000 ||
+       !["background", "normal", "interactive", "urgent"].includes(demand.priority) ||
+       !["explicit_operation", "local_template_rules", "local_provider", "external_planner"].includes(demand.source) ||
+       !Array.isArray(demand.reasons) || demand.reasons.some(reason => typeof reason !== "string" || !reason.trim()) ||
+       typeof demand.plannerVersion !== "string" || !demand.plannerVersion.trim() ||
+       typeof demand.trainedModel !== "boolean" ||
+       (demand.decisionConfidence !== undefined &&
+        (!Number.isFinite(demand.decisionConfidence) || demand.decisionConfidence < 0 || demand.decisionConfidence > 1)))) {
+    missingRequirements.push({ code: "TASK_DEMAND_INVALID", message: "任务图的业务需求声明无效。" });
+  }
   const taskIds = new Set<string>();
   for (const task of graph.nodes) {
+    if (!task.taskId?.trim() || !task.toolId?.trim() || !task.inputRef?.trim()) {
+      missingRequirements.push({ taskId: task.taskId, code: "TASK_INTENT_INVALID", message: "任务必须提供非空 ID、工具和输入引用。" });
+      invalidTaskIds.add(task.taskId);
+    }
+    const c = task.constraints;
+    const positive = [c?.deadlineMs, c?.maxLatencyMs, c?.energyBudgetMah, c?.costBudgetMinorUnits]
+      .filter((value): value is number => value !== undefined);
+    const weights = c?.weights ? Object.values(c.weights) : [];
+    if (positive.some(value => !Number.isFinite(value) || value <= 0) ||
+        weights.some(value => typeof value !== "number" || !Number.isFinite(value) || value < 0) ||
+        (c?.minimumQuality !== undefined && (!Number.isFinite(c.minimumQuality) || c.minimumQuality < 0 || c.minimumQuality > 1)) ||
+        (c?.priority !== undefined && !["background", "normal", "interactive", "urgent"].includes(c.priority)) ||
+        (c?.privacy !== undefined && !["public", "internal", "sensitive", "high"].includes(c.privacy)) ||
+        (c?.locality !== undefined && !["auto", "local_only", "cloud_only", "local_preferred", "cloud_preferred"].includes(c.locality)) ||
+        (c?.preference !== undefined && !["speed", "quality", "energy", "privacy"].includes(c.preference)) ||
+        (c?.allowDegrade !== undefined && typeof c.allowDegrade !== "boolean")) {
+      missingRequirements.push({ taskId: task.taskId, code: "TASK_CONSTRAINT_INVALID", message: "任务约束无效。" });
+      invalidTaskIds.add(task.taskId);
+    }
+    const checkpoint = task.checkpointPolicy;
+    if (checkpoint &&
+        (typeof checkpoint.enabled !== "boolean" ||
+         typeof checkpoint.stopOnResourcePressure !== "boolean" ||
+         (checkpoint.intervalItems !== undefined &&
+          (!Number.isInteger(checkpoint.intervalItems) || checkpoint.intervalItems <= 0)))) {
+      missingRequirements.push({
+        taskId: task.taskId,
+        code: "CHECKPOINT_POLICY_INVALID",
+        message: "检查点策略无效。",
+      });
+      invalidTaskIds.add(task.taskId);
+    }
+    const fallback = task.fallbackPolicy;
+    if (fallback &&
+        (typeof fallback.enabled !== "boolean" ||
+         !Array.isArray(fallback.actions) ||
+         fallback.actions.some(action => typeof action !== "string" || !action.trim()) ||
+         !Number.isInteger(fallback.maxAttempts) || fallback.maxAttempts < 1 ||
+         typeof fallback.replanAtStageBoundary !== "boolean")) {
+      missingRequirements.push({
+        taskId: task.taskId,
+        code: "FALLBACK_POLICY_INVALID",
+        message: "降级策略无效。",
+      });
+      invalidTaskIds.add(task.taskId);
+    }
     if (taskIds.has(task.taskId)) {
       missingRequirements.push({
         taskId: task.taskId,
         code: "DUPLICATE_TASK_ID",
         message: `任务 ID ${task.taskId} 重复。`,
       });
+      invalidTaskIds.add(task.taskId);
     }
     taskIds.add(task.taskId);
   }
@@ -563,6 +775,7 @@ function buildTopology(graph: TaskGraph) {
           code: "TASK_DEPENDENCY_MISSING",
           message: `任务 ${task.taskId} 依赖的任务 ${dependency} 不存在。`,
         });
+        invalidTaskIds.add(task.taskId);
       }
     }
     dependencies.set(task.taskId, taskDependencies);
@@ -580,12 +793,19 @@ function buildTopology(graph: TaskGraph) {
     const ready = [...remaining.entries()]
       .filter(([, taskDependencies]) => taskDependencies.size === 0)
       .map(([taskId]) => taskId)
-      .sort();
+      .sort((left, right) => {
+        const priority = { background: 0, normal: 1, interactive: 2, urgent: 3 };
+        const a = graph.nodes.find(node => node.taskId === left)!;
+        const b = graph.nodes.find(node => node.taskId === right)!;
+        return priority[b.constraints?.priority ?? "normal"] - priority[a.constraints?.priority ?? "normal"] ||
+          (a.constraints?.deadlineMs ?? Infinity) - (b.constraints?.deadlineMs ?? Infinity) || left.localeCompare(right);
+      });
     if (ready.length === 0) {
       missingRequirements.push({
         code: "TASK_GRAPH_CYCLE",
         message: "任务图存在循环依赖，无法生成执行顺序。",
       });
+      for (const taskId of remaining.keys()) invalidTaskIds.add(taskId);
       break;
     }
     parallelGroups.push(ready);
@@ -595,5 +815,5 @@ function buildTopology(graph: TaskGraph) {
       for (const taskId of ready) taskDependencies.delete(taskId);
     }
   }
-  return { executionOrder, parallelGroups, missingRequirements };
+  return { executionOrder, parallelGroups, missingRequirements, invalidTaskIds };
 }

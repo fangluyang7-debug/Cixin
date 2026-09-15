@@ -55,6 +55,8 @@ export interface ToolResourceHints {
   estimatedMemoryMb: number;
   modelId?: string;
   supportedInputSizes?: string[];
+  /** Registered alternatives must preserve the tool's input/output contract. */
+  modelVariants?: Array<{ modelId: string; tier: "light" | "full"; estimatedMemoryMb: number }>;
 }
 
 export interface ToolExecutionPolicy {
@@ -95,6 +97,8 @@ export interface TaskConstraints {
   costBudgetMinorUnits?: number;
   preference?: UserPreference;
   weights?: Partial<ObjectiveWeights>;
+  priority?: "background" | "normal" | "interactive" | "urgent";
+  allowDegrade?: boolean;
 }
 
 export interface CheckpointPolicy {
@@ -127,6 +131,33 @@ export interface TaskGraph {
   nodes: TaskIntent[];
   createdAt?: string;
   planner?: string;
+  demand?: TaskDemand;
+}
+
+export interface TaskDemand {
+  /** Domain operation name. The generic scheduler does not interpret this value. */
+  operation: string;
+  realtime: "interactive" | "deferred";
+  complexity: "simple" | "complex";
+  deadlineMs: number;
+  priority: NonNullable<TaskConstraints["priority"]>;
+  source: "explicit_operation" | "local_template_rules" | "local_provider" | "external_planner";
+  reasons: string[];
+  plannerVersion: string;
+  trainedModel: boolean;
+  decisionConfidence?: number;
+}
+
+export interface ResourceForecast {
+  method: "bounded_linear_trend_v1";
+  horizonMs: number;
+  risk: "nominal" | "warning" | "unknown" | "critical";
+  action: "run_with_monitoring" | "run_conservatively" | "reject" | "stop_and_rollback";
+  reasons: string[];
+  advice: string[];
+  unknownMetrics: string[];
+  trendUnavailableMetrics?: string[];
+  values: Record<string, { current: number | null; predicted: number | null; samples: number; margin: number }>;
 }
 
 export interface MetricObservation<T> {
@@ -182,7 +213,11 @@ export interface RuntimeState {
   cpuClusterFrequencyMhz?: MetricObservation<number[]>;
   cpuClusterUtilizationPercent?: MetricObservation<number[]>;
   gpuMemoryUsedMb?: MetricObservation<number>;
+  gpuMemoryFreeMb?: MetricObservation<number>;
   npuMemoryUsedMb?: MetricObservation<number>;
+  npuMemoryFreeMb?: MetricObservation<number>;
+  dmaPoolFreeMb?: MetricObservation<number>;
+  externalPower?: MetricObservation<boolean>;
   gpuFrequencyMhz?: MetricObservation<number>;
   npuFrequencyMhz?: MetricObservation<number>;
   networkJitterMs?: MetricObservation<number>;
@@ -292,6 +327,11 @@ export interface CandidateEvaluation {
   reasons: string[];
   sample: PerformanceSample | null;
   score: ScoreBreakdown | null;
+  modelId?: string;
+  modelTier?: "light" | "full";
+  estimatedLatencyMs?: number | null;
+  estimatedMemoryMb?: number;
+  forecast?: ResourceForecast;
 }
 
 export interface MissingRequirement {
@@ -313,6 +353,11 @@ export interface ExecutionAssignment {
   reasons: string[];
   plannedAt: string;
   status: "planned";
+  modelTier?: "light" | "full";
+  estimatedLatencyMs?: number | null;
+  estimatedMemoryMb?: number;
+  estimatedEnergyMah?: number | null;
+  forecast?: ResourceForecast;
 }
 
 export interface ExecutionPlan {
@@ -324,6 +369,9 @@ export interface ExecutionPlan {
   missingRequirements: MissingRequirement[];
   evaluations: Record<string, CandidateEvaluation[]>;
   generatedAt: string;
+  estimatedCriticalPathMs?: number | null;
+  advice?: string[];
+  recommendedMaxConcurrency?: number;
 }
 
 export interface VerificationResult {
@@ -347,7 +395,8 @@ export interface RuntimeSnapshot {
   capturedAt: string;
 }
 
-export type RuntimeRunStatus = "planning" | "ready" | "blocked" | "completed" | "failed";
+export type RuntimeRunStatus = "planning" | "ready" | "blocked" | "completed" | "failed"
+  | "running" | "stopping" | "rolled_back" | "rollback_failed" | "cancelled";
 
 export interface RuntimeVerificationEvent {
   taskId: string;
@@ -388,4 +437,32 @@ export interface RuntimeRun {
   startedAt: string;
   updatedAt: string;
   completedAt?: string;
+  protection?: {
+    reason: string;
+    advice: string[];
+    checkpointTaskId?: string;
+    rollback: "not_needed" | "pending" | "succeeded" | "unsupported" | "failed";
+  };
+  outputs?: Record<string, unknown>;
+  checkpoints?: RuntimeCheckpoint[];
+}
+
+export interface RuntimeCheckpoint {
+  checkpointId: string;
+  executionId: string;
+  taskId: string;
+  executorId: string;
+  status: "captured" | "committed" | "restored" | "restore_failed";
+  capturedAt: string;
+  updatedAt: string;
+}
+
+export interface TerminalProtectionEvent {
+  runId: string;
+  executionId: string;
+  executorId: string;
+  reason: "TERMINAL_THERMAL_REDLINE" | "TERMINAL_MEMORY_REDLINE" | "TERMINAL_EXECUTOR_LOST";
+  observedAt: string;
+  /** Terminal acknowledges stopping its own worker, not restoring the checkpoint. */
+  workerStopped: true;
 }

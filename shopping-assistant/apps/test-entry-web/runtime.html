@@ -1545,10 +1545,26 @@ updateTelemetryUI();
     const telemetry = Array.isArray(run.telemetry) ? run.telemetry : [];
     const rows = [];
     rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">RUN</span> <b class="text-[#F8DC89]">${escapeHtml(run.runId)}</b> <span class="text-[#8C98A9]">· ${escapeHtml(run.status)}</span></div>`);
+    const demand = run.taskGraph && run.taskGraph.demand;
+    if (demand) {
+      const decisionKind = demand.trainedModel ? 'MODEL' : demand.source === 'local_provider' ? 'PROVIDER' : demand.source === 'explicit_operation' ? 'EXPLICIT' : 'RULE';
+      const confidence = demand.decisionConfidence == null ? '' : ` · confidence:${Number(demand.decisionConfidence).toFixed(2)}`;
+      rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[DEMAND]</span> ${escapeHtml(demand.operation)} · ${escapeHtml(demand.realtime)} · ${escapeHtml(demand.complexity)} · ${escapeHtml(demand.deadlineMs)}ms · <span class="${demand.trainedModel ? 'text-indGreen' : 'text-[#FFB800]'}">${escapeHtml(decisionKind)}</span>${escapeHtml(confidence)}</div>`);
+    }
     if (plan) {
-      rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">PLAN</span> <b class="${plan.status === 'ready' ? 'text-indGreen' : 'text-[#FFB800]'}">${escapeHtml(plan.status.toUpperCase())}</b> · ${plan.assignments.length} assignments</div>`);
-      plan.assignments.slice(-4).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[DISPATCH]</span> <b class="text-[#CBD5E1]">${escapeHtml(item.taskId)}</b> → <span class="text-[#FFB800]">${escapeHtml(item.executorId)}</span></div>`));
+      const criticalPath = plan.estimatedCriticalPathMs == null ? 'ETA N/A' : `ETA ${plan.estimatedCriticalPathMs}ms`;
+      rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">PLAN</span> <b class="${plan.status === 'ready' ? 'text-indGreen' : 'text-[#FFB800]'}">${escapeHtml(plan.status.toUpperCase())}</b> · ${plan.assignments.length} assignments · ${escapeHtml(criticalPath)}</div>`);
+      plan.assignments.slice(-4).forEach((item) => {
+        const model = item.modelId ? ` · ${item.modelTier || 'full'}:${item.modelId}` : '';
+        const risk = item.forecast ? ` · risk:${item.forecast.risk}` : '';
+        rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[DISPATCH]</span> <b class="text-[#CBD5E1]">${escapeHtml(item.taskId)}</b> → <span class="text-[#FFB800]">${escapeHtml(item.executorId)}</span>${escapeHtml(model)}${escapeHtml(risk)}</div>`);
+      });
       plan.missingRequirements.slice(-3).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FF6B5F]">[BLOCKED]</span> ${escapeHtml(item.code)}</div>`));
+      (plan.advice || []).slice(0, 2).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FFB800]">[ADVICE]</span> ${escapeHtml(item)}</div>`));
+    }
+    if (run.protection) {
+      rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FF6B5F]">[PROTECT]</span> ${escapeHtml(run.protection.reason)} · rollback:${escapeHtml(run.protection.rollback)}</div>`);
+      (run.protection.advice || []).slice(0, 2).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FFB800]">[RECOVERY]</span> ${escapeHtml(item)}</div>`));
     }
     telemetry.slice(-3).reverse().forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#8C98A9]">[TELEMETRY]</span> ${escapeHtml(item.toolId)} · ${escapeHtml(item.latencyMs)}ms · ${item.success ? '<span class="text-indGreen">PASS</span>' : '<span class="text-[#FF6B5F]">FAIL</span>'}</div>`));
     (run.replanEvents || []).slice(-2).forEach((item) => rows.push(`<div class="p-2 border-b border-[#2D2615]"><span class="text-[#FFB800]">[REPLAN]</span> ${escapeHtml(item.reason)}</div>`));

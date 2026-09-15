@@ -1,5 +1,7 @@
 # Shopping Assistant Runtime Test App
 
+> 2026-09-15 规范化更新：核心支持业务操作/模板注册、Provider v1 与设备适配器注入；普通资源压力进入 warning 并串行执行，不再仅因 CPU 高负载阻断。新增 Linux 本地工作进程保护组件、带鉴权的终端停止上报与检查点关联。默认仍是规则基线，无已训练调度模型；购物七工具未绑定保护 Handler。见 [功能说明](../../docs/调度件初版功能与端侧模型接入.md)、[测试报告](../../docs/调度件规范化测试报告.md)、[项目日志](项目日志.md)。
+
 这是一个用于验证 Agentic Runtime 的购物业务测试插件。购物能力只负责注册工具、提供业务数据和呈现结果；Agent、Scheduler、Platform Adapter 和 Telemetry 负责通用规划、真实资源匹配与运行反馈。
 
 项目不会假设云端平台、模型 API、授权电商接口或 GPU/NPU 已经存在。缺少的资源会让任务进入 `blocked` 状态，并在运行快照中列出原因。
@@ -20,7 +22,8 @@ scripts/                   # 本地辅助脚本
 - Runtime 协议、工具注册、任务图校验、硬约束过滤、动态评分、滞回和 Telemetry 已落地。
 - Shopping Plugin 已注册图片质量、裁剪、Embedding、向量检索、价格查询和回答生成工具。
 - 没有真实性能样本时，Scheduler 不会选择执行器。
-- `POST /api/v1/runtime/agent/plan` 在没有真实 Agent Planner 时会明确阻断，不会猜测任务图。
+- `POST /api/v1/runtime/agent/plan` 现在用受限模板解析四类购物操作；无法可靠识别的目标仍会阻断。
+- 其他项目可从 `services/api-server/src/modules/runtime/public-api.ts` 引入不含购物插件的 `RuntimeCoreModule`，替换通用 `AGENT_PLANNER`，并独立注入端侧决策 Provider、平台适配器和受保护 Handler。
 - 真实资源缺口见 [`docs/runtime-resource-gaps.md`](docs/runtime-resource-gaps.md)。
 
 ## 本地启动

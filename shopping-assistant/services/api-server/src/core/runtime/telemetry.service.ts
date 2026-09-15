@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import {
   ExecutionAssignment,
+  TaskConstraints,
   ToolDescriptor,
   TelemetryRecord,
   VerificationResult,
@@ -19,14 +20,27 @@ export class TelemetryService {
     assignment: ExecutionAssignment,
     tool: ToolDescriptor,
     record: TelemetryRecord,
+    taskConstraints?: TaskConstraints,
   ): VerificationResult {
     const reasons: string[] = [];
     const recommendedActions: string[] = [];
-    const maxLatencyMs = tool.constraints.maxLatencyMs;
+    const latencyBudgets = [tool.constraints.maxLatencyMs, taskConstraints?.maxLatencyMs]
+      .filter((value): value is number => value !== undefined);
+    const maxLatencyMs = latencyBudgets.length > 0 ? Math.min(...latencyBudgets) : undefined;
     const minimumQuality = Math.max(
       tool.quality.minimumConfidence ?? 0,
       tool.quality.minimumScore ?? 0,
+      taskConstraints?.minimumQuality ?? 0,
     );
+    const energyBudgets = [tool.constraints.energyBudgetMah, taskConstraints?.energyBudgetMah]
+      .filter((value): value is number => value !== undefined);
+    const energyBudgetMah = energyBudgets.length > 0 ? Math.min(...energyBudgets) : undefined;
+
+    if (record.taskId !== assignment.taskId || record.toolId !== assignment.toolId ||
+        record.executorId !== assignment.executorId || (record.modelId ?? "") !== (assignment.modelId ?? "")) {
+      reasons.push("TELEMETRY_ASSIGNMENT_MISMATCH");
+      recommendedActions.push("discard_mismatched_telemetry");
+    }
 
     if (!record.success) {
       reasons.push(`EXECUTION_FAILED:${record.errorCode ?? "UNKNOWN"}`);
@@ -49,6 +63,14 @@ export class TelemetryService {
       record.quality < minimumQuality
     ) {
       reasons.push("QUALITY_REQUIREMENT_NOT_MET");
+      recommendedActions.push(...tool.execution.compensationActions);
+    }
+    if (energyBudgetMah !== undefined && (record.energyMah === null || record.energyMah === undefined)) {
+      reasons.push("ENERGY_METRIC_MISSING");
+      recommendedActions.push("collect_energy_metric_before_accepting_result");
+    } else if (energyBudgetMah !== undefined && record.energyMah !== null &&
+        record.energyMah !== undefined && record.energyMah > energyBudgetMah) {
+      reasons.push("ENERGY_BUDGET_EXCEEDED");
       recommendedActions.push(...tool.execution.compensationActions);
     }
     if (record.fallbackOccurred) {

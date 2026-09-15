@@ -24,23 +24,24 @@ import {
   PlatformProfile,
   RuntimePlatformId,
   RuntimeState,
+  TaskDemand,
+  TerminalProtectionEvent,
 } from "../../../core/runtime/runtime.contracts";
 import { AgentRuntimeService } from "../../../core/runtime/agent-runtime.service";
 import { PerformanceRegistryService } from "../../../core/runtime/performance-registry.service";
-import { ResourceAwareSchedulerService } from "../../../core/runtime/scheduler.service";
 import { RuntimeSnapshotService } from "../../../core/runtime/runtime-snapshot.service";
 import { TelemetryService } from "../../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../../core/runtime/tool-registry.service";
 import { RuntimeRunService } from "../../../core/runtime/runtime-run.service";
 import { RuntimeEventBusService } from "../../../core/runtime/runtime-event-bus.service";
 import { PlatformStateRegistryService } from "../../../core/runtime/platform-state-registry.service";
+import { GuardedExecutionService } from "../../../core/runtime/guarded-execution.service";
 
 @Controller("api/v1/runtime")
 export class RuntimeController {
   constructor(
     private readonly tools: ToolRegistryService,
     private readonly snapshot: RuntimeSnapshotService,
-    private readonly scheduler: ResourceAwareSchedulerService,
     private readonly agent: AgentRuntimeService,
     private readonly telemetry: TelemetryService,
     private readonly performance: PerformanceRegistryService,
@@ -48,6 +49,7 @@ export class RuntimeController {
     private readonly events: RuntimeEventBusService,
     private readonly platformStates: PlatformStateRegistryService,
     private readonly config: ConfigService,
+    private readonly guarded: GuardedExecutionService,
   ) {}
 
   @Get("tools")
@@ -72,10 +74,7 @@ export class RuntimeController {
     @Body() body: unknown,
     @Headers("x-runtime-agent-token") agentToken?: string,
   ) {
-    const expectedToken = this.config.get<string>("runtime.platformHeartbeatToken");
-    if (expectedToken && agentToken !== expectedToken) {
-      throw new UnauthorizedException("RUNTIME_PLATFORM_HEARTBEAT_UNAUTHORIZED");
-    }
+    this.assertAgentToken(agentToken);
     const report = parsePlatformHeartbeat(platformId, body);
     const stored = this.platformStates.upsert(report);
     this.events.emit({
@@ -108,15 +107,36 @@ export class RuntimeController {
     return ok(run);
   }
 
+  @Post("runs/:runId/execute")
+  async executeRun(@Param("runId") runId: string) {
+    return ok(await this.guarded.execute(runId));
+  }
+
+  @Post("runs/:runId/cancel")
+  cancelRun(@Param("runId") runId: string) {
+    return ok(this.guarded.cancel(runId));
+  }
+
+  @Post("protection")
+  reportProtection(@Body() body: unknown, @Headers("x-runtime-agent-token") agentToken?: string) {
+    // A remote stop channel must never become anonymous when the demo token is unset.
+    if (!this.config.get<string>("runtime.platformHeartbeatToken")) throw new UnauthorizedException("RUNTIME_AGENT_TOKEN_REQUIRED");
+    this.assertAgentToken(agentToken);
+    const input = asRecord(body);
+    for (const key of ["runId", "executionId", "executorId", "reason", "observedAt"]) {
+      if (!asNonEmptyString(input[key])) throw new BadRequestException("TERMINAL_PROTECTION_EVENT_INVALID");
+    }
+    return ok(this.guarded.reportTerminalProtection(input as unknown as TerminalProtectionEvent));
+  }
+
   @Post("plan")
   async plan(@Body() body: unknown) {
     const input = asRecord(body);
     const graph = parseTaskGraph(input.taskGraph ?? input);
     const runId = asNonEmptyString(input.runId);
     if (runId) {
-      const plan = await this.scheduler.plan(graph, { runId });
-      this.runs.updatePlan(runId, plan, graph);
-      return ok({ ...plan, runId });
+      const run = await this.runs.attachGraph(runId, graph);
+      return ok({ ...run.executionPlan!, runId });
     }
     const run = await this.runs.start(graph);
     return ok({ ...run.executionPlan!, runId: run.runId });
@@ -150,74 +170,116 @@ export class RuntimeController {
         runId: run.runId,
       });
     }
-    const result = await this.agent.planGoal({
-      goal,
-      context: isRecord(input.context) ? input.context : undefined,
-    });
-    if (result.taskGraph && result.executionPlan) {
-      const run = this.runs.createPlanned(result.taskGraph, result.executionPlan);
+    const planningRun = this.runs.startPlanningGoal(goal);
+    try {
+      const result = await this.agent.planGoal({
+        goal,
+        context: isRecord(input.context) ? input.context : undefined,
+        runId: planningRun.runId,
+      });
+      if (result.taskGraph && result.executionPlan) {
+        const run = this.runs.updatePlan(
+          planningRun.runId,
+          result.executionPlan,
+          result.taskGraph,
+        );
+        return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
+      }
+      const requirement = result.missingRequirements[0] ?? {
+        code: "AGENT_PLAN_BLOCKED",
+        message: "Agent 计划被阻断。",
+      };
+      const run = this.runs.blockPlanningGoal(
+        planningRun.runId,
+        requirement.code,
+        requirement.message,
+      );
       return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
+    } catch (error) {
+      this.runs.fail(
+        planningRun.runId,
+        error instanceof Error ? error.message : "AGENT_PLAN_FAILED",
+      );
+      throw error;
     }
-    const requirement = result.missingRequirements[0] ?? {
-      code: "AGENT_PLAN_BLOCKED",
-      message: "Agent 计划被阻断。",
-    };
-    const run = this.runs.startBlockedGoal(goal, requirement.code, requirement.message);
-    return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
   }
 
   @Post("replan")
-  async replan(@Body() body: unknown) {
+  async replan(
+    @Body() body: unknown,
+    @Headers("x-runtime-agent-token") agentToken?: string,
+  ) {
+    this.assertAgentToken(agentToken);
     const input = asRecord(body);
     const telemetry = parseTelemetryArray(input.telemetry);
     const runId = asNonEmptyString(input.runId);
     const reason = asNonEmptyString(input.reason) ?? "runtime_observation";
+    const taskGraph = parseTaskGraph(input.taskGraph);
     if (runId) {
+      this.runs.assertPlanMutable(runId);
+      for (const record of telemetry) this.telemetry.record(record);
       this.events.emit({
         type: "replan_requested",
         runId,
         message: reason,
         payload: { telemetryCount: telemetry.length },
       });
-    }
-    const result = await this.agent.observeAndReplan({
-      taskGraph: parseTaskGraph(input.taskGraph),
-      telemetry,
-      runId,
-    });
-    if (runId && result.executionPlan) {
+      const run = await this.runs.attachGraph(runId, taskGraph);
       for (const record of telemetry) this.runs.recordTelemetry(runId, record);
       this.runs.recordReplan(
         runId,
         reason,
         telemetry.length,
-        result.executionPlan,
+        run.executionPlan!,
       );
+      return ok({
+        status: run.status,
+        taskGraph: run.taskGraph,
+        executionPlan: run.executionPlan,
+        missingRequirements: run.executionPlan!.missingRequirements.map(({ code, message }) => ({ code, message })),
+        runId,
+      });
     }
-    return ok({ ...result, runId: runId ?? null });
+    const result = await this.agent.observeAndReplan({ taskGraph, telemetry });
+    return ok({ ...result, runId: null });
   }
 
   @Post("telemetry")
-  recordTelemetry(@Body() body: unknown) {
+  recordTelemetry(
+    @Body() body: unknown,
+    @Headers("x-runtime-agent-token") agentToken?: string,
+  ) {
+    this.assertAgentToken(agentToken);
     const input = asRecord(body);
     const record = parseTelemetry(input);
     const runId = asNonEmptyString(input.runId);
+    if (runId && !this.runs.get(runId)) throw new NotFoundException("RUNTIME_RUN_NOT_FOUND");
+    const sample = this.telemetry.record(record);
     if (runId) this.runs.recordTelemetry(runId, record);
     return ok({
-      sample: this.telemetry.record(record),
+      sample,
       performanceSamples: this.performance.list(),
       runId: runId ?? null,
     });
   }
 
   @Post("verify")
-  verify(@Body() body: unknown) {
+  verify(
+    @Body() body: unknown,
+    @Headers("x-runtime-agent-token") agentToken?: string,
+  ) {
+    this.assertAgentToken(agentToken);
     const input = asRecord(body);
     const assignment = parseAssignment(input.assignment);
     const tool = this.tools.require(assignment.toolId);
     const telemetry = parseTelemetry(input.telemetry);
-    const verification = this.agent.verify(assignment, tool, telemetry);
     const runId = asNonEmptyString(input.runId);
+    const run = runId ? this.runs.get(runId) : null;
+    if (runId && !run) throw new NotFoundException("RUNTIME_RUN_NOT_FOUND");
+    const taskConstraints = run?.taskGraph?.nodes.find(
+      (task) => task.taskId === assignment.taskId,
+    )?.constraints;
+    const verification = this.agent.verify(assignment, tool, telemetry, taskConstraints);
     if (runId) {
       this.runs.recordTelemetry(runId, telemetry);
       this.runs.recordVerification(
@@ -230,6 +292,13 @@ export class RuntimeController {
       verification,
       runId: runId ?? null,
     });
+  }
+
+  private assertAgentToken(agentToken?: string) {
+    const expectedToken = this.config.get<string>("runtime.platformHeartbeatToken");
+    if (expectedToken && agentToken !== expectedToken) {
+      throw new UnauthorizedException("RUNTIME_AGENT_UNAUTHORIZED");
+    }
   }
 }
 
@@ -244,6 +313,7 @@ function parseTaskGraph(value: unknown): TaskGraph {
     graphId,
     goal,
     planner: asNonEmptyString(input.planner),
+    demand: parseDemand(input.demand),
     createdAt: asNonEmptyString(input.createdAt),
     nodes: input.nodes.map((value) => {
       const node = asRecord(value);
@@ -273,42 +343,56 @@ function parseTaskGraph(value: unknown): TaskGraph {
 
 function parseTelemetryArray(value: unknown): TelemetryRecord[] {
   if (!Array.isArray(value)) throw new Error("TELEMETRY_ARRAY_REQUIRED");
-  return value.map(parseTelemetry);
+  const records = value.map(parseTelemetry);
+  const unique = new Map<string, TelemetryRecord>();
+  for (const record of records) {
+    const existing = unique.get(record.executionId);
+    if (existing && !sameTelemetry(existing, record)) {
+      throw new BadRequestException("TELEMETRY_EXECUTION_ID_CONFLICT");
+    }
+    unique.set(record.executionId, record);
+  }
+  return [...unique.values()];
 }
 
 function parseTelemetry(value: unknown): TelemetryRecord {
   const input = asRecord(value);
-  const requiredStrings = [
-    input.executionId,
-    input.taskId,
-    input.toolId,
-    input.executorId,
-    input.startedAt,
-    input.finishedAt,
-  ];
-  if (requiredStrings.some((value) => !asNonEmptyString(value))) {
-    throw new Error("TELEMETRY_INVALID");
+  const executionId = asNonEmptyString(input.executionId);
+  const taskId = asNonEmptyString(input.taskId);
+  const toolId = asNonEmptyString(input.toolId);
+  const executorId = asNonEmptyString(input.executorId);
+  const startedAt = asNonEmptyString(input.startedAt);
+  const finishedAt = asNonEmptyString(input.finishedAt);
+  if (!executionId || !taskId || !toolId || !executorId || !startedAt || !finishedAt) {
+    throw new BadRequestException("TELEMETRY_INVALID");
   }
   if (
-    typeof input.latencyMs !== "number" ||
-    typeof input.memoryPeakMb !== "number" ||
+    typeof input.latencyMs !== "number" || !Number.isFinite(input.latencyMs) || input.latencyMs < 0 ||
+    typeof input.memoryPeakMb !== "number" || !Number.isFinite(input.memoryPeakMb) || input.memoryPeakMb < 0 ||
     typeof input.fallbackOccurred !== "boolean" ||
     typeof input.success !== "boolean"
   ) {
-    throw new Error("TELEMETRY_INVALID");
+    throw new BadRequestException("TELEMETRY_INVALID");
   }
+  const startedAtMs = Date.parse(startedAt);
+  const finishedAtMs = Date.parse(finishedAt);
+  if (!Number.isFinite(startedAtMs) || !Number.isFinite(finishedAtMs) || finishedAtMs < startedAtMs) {
+    throw new BadRequestException("TELEMETRY_TIMESTAMP_INVALID");
+  }
+  const energyMah = telemetryMetric(input.energyMah, false);
+  const quality = telemetryMetric(input.quality, true);
   return {
-    executionId: input.executionId as string,
-    taskId: input.taskId as string,
-    toolId: input.toolId as string,
-    executorId: input.executorId as string,
+    executionId,
+    taskId,
+    toolId,
+    executorId,
     modelId: asNonEmptyString(input.modelId),
-    startedAt: input.startedAt as string,
-    finishedAt: input.finishedAt as string,
+    startedAt: new Date(startedAtMs).toISOString(),
+    finishedAt: new Date(finishedAtMs).toISOString(),
     latencyMs: input.latencyMs,
     memoryPeakMb: input.memoryPeakMb,
-    energyMah: optionalNumber(input.energyMah),
-    quality: optionalNumber(input.quality),
+    energyMah,
+    quality,
     fallbackOccurred: input.fallbackOccurred,
     success: input.success,
     errorCode: asNonEmptyString(input.errorCode),
@@ -338,14 +422,47 @@ function asNonEmptyString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function optionalNumber(value: unknown) {
-  return value === null || value === undefined ? null : typeof value === "number" ? value : undefined;
+function telemetryMetric(value: unknown, unitInterval: boolean): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || (unitInterval && value > 1)) {
+    throw new BadRequestException("TELEMETRY_OPTIONAL_METRIC_INVALID");
+  }
+  return value;
+}
+
+function sameTelemetry(left: TelemetryRecord, right: TelemetryRecord) {
+  return left.executionId === right.executionId && left.taskId === right.taskId &&
+    left.toolId === right.toolId && left.executorId === right.executorId &&
+    (left.modelId ?? "") === (right.modelId ?? "") && left.startedAt === right.startedAt &&
+    left.finishedAt === right.finishedAt && left.latencyMs === right.latencyMs &&
+    left.memoryPeakMb === right.memoryPeakMb && (left.energyMah ?? null) === (right.energyMah ?? null) &&
+    (left.quality ?? null) === (right.quality ?? null) &&
+    left.fallbackOccurred === right.fallbackOccurred && left.success === right.success &&
+    (left.errorCode ?? "") === (right.errorCode ?? "") &&
+    JSON.stringify(left.metadata ?? null) === JSON.stringify(right.metadata ?? null);
 }
 
 function stringArray(value: unknown) {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : undefined;
+}
+
+function parseDemand(value: unknown): TaskDemand | undefined {
+  if (value === undefined) return undefined;
+  const demand = asRecord(value);
+  const operation = asNonEmptyString(demand.operation);
+  if (!operation || operation.length > 128 ||
+      !["interactive", "deferred"].includes(demand.realtime) ||
+      !["simple", "complex"].includes(demand.complexity) ||
+      typeof demand.deadlineMs !== "number" || !Number.isFinite(demand.deadlineMs) || demand.deadlineMs <= 0 ||
+      !["background", "normal", "interactive", "urgent"].includes(demand.priority)) {
+    throw new BadRequestException("TASK_DEMAND_INVALID");
+  }
+
+  return { ...demand, operation, reasons: stringArray(demand.reasons) ?? [],
+    plannerVersion: typeof demand.plannerVersion === "string" ? demand.plannerVersion : "external",
+    source: "explicit_operation", trainedModel: false, decisionConfidence: undefined } as TaskDemand;
 }
 
 function parsePlatformHeartbeat(platformIdValue: string, value: unknown): PlatformHeartbeat {
@@ -374,6 +491,10 @@ function parsePlatformHeartbeat(platformIdValue: string, value: unknown): Platfo
     cpuClusterFrequencyMhz: optionalNumberArrayMetric(stateInput.cpuClusterFrequencyMhz, "cpu-cluster-frequency", reportedAt),
     cpuClusterUtilizationPercent: optionalNumberArrayMetric(stateInput.cpuClusterUtilizationPercent, "cpu-cluster-utilization", reportedAt),
     gpuMemoryUsedMb: optionalMetric(stateInput.gpuMemoryUsedMb, "gpu-memory", reportedAt),
+    gpuMemoryFreeMb: optionalMetric(stateInput.gpuMemoryFreeMb, "gpu-memory-free", reportedAt),
+    npuMemoryFreeMb: optionalMetric(stateInput.npuMemoryFreeMb, "npu-memory-free", reportedAt),
+    dmaPoolFreeMb: optionalMetric(stateInput.dmaPoolFreeMb, "dma-memory-free", reportedAt),
+    externalPower: optionalBooleanMetric(stateInput.externalPower, "external-power", reportedAt),
     npuMemoryUsedMb: optionalMetric(stateInput.npuMemoryUsedMb, "npu-memory", reportedAt),
     gpuFrequencyMhz: optionalMetric(stateInput.gpuFrequencyMhz, "gpu-frequency", reportedAt),
     npuFrequencyMhz: optionalMetric(stateInput.npuFrequencyMhz, "npu-frequency", reportedAt),

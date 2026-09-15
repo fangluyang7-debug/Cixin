@@ -12,6 +12,9 @@ export default () => ({
       process.env.RUNTIME_MINIMUM_PERFORMANCE_SAMPLES ?? 3,
     ),
     switchThreshold: Number(process.env.RUNTIME_SWITCH_THRESHOLD ?? 0.05),
+    placementPreferenceBoost: Number(
+      process.env.RUNTIME_PLACEMENT_PREFERENCE_BOOST ?? 0.05,
+    ),
     lowBatteryPercent: Number(process.env.RUNTIME_LOW_BATTERY_PERCENT ?? 20),
     highTemperatureCelsius: Number(
       process.env.RUNTIME_HIGH_TEMPERATURE_CELSIUS ?? 75,
@@ -21,10 +24,18 @@ export default () => ({
     criticalTemperatureCelsius: Number(
       process.env.RUNTIME_CRITICAL_TEMPERATURE_CELSIUS ?? 85,
     ),
-    maxCpuUtilizationPercent: Number(
-      process.env.RUNTIME_MAX_CPU_UTILIZATION_PERCENT ?? 95,
+    warningUtilizationPercent: Number(
+      process.env.RUNTIME_WARNING_UTILIZATION_PERCENT ?? process.env.RUNTIME_MAX_CPU_UTILIZATION_PERCENT ?? 85,
     ),
+    sustainedLoadMs: Number(process.env.RUNTIME_SUSTAINED_LOAD_MS ?? 2000),
+    highTaskEnergyMah: Number(process.env.RUNTIME_HIGH_TASK_ENERGY_MAH ?? 5),
     maxLocalQueueDepth: Number(process.env.RUNTIME_MAX_LOCAL_QUEUE_DEPTH ?? 32),
+    criticalBatteryPercent: Number(process.env.RUNTIME_CRITICAL_BATTERY_PERCENT ?? 5),
+    predictionHorizonMs: Number(process.env.RUNTIME_PREDICTION_HORIZON_MS ?? 5000),
+    predictionWindowMs: Number(process.env.RUNTIME_PREDICTION_WINDOW_MS ?? 30000),
+    predictionMetricTtlMs: Number(process.env.RUNTIME_PREDICTION_METRIC_TTL_MS ?? 10000),
+    memoryReserveMb: Number(process.env.RUNTIME_MEMORY_RESERVE_MB ?? 128),
+    localDecisionTimeoutMs: Number(process.env.RUNTIME_LOCAL_DECISION_TIMEOUT_MS ?? 50),
   },
   auth: {
     jwtSecret: process.env.JWT_SECRET ?? "dev-secret-change-before-deploy",

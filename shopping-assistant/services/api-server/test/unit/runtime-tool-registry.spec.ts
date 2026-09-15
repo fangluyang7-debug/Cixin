@@ -42,4 +42,20 @@ describe("ToolRegistryService", () => {
       }),
     ).toThrow("TOOL_WEIGHTS_MUST_SUM_TO_ONE");
   });
+
+  it("rejects contradictory placement and invalid quality declarations", () => {
+    const registry = new ToolRegistryService();
+    const descriptor = createShoppingPlugin(new ConfigService()).tools[0];
+
+    expect(() => registry.register({
+      ...descriptor,
+      toolId: "invalid.placement",
+      constraints: { ...descriptor.constraints, locality: "local_only", allowLocal: false },
+    })).toThrow("TOOL_CONSTRAINTS_INVALID");
+    expect(() => registry.register({
+      ...descriptor,
+      toolId: "invalid.quality",
+      quality: { ...descriptor.quality, minimumScore: 2 },
+    })).toThrow("TOOL_QUALITY_INVALID");
+  });
 });

@@ -87,16 +87,50 @@ describe("RuntimeRunService", () => {
     expect(scheduler.plan).toHaveBeenCalledTimes(2);
   });
 
-  it("starts a new run when the requested runId is missing", async () => {
+  it("rejects an explicit missing runId instead of silently creating a different run", async () => {
     const scheduler = {
       plan: jest.fn().mockResolvedValue(executionPlan("blocked")),
     } as unknown as ResourceAwareSchedulerService;
     const service = createRunService(scheduler);
 
-    const run = await service.attachGraph("run_missing", graph());
+    await expect(service.attachGraph("run_missing", graph())).rejects.toThrow("RUNTIME_RUN_NOT_FOUND");
+    expect(service.list()).toHaveLength(0);
+    expect(scheduler.plan).not.toHaveBeenCalled();
+  });
 
-    expect(run.runId).toMatch(/^run_/);
-    expect(run.runId).not.toBe("run_missing");
+  it("does not let replanning overwrite a run that is already executing", () => {
+    const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
+    const service = createRunService(scheduler);
+    const run = service.createPlanned(graph(), executionPlan("ready"));
+    service.setExecutionState(run.runId, "running");
+    expect(() => service.updatePlan(run.runId, executionPlan("blocked"))).toThrow("RUNTIME_RUN_PLAN_LOCKED");
+    expect(service.get(run.runId)?.status).toBe("running");
+  });
+
+  it("does not silently create a second run when attaching to a locked run", async () => {
+    const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
+    const service = createRunService(scheduler);
+    const run = service.createPlanned(graph(), executionPlan("ready"));
+    service.setExecutionState(run.runId, "running");
+    await expect(service.attachGraph(run.runId, graph())).rejects.toThrow("RUNTIME_RUN_PLAN_LOCKED");
+    expect(service.list()).toHaveLength(1);
+  });
+
+  it("serializes asynchronous plan updates for the same run", async () => {
+    let release!: (plan: ExecutionPlan) => void;
+    const scheduler = {
+      plan: jest.fn().mockImplementation(() => new Promise<ExecutionPlan>(resolve => { release = resolve; })),
+    } as unknown as ResourceAwareSchedulerService;
+    const service = createRunService(scheduler);
+    const run = service.createPlanned(graph(), executionPlan("ready"));
+
+    const first = service.attachGraph(run.runId, graph());
+    await Promise.resolve();
+    await expect(service.attachGraph(run.runId, graph())).rejects.toThrow("RUNTIME_RUN_PLAN_LOCKED");
+    release(executionPlan("blocked"));
+
+    expect((await first).status).toBe("blocked");
+    expect(scheduler.plan).toHaveBeenCalledTimes(1);
   });
 
   it("keeps business operation timing separate from executor telemetry", () => {

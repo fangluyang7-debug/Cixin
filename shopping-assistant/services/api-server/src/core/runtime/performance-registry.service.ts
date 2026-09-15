@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { ConflictException, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   PerformanceSample,
@@ -8,6 +8,7 @@ import {
 @Injectable()
 export class PerformanceRegistryService {
   private readonly records = new Map<string, TelemetryRecord[]>();
+  private readonly executions = new Map<string, TelemetryRecord>();
   private readonly minimumSamples: number;
 
   constructor(private readonly config: ConfigService) {
@@ -19,10 +20,17 @@ export class PerformanceRegistryService {
 
   record(record: TelemetryRecord) {
     validateTelemetry(record);
+    const existing = this.executions.get(record.executionId);
+    if (existing) {
+      if (!sameTelemetry(existing, record)) throw new ConflictException("TELEMETRY_EXECUTION_ID_CONFLICT");
+      return this.get(existing.toolId, existing.executorId, existing.modelId);
+    }
     const key = sampleKey(record.toolId, record.executorId, record.modelId);
     const current = this.records.get(key) ?? [];
-    current.push(record);
+    const stored = { ...record, metadata: record.metadata ? { ...record.metadata } : undefined };
+    current.push(stored);
     this.records.set(key, current);
+    this.executions.set(record.executionId, stored);
     return this.get(record.toolId, record.executorId, record.modelId);
   }
 
@@ -109,8 +117,16 @@ function average(values: number[]) {
 }
 
 function validateTelemetry(record: TelemetryRecord) {
-  if (!record.taskId || !record.toolId || !record.executorId) {
+  if (!record.executionId || !record.taskId || !record.toolId || !record.executorId) {
     throw new Error("TELEMETRY_IDENTIFIERS_REQUIRED");
+  }
+  const startedAt = Date.parse(record.startedAt);
+  const finishedAt = Date.parse(record.finishedAt);
+  if (!Number.isFinite(startedAt) || !Number.isFinite(finishedAt) || finishedAt < startedAt) {
+    throw new Error("TELEMETRY_TIMESTAMPS_INVALID");
+  }
+  if (typeof record.fallbackOccurred !== "boolean" || typeof record.success !== "boolean") {
+    throw new Error("TELEMETRY_STATUS_INVALID");
   }
   const numericValues = [record.latencyMs, record.memoryPeakMb];
   if (numericValues.some((value) => !Number.isFinite(value) || value < 0)) {
@@ -121,4 +137,19 @@ function validateTelemetry(record: TelemetryRecord) {
       throw new Error("TELEMETRY_OPTIONAL_METRIC_INVALID");
     }
   }
+  if (record.quality !== null && record.quality !== undefined && record.quality > 1) {
+    throw new Error("TELEMETRY_QUALITY_OUT_OF_RANGE");
+  }
+}
+
+function sameTelemetry(left: TelemetryRecord, right: TelemetryRecord) {
+  return left.executionId === right.executionId && left.taskId === right.taskId &&
+    left.toolId === right.toolId && left.executorId === right.executorId &&
+    (left.modelId ?? "") === (right.modelId ?? "") && left.startedAt === right.startedAt &&
+    left.finishedAt === right.finishedAt && left.latencyMs === right.latencyMs &&
+    left.memoryPeakMb === right.memoryPeakMb && (left.energyMah ?? null) === (right.energyMah ?? null) &&
+    (left.quality ?? null) === (right.quality ?? null) &&
+    left.fallbackOccurred === right.fallbackOccurred && left.success === right.success &&
+    (left.errorCode ?? "") === (right.errorCode ?? "") &&
+    JSON.stringify(left.metadata ?? null) === JSON.stringify(right.metadata ?? null);
 }

@@ -10,6 +10,11 @@ export const RUNTIME_EVENT_TYPES = [
   "verification_failed",
   "replan_requested",
   "platform_state_updated",
+  "protection_triggered",
+  "checkpoint_captured",
+  "checkpoint_committed",
+  "checkpoint_restored",
+  "rollback_failed",
 ] as const;
 
 export type RuntimeEventType = (typeof RUNTIME_EVENT_TYPES)[number];

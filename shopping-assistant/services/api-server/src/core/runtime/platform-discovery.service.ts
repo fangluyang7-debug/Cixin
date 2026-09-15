@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   ExecutorDescriptor,
@@ -11,6 +11,7 @@ import { CixP1PlatformAdapterService, HarmonyPlatformAdapterService } from "./un
 import { CloudPlatformAdapterService } from "./cloud-platform-adapter.service";
 import { HostPlatformAdapterService } from "./host-platform-adapter.service";
 import { PlatformStateRegistryService } from "./platform-state-registry.service";
+export const RUNTIME_PLATFORM_ADAPTERS = Symbol("RUNTIME_PLATFORM_ADAPTERS");
 
 export interface PlatformSnapshot {
   adapter: PlatformAdapter;
@@ -29,6 +30,7 @@ export class PlatformDiscoveryService {
     private readonly cixP1: CixP1PlatformAdapterService,
     private readonly cloud: CloudPlatformAdapterService,
     private readonly stateRegistry: PlatformStateRegistryService,
+    @Optional() @Inject(RUNTIME_PLATFORM_ADAPTERS) private readonly customAdapters?: PlatformAdapter[],
   ) {}
 
   async discover(): Promise<PlatformSnapshot[]> {
@@ -57,6 +59,11 @@ export class PlatformDiscoveryService {
   }
 
   private activeAdapters(): PlatformAdapter[] {
+    if (this.customAdapters) {
+      const ids = this.customAdapters.map(adapter => adapter.platformId);
+      if (new Set(ids).size !== ids.length) throw new Error("PLATFORM_ADAPTER_ID_DUPLICATE");
+      return this.customAdapters;
+    }
     const configured =
       this.config.get<string>("runtime.platformAdapter")?.trim().toLowerCase() ??
       "auto";
