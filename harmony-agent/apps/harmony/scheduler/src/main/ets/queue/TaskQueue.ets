@@ -9,6 +9,7 @@ export interface QueueItem {
   priority: TaskPriority;
   paused: boolean;
   pausable: boolean;
+  utilityScore?: number;
 }
 
 interface SequencedQueueItem<TItem extends QueueItem> {
@@ -110,7 +111,8 @@ export class TaskQueue<TItem extends QueueItem> {
       QUEUE_AGING_MAX_BONUS,
       Math.floor(waitMs / QUEUE_AGING_INTERVAL_MS)
     );
-    return this.priorityRank(entry.item.priority) + agingBonus;
+    return entry.item.utilityScore === undefined ? this.priorityRank(entry.item.priority) + agingBonus :
+      entry.item.utilityScore / 25 + agingBonus;
   }
 
   private priorityRank(priority: TaskPriority): number {

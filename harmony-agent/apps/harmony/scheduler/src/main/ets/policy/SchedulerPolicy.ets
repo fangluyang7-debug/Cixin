@@ -5,6 +5,7 @@ import {
   ExecutionPlan,
   InferenceLocation,
   LocalExecutionPlan,
+  MemoryPressure,
   ModelTier,
   PolicyMode,
   QueueAction,
@@ -26,71 +27,22 @@ export interface TaskCapabilityAssessment {
   reason: string;
 }
 
+interface TaskRuntimeProfile {
+  score: number;
+  backendPreference: Backend[];
+  reasonCode: string;
+}
+
 const LOW_BATTERY_PERCENT: number = 20;
-const POLICY_VERSION: string = 'weighted-utility-cpu-runtime-0.2.0';
+const BALANCED_BATTERY_PERCENT: number = 50;
+const PERFORMANCE_BATTERY_PERCENT: number = 60;
+const QUEUE_PRESSURE_DEPTH: number = 3;
+const MEMORY_LOW_AVAILABLE_MB: number = 512;
+const MEMORY_CRITICAL_AVAILABLE_MB: number = 192;
+const POLICY_VERSION: string = 'stage4-runtime-prior-0.3.0';
 
 export class SchedulerPolicy {
   public assessCapability(capability: string): TaskCapabilityAssessment {
-    if (capability === 'camera_lens_realtime') {
-      return {
-        score: 98,
-        urgencyLevel: 'CRITICAL (最高)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.HIGH_ACCURACY,
-        recommendedThreadCount: 4,
-        reason: '实时任务采用 CPU 4 线程；当前模型 Runtime 尚未启用 NNRT/NPU'
-      };
-    }
-    if (capability === 'image_crop_detection') {
-      return {
-        score: 92,
-        urgencyLevel: 'CRITICAL (最高)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.HIGH_ACCURACY,
-        recommendedThreadCount: 4,
-        reason: '图片特征任务采用 CPU 4 线程；当前模型 Runtime 尚未启用 NNRT/NPU'
-      };
-    }
-    if (capability === 'chat_intent_reasoning') {
-      return {
-        score: 82,
-        urgencyLevel: 'HIGH (高)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.BALANCED,
-        recommendedThreadCount: 2,
-        reason: '购物意图上下文分析，需要多核与平衡能效'
-      };
-    }
-    if (capability === 'local_product_search') {
-      return {
-        score: 75,
-        urgencyLevel: 'HIGH (高)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.BALANCED,
-        recommendedThreadCount: 2,
-        reason: '用户主动触发商品关键词与相似度检索'
-      };
-    }
-    if (capability === 'category_rerank_sort') {
-      return {
-        score: 60,
-        urgencyLevel: 'NORMAL (中)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.BALANCED,
-        recommendedThreadCount: 2,
-        reason: '端侧列表二次排序与价格区间筛选'
-      };
-    }
-    if (capability === 'background_index_update') {
-      return {
-        score: 30,
-        urgencyLevel: 'LOW (低)',
-        recommendedBackend: Backend.CPU,
-        recommendedModelTier: ModelTier.LIGHTWEIGHT,
-        recommendedThreadCount: 1,
-        reason: '后台批处理向量索引预热，低优先极度省电'
-      };
-    }
     return {
       score: 50,
       urgencyLevel: 'NORMAL (中)',
@@ -118,36 +70,92 @@ export class SchedulerPolicy {
       );
     }
 
-    if (state.thermalLevel === ThermalLevel.HOT) {
-      return this.createThermalProtectionPlan(
-        profile,
-        priority,
-        SchedulerReasonCode.THERMAL_HOT_DOWNGRADE,
-        state
-      );
-    }
-
     if (mode === PolicyMode.FIXED_PERFORMANCE) {
-      return this.createPlan(
-        ModelTier.HIGH_ACCURACY,
-        priority,
-        defaultAction,
-        [SchedulerReasonCode.FIXED_PERFORMANCE_MODE],
-        state
-      );
+      return this.evaluateFixedPerformance(profile, state, priority, defaultAction);
     }
 
     if (mode === PolicyMode.FIXED_POWER_SAVING) {
-      const action: QueueAction = profile.taskType === TaskType.BACKGROUND_BATCH ?
-        QueueAction.THROTTLE : defaultAction;
-      const reasons: string[] = [SchedulerReasonCode.FIXED_POWER_SAVING_MODE];
-      if (action === QueueAction.THROTTLE) {
-        reasons.push(SchedulerReasonCode.BACKGROUND_QUEUE_THROTTLED);
-      }
-      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state);
+      return this.evaluateFixedPowerSaving(profile, state, priority, defaultAction);
     }
 
     return this.evaluateAdaptive(profile, state, priority, defaultAction);
+  }
+
+  private evaluateFixedPerformance(
+    profile: TaskProfile,
+    state: DeviceState,
+    priority: TaskPriority,
+    defaultAction: QueueAction
+  ): ExecutionPlan {
+    const adaptivePlan: LocalExecutionPlan = this.evaluateAdaptive(
+      profile,
+      state,
+      priority,
+      defaultAction
+    ) as LocalExecutionPlan;
+    const reasons: string[] = [SchedulerReasonCode.FIXED_PERFORMANCE_MODE];
+    this.appendReasons(reasons, this.stripBackendReasonCodes(adaptivePlan.reasonCodes));
+    let tier: ModelTier = adaptivePlan.modelTier;
+    let action: QueueAction = adaptivePlan.queueAction;
+
+    if (!this.hasProtectionPressure(state, adaptivePlan)) {
+      tier = ModelTier.HIGH_ACCURACY;
+      action = defaultAction;
+      reasons.push(SchedulerReasonCode.FIXED_PERFORMANCE_BIAS_APPLIED);
+    } else if (state.queueDepth >= QUEUE_PRESSURE_DEPTH &&
+      tier === ModelTier.HIGH_ACCURACY) {
+      tier = ModelTier.BALANCED;
+      reasons.push(SchedulerReasonCode.QUEUE_PRESSURE_BALANCED);
+    }
+
+    if (profile.taskType === TaskType.BACKGROUND_BATCH &&
+      (this.hasMemoryPressure(state) || state.queueDepth >= QUEUE_PRESSURE_DEPTH)) {
+      action = this.resolveProtectionAction(profile, action);
+      this.appendQueueReason(action, reasons);
+    }
+    return this.createPlan(tier, priority, action, reasons, state, profile);
+  }
+
+  private evaluateFixedPowerSaving(
+    profile: TaskProfile,
+    state: DeviceState,
+    priority: TaskPriority,
+    defaultAction: QueueAction
+  ): ExecutionPlan {
+    const adaptivePlan: LocalExecutionPlan = this.evaluateAdaptive(
+      profile,
+      state,
+      priority,
+      defaultAction
+    ) as LocalExecutionPlan;
+    const reasons: string[] = [SchedulerReasonCode.FIXED_POWER_SAVING_MODE];
+    this.appendReasons(reasons, this.stripBackendReasonCodes(adaptivePlan.reasonCodes));
+    let tier: ModelTier = adaptivePlan.modelTier;
+    let action: QueueAction = adaptivePlan.queueAction;
+
+    if (!this.hasSafetyOverride(adaptivePlan)) {
+      if (profile.taskType === TaskType.FOREGROUND_REALTIME &&
+        !this.hasProtectionPressure(state, adaptivePlan)) {
+        tier = this.downgradeTier(adaptivePlan.modelTier);
+      } else if (profile.taskType === TaskType.USER_INITIATED) {
+        if (this.hasProtectionPressure(state, adaptivePlan)) {
+          tier = this.downgradeTier(adaptivePlan.modelTier);
+        } else if (adaptivePlan.modelTier === ModelTier.HIGH_ACCURACY) {
+          tier = ModelTier.BALANCED;
+        } else {
+          tier = adaptivePlan.modelTier;
+        }
+      } else {
+        tier = ModelTier.LIGHTWEIGHT;
+      }
+      reasons.push(SchedulerReasonCode.FIXED_POWER_SAVING_BIAS_APPLIED);
+    }
+
+    if (profile.taskType === TaskType.BACKGROUND_BATCH) {
+      action = this.resolveProtectionAction(profile, QueueAction.THROTTLE);
+      this.appendQueueReason(action, reasons);
+    }
+    return this.createPlan(tier, priority, action, reasons, state, profile);
   }
 
   private evaluateAdaptive(
@@ -159,9 +167,20 @@ export class SchedulerPolicy {
     // 1. Hard Safety Defense (低电量/状态未知硬性防御)
     if (this.isLowBattery(state)) {
       const action: QueueAction = this.resolveProtectionAction(profile, defaultAction);
-      const reasons: string[] = [SchedulerReasonCode.LOW_BATTERY_PROTECTION];
+      const reasons: string[] = [SchedulerReasonCode.LOW_BATTERY_PROTECTION, SchedulerReasonCode.SAFETY_OVERRIDE];
       this.appendQueueReason(action, reasons);
-      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state);
+      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state, profile);
+    }
+
+    if (this.isCriticalMemory(state)) {
+      const action: QueueAction = this.resolveProtectionAction(profile, defaultAction);
+      const reasons: string[] = [SchedulerReasonCode.MEMORY_CRITICAL_PROTECTION, SchedulerReasonCode.SAFETY_OVERRIDE];
+      if (!profile.allowDegrade) {
+        reasons.push(SchedulerReasonCode.DEGRADE_DISALLOWED_REJECT);
+        return this.createPlan(ModelTier.LIGHTWEIGHT, priority, QueueAction.REJECT, reasons, state, profile);
+      }
+      this.appendQueueReason(action, reasons);
+      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state, profile);
     }
 
     if (this.hasUnknownSafetyState(state)) {
@@ -170,12 +189,15 @@ export class SchedulerPolicy {
         priority,
         defaultAction,
         [SchedulerReasonCode.STATE_UNKNOWN_CONSERVATIVE],
-        state
+        state,
+        profile
       );
     }
 
     // 2. Multi-Dimensional Feature Weight Utility Score Model
-    // a) Task Priority Weight w_priority (50% of Task Spec)
+    const runtimeProfile: TaskRuntimeProfile = this.resolveRuntimeProfile(profile.capability);
+
+    // a) Task priority feature
     let wPriority = 0.3;
     if (profile.taskType === TaskType.FOREGROUND_REALTIME) {
       wPriority = 1.0;
@@ -183,47 +205,69 @@ export class SchedulerPolicy {
       wPriority = 0.7;
     }
 
-    // b) Accuracy Preference Weight w_accuracy (30% of Task Spec)
-    const wAccuracy = profile.accuracyPreference === AccuracyPreference.QUALITY_FIRST ? 1.0 : 0.4;
+    // b) Accuracy preference feature
+    let wAccuracy: number = 0.65;
+    if (profile.accuracyPreference === AccuracyPreference.QUALITY_FIRST) {
+      wAccuracy = 1.0;
+    } else if (profile.accuracyPreference === AccuracyPreference.SPEED_FIRST) {
+      wAccuracy = 0.45;
+    }
 
-    // c) Latency Urgency Weight w_latency (20% of Task Spec)
-    let wLatency = 0.3;
+    // c) Latency urgency feature
+    let wLatency = 0.35;
     if (profile.latencyBudgetMs !== null) {
-      if (profile.latencyBudgetMs <= 150) {
+      if (profile.latencyBudgetMs <= 120) {
         wLatency = 1.0;
+      } else if (profile.latencyBudgetMs <= 250) {
+        wLatency = 0.75;
       } else if (profile.latencyBudgetMs <= 500) {
-        wLatency = 0.6;
+        wLatency = 0.55;
       }
     }
-    const taskSpecScore = (wPriority * 0.5) + (wAccuracy * 0.3) + (wLatency * 0.2);
+    const taskSpecScore = (runtimeProfile.score * 0.42) +
+      (wPriority * 0.24) +
+      (wAccuracy * 0.20) +
+      (wLatency * 0.14);
 
-    // d) Physical Environment Health Scaling Factors (f_battery * f_thermal * f_queue)
-    let fBattery = 0.5;
-    if (state.isCharging === true) {
-      fBattery = 1.0;
-    } else if (state.batteryPercent !== null) {
-      fBattery = Math.min(1.0, Math.max(0.2, state.batteryPercent / 100.0));
-    }
-
-    let fThermal = 1.0;
-    if (state.thermalLevel === ThermalLevel.WARM) {
-      fThermal = 0.8;
-    } else if (state.thermalLevel === ThermalLevel.HOT) {
-      fThermal = 0.5;
-    } else if (state.thermalLevel === ThermalLevel.CRITICAL) {
-      fThermal = 0.3;
-    }
-
-    const fQueue = Math.max(0.4, 1.0 - (state.queueDepth * 0.1));
+    // d) Device and runtime scaling factors
+    const fBattery: number = this.resolveBatteryFactor(state);
+    const fThermal: number = this.resolveThermalFactor(state);
+    const fQueue = Math.max(0.60, 1.0 - (state.queueDepth * 0.06));
+    const fMemory: number = this.resolveMemoryFactor(state);
+    const fRuntime = this.resolveRuntimeFeedbackFactor(profile, state);
 
     // e) Final Composite Utility Score
-    const finalUtilityScore = taskSpecScore * fBattery * fThermal * fQueue;
+    const finalUtilityScore = taskSpecScore * fBattery * fThermal * fQueue * fMemory * fRuntime;
 
     // f) Score Threshold Mapping (Score -> ModelTier)
     let modelTier: ModelTier = ModelTier.LIGHTWEIGHT;
-    const reasonCodes: string[] = [];
+    let action: QueueAction = defaultAction;
+    const reasonCodes: string[] = [runtimeProfile.reasonCode];
+    reasonCodes.push(`TASK_SCORE(${taskSpecScore.toFixed(2)})`);
+    reasonCodes.push(`DEVICE_SCALE(${(fBattery * fThermal * fQueue * fMemory * fRuntime).toFixed(2)})`);
+    if (state.thermalLevel === ThermalLevel.HOT) {
+      reasonCodes.push(SchedulerReasonCode.THERMAL_HOT_DOWNGRADE);
+    } else if (state.thermalLevel === ThermalLevel.WARM) {
+      reasonCodes.push(SchedulerReasonCode.THERMAL_WARM_BALANCED);
+    }
+    if (state.queueDepth >= QUEUE_PRESSURE_DEPTH) {
+      reasonCodes.push(SchedulerReasonCode.QUEUE_PRESSURE_BALANCED);
+    }
+    if (this.hasMemoryPressure(state)) {
+      reasonCodes.push(SchedulerReasonCode.MEMORY_PRESSURE_BALANCED);
+    }
+    if (state.batteryPercent !== null &&
+      state.batteryPercent < PERFORMANCE_BATTERY_PERCENT &&
+      state.isCharging !== true) {
+      reasonCodes.push(SchedulerReasonCode.BATTERY_BALANCED);
+    }
+    if (state.recentLatencyMs !== null &&
+      profile.latencyBudgetMs !== null &&
+      state.recentLatencyMs > profile.latencyBudgetMs) {
+      reasonCodes.push(SchedulerReasonCode.LATENCY_BUDGET_PRESSURE);
+    }
 
-    if (finalUtilityScore >= 0.60) {
+    if (finalUtilityScore >= 0.70) {
       modelTier = ModelTier.HIGH_ACCURACY;
       reasonCodes.push(`SCORE_HIGH_ACCURACY(${finalUtilityScore.toFixed(2)})`);
     } else if (finalUtilityScore >= 0.30) {
@@ -234,7 +278,16 @@ export class SchedulerPolicy {
       reasonCodes.push(`SCORE_LIGHTWEIGHT(${finalUtilityScore.toFixed(2)})`);
     }
 
-    return this.createPlan(modelTier, priority, defaultAction, reasonCodes, state);
+    if (profile.taskType === TaskType.BACKGROUND_BATCH &&
+      (state.thermalLevel === ThermalLevel.HOT || modelTier === ModelTier.LIGHTWEIGHT)) {
+      if (state.thermalLevel === ThermalLevel.HOT) {
+        modelTier = ModelTier.LIGHTWEIGHT;
+      }
+      action = this.resolveProtectionAction(profile, defaultAction);
+      this.appendQueueReason(action, reasonCodes);
+    }
+
+    return this.createPlan(modelTier, priority, action, reasonCodes, state, profile);
   }
 
   private createThermalProtectionPlan(
@@ -246,7 +299,7 @@ export class SchedulerPolicy {
     const reasons: string[] = [thermalReason, SchedulerReasonCode.SAFETY_OVERRIDE];
     if (!profile.allowDegrade) {
       reasons.push(SchedulerReasonCode.DEGRADE_DISALLOWED_REJECT);
-      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, QueueAction.REJECT, reasons, state);
+      return this.createPlan(ModelTier.LIGHTWEIGHT, priority, QueueAction.REJECT, reasons, state, profile);
     }
 
     const action: QueueAction = this.resolveProtectionAction(
@@ -254,7 +307,7 @@ export class SchedulerPolicy {
       this.resolveDefaultAction(profile.taskType)
     );
     this.appendQueueReason(action, reasons);
-    return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state);
+    return this.createPlan(ModelTier.LIGHTWEIGHT, priority, action, reasons, state, profile);
   }
 
   private resolveProtectionAction(profile: TaskProfile, defaultAction: QueueAction): QueueAction {
@@ -296,9 +349,13 @@ export class SchedulerPolicy {
     priority: TaskPriority,
     queueAction: QueueAction,
     reasonCodes: string[],
-    state: DeviceState
+    state: DeviceState,
+    profile?: TaskProfile
   ): LocalExecutionPlan {
-    const backend: Backend = this.resolveBackend(modelTier, state);
+    const runtimeProfile: TaskRuntimeProfile = this.resolveRuntimeProfile(
+      profile === undefined ? '' : profile.capability
+    );
+    const backend: Backend = this.resolveBackend(modelTier, state, runtimeProfile);
     const reasons: string[] = reasonCodes.slice();
     if (backend === Backend.NPU) {
       reasons.push(SchedulerReasonCode.NPU_BACKEND_SELECTED);
@@ -321,9 +378,25 @@ export class SchedulerPolicy {
     };
   }
 
-  private resolveBackend(modelTier: ModelTier, state: DeviceState): Backend {
-    // The deployed MindSpore Lite context currently targets CPU only.
-    // Device-declared accelerators must not be reported as the actual runtime backend.
+  private resolveBackend(modelTier: ModelTier, state: DeviceState, runtimeProfile: TaskRuntimeProfile): Backend {
+    if (modelTier === ModelTier.LIGHTWEIGHT) {
+      return Backend.CPU;
+    }
+    for (let index: number = 0; index < runtimeProfile.backendPreference.length; index++) {
+      const preferred: Backend = runtimeProfile.backendPreference[index];
+      if (this.hasBackend(state, preferred)) {
+        return preferred;
+      }
+    }
+    if (this.hasBackend(state, Backend.NPU)) {
+      return Backend.NPU;
+    }
+    if (this.hasBackend(state, Backend.NNRT)) {
+      return Backend.NNRT;
+    }
+    if (this.hasBackend(state, Backend.GPU)) {
+      return Backend.GPU;
+    }
     return Backend.CPU;
   }
 
@@ -347,6 +420,42 @@ export class SchedulerPolicy {
     return 1;
   }
 
+  private downgradeTier(tier: ModelTier): ModelTier {
+    if (tier === ModelTier.HIGH_ACCURACY) {
+      return ModelTier.BALANCED;
+    }
+    return ModelTier.LIGHTWEIGHT;
+  }
+
+  private stripBackendReasonCodes(reasonCodes: string[]): string[] {
+    return reasonCodes.filter((reasonCode: string) =>
+      reasonCode !== SchedulerReasonCode.NPU_BACKEND_SELECTED &&
+        reasonCode !== SchedulerReasonCode.GPU_BACKEND_SELECTED &&
+        reasonCode !== SchedulerReasonCode.NNRT_BACKEND_SELECTED &&
+        reasonCode !== SchedulerReasonCode.CPU_BACKEND_FALLBACK
+    );
+  }
+
+  private appendReasons(target: string[], source: string[]): void {
+    for (let index: number = 0; index < source.length; index++) {
+      target.push(source[index]);
+    }
+  }
+
+  private hasProtectionPressure(state: DeviceState, plan: LocalExecutionPlan): boolean {
+    return this.hasSafetyOverride(plan) ||
+      this.isLowBattery(state) ||
+      state.thermalLevel === ThermalLevel.HOT ||
+      state.thermalLevel === ThermalLevel.CRITICAL ||
+      state.queueDepth >= QUEUE_PRESSURE_DEPTH ||
+      this.hasMemoryPressure(state);
+  }
+
+  private hasSafetyOverride(plan: LocalExecutionPlan): boolean {
+    return plan.reasonCodes.indexOf(SchedulerReasonCode.SAFETY_OVERRIDE) >= 0 ||
+      plan.queueAction === QueueAction.REJECT;
+  }
+
   private resolvePriority(taskType: TaskType): TaskPriority {
     if (taskType === TaskType.FOREGROUND_REALTIME) {
       return TaskPriority.CRITICAL;
@@ -367,9 +476,104 @@ export class SchedulerPolicy {
       state.isCharging !== true;
   }
 
+  private hasMemoryPressure(state: DeviceState): boolean {
+    return state.memoryPressure === MemoryPressure.HIGH ||
+      state.memoryPressure === MemoryPressure.CRITICAL ||
+      (state.availableMemoryMb !== null && state.availableMemoryMb < MEMORY_LOW_AVAILABLE_MB);
+  }
+
+  private isCriticalMemory(state: DeviceState): boolean {
+    return state.memoryPressure === MemoryPressure.CRITICAL ||
+      (state.availableMemoryMb !== null && state.availableMemoryMb < MEMORY_CRITICAL_AVAILABLE_MB);
+  }
+
   private hasUnknownSafetyState(state: DeviceState): boolean {
     return state.thermalLevel === ThermalLevel.UNKNOWN ||
       state.batteryPercent === null ||
       state.isCharging === null;
+  }
+
+  private resolveRuntimeProfile(capability: string): TaskRuntimeProfile {
+    return {
+      score: 0.50,
+      backendPreference: [Backend.GPU, Backend.NPU, Backend.NNRT, Backend.CPU],
+      reasonCode: 'TASK_PROFILE_GENERIC'
+    };
+  }
+
+  private resolveBatteryFactor(state: DeviceState): number {
+    if (state.isCharging === true) {
+      return 1.0;
+    }
+    if (state.batteryPercent === null) {
+      return 0.55;
+    }
+    if (state.batteryPercent >= PERFORMANCE_BATTERY_PERCENT) {
+      return 0.95;
+    }
+    if (state.batteryPercent >= BALANCED_BATTERY_PERCENT) {
+      return 0.86;
+    }
+    if (state.batteryPercent >= 30) {
+      return 0.70;
+    }
+    return Math.max(0.45, state.batteryPercent / 100.0 + 0.20);
+  }
+
+  private resolveThermalFactor(state: DeviceState): number {
+    if (state.thermalLevel === ThermalLevel.NORMAL) {
+      return 1.0;
+    }
+    if (state.thermalLevel === ThermalLevel.WARM) {
+      return 0.88;
+    }
+    if (state.thermalLevel === ThermalLevel.HOT) {
+      return 0.74;
+    }
+    if (state.thermalLevel === ThermalLevel.CRITICAL) {
+      return 0.25;
+    }
+    return 0.70;
+  }
+
+  private resolveMemoryFactor(state: DeviceState): number {
+    if (state.memoryPressure === MemoryPressure.NORMAL) {
+      return 1.0;
+    }
+    if (state.memoryPressure === MemoryPressure.MODERATE) {
+      return 0.92;
+    }
+    if (state.memoryPressure === MemoryPressure.HIGH) {
+      return 0.76;
+    }
+    if (state.memoryPressure === MemoryPressure.CRITICAL) {
+      return 0.40;
+    }
+    if (state.availableMemoryMb !== null) {
+      if (state.availableMemoryMb < MEMORY_CRITICAL_AVAILABLE_MB) {
+        return 0.40;
+      }
+      if (state.availableMemoryMb < MEMORY_LOW_AVAILABLE_MB) {
+        return 0.76;
+      }
+    }
+    return 1.0;
+  }
+
+  private resolveRuntimeFeedbackFactor(profile: TaskProfile, state: DeviceState): number {
+    if (state.recentLatencyMs === null || profile.latencyBudgetMs === null || profile.latencyBudgetMs <= 0) {
+      return 1.0;
+    }
+    if (state.recentLatencyMs <= profile.latencyBudgetMs) {
+      return 1.0;
+    }
+    const pressureRatio: number = state.recentLatencyMs / profile.latencyBudgetMs;
+    if (pressureRatio >= 4.0) {
+      return 0.82;
+    }
+    if (pressureRatio >= 2.0) {
+      return 0.90;
+    }
+    return 0.96;
   }
 }

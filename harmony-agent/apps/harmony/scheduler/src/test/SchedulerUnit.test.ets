@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@ohos/hypium';
+import { afterEach, beforeEach, describe, expect, it } from '@ohos/hypium';
 import {
   AccuracyPreference,
   AppVisibility,
@@ -9,6 +9,7 @@ import {
   ExecutionPlan,
   InferenceLocation,
   LocalExecutionPlan,
+  MemoryPressure,
   ModelTier,
   RemoteExecutionPlan,
   PolicyMode,
@@ -43,14 +44,16 @@ function createProfile(
   taskType: TaskType = TaskType.FOREGROUND_REALTIME,
   accuracy: AccuracyPreference = AccuracyPreference.BALANCED,
   allowDegrade: boolean = true,
-  allowPause: boolean = true
+  allowPause: boolean = true,
+  capability: string = 'mock_inference',
+  latencyBudgetMs: number = 100
 ): TaskProfile {
   return {
     taskType: taskType,
     inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-    capability: 'mock_inference',
+    capability: capability,
     accuracyPreference: accuracy,
-    latencyBudgetMs: 100,
+    latencyBudgetMs: latencyBudgetMs,
     allowDegrade: allowDegrade,
     allowPause: allowPause,
     timeoutMs: 3000
@@ -71,6 +74,12 @@ function createState(
     appVisibility: AppVisibility.FOREGROUND,
     recentLatencyMs: recentLatencyMs,
     queueDepth: queueDepth,
+    systemCpuUsage: 18,
+    appCpuUsage: 4,
+    memoryPressure: MemoryPressure.NORMAL,
+    totalMemoryMb: 8192,
+    freeMemoryMb: 4096,
+    availableMemoryMb: 2048,
     availableBackends: [Backend.CPU],
     source: DeviceStateSource.INJECTED,
     capturedAt: 0
@@ -99,6 +108,7 @@ function createPlan(tier: ModelTier): LocalExecutionPlan {
 export default function schedulerUnitTest(): void {
   describe('SchedulerService', () => {
     const service: SchedulerService = SchedulerService.getInstance();
+    beforeEach(async () => { await service.shutdown(); });
 
     afterEach(async () => {
       await service.shutdown();
@@ -131,7 +141,7 @@ export default function schedulerUnitTest(): void {
       await service.initialize(createConfig(PolicyMode.FIXED_POWER_SAVING));
       const state: DeviceState = createState(90, true, ThermalLevel.NORMAL);
       const savingPlan: ExecutionPlan = service.evaluate(createProfile(), state);
-      expect((savingPlan as LocalExecutionPlan).modelTier).assertEqual(ModelTier.LIGHTWEIGHT);
+      expect((savingPlan as LocalExecutionPlan).modelTier).assertEqual(ModelTier.BALANCED);
 
       await service.setPolicyMode(PolicyMode.FIXED_PERFORMANCE);
       const performancePlan: ExecutionPlan = service.evaluate(createProfile(), state);
@@ -171,6 +181,27 @@ export default function schedulerUnitTest(): void {
       expect(result.output === null).assertFalse();
       expect(service.getRecentLogs(10).length >= 3).assertTrue();
       expect(service.getMetricsSnapshot().taskCount).assertEqual(1);
+    });
+
+    it('doesNotHoldUserInitiatedTasksAtPreviousLowTier', 0, async () => {
+      await service.initialize(createConfig());
+      const lowState: DeviceState = createState(12, false, ThermalLevel.NORMAL);
+      const healthyState: DeviceState = createState(90, true, ThermalLevel.NORMAL);
+      healthyState.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const profile: TaskProfile = createProfile(
+        TaskType.USER_INITIATED,
+        AccuracyPreference.QUALITY_FIRST,
+        true,
+        false,
+        'image_product_embedding_search',
+        160
+      );
+      const lowPlan: LocalExecutionPlan = service.evaluate(profile, lowState) as LocalExecutionPlan;
+      const healthyPlan: LocalExecutionPlan = service.evaluate(profile, healthyState) as LocalExecutionPlan;
+
+      expect(lowPlan.threadCount).assertEqual(1);
+      expect(healthyPlan.threadCount).assertEqual(2);
     });
 
     it('updatesRealStateAndNotifiesOnlyOnChange', 0, async () => {
@@ -243,6 +274,37 @@ export default function schedulerUnitTest(): void {
   });
 
   describe('DeviceStateController', () => {
+    it('combinesIndependentDebugStateGroups', 0, () => {
+      const controller: DeviceStateController = new DeviceStateController();
+      controller.applyRealState({
+        batteryPercent: 72,
+        isCharging: false,
+        thermalLevel: ThermalLevel.NORMAL,
+        memoryPressure: MemoryPressure.NORMAL,
+        availableMemoryMb: 2048
+      });
+      controller.applyDebugState({
+        queueDepth: 1,
+        recentLatencyMs: 180,
+        memoryPressure: MemoryPressure.HIGH,
+        availableMemoryMb: 320
+      });
+      controller.applyDebugState({
+        batteryPercent: 12,
+        isCharging: false,
+        thermalLevel: ThermalLevel.NORMAL
+      });
+
+      const state: DeviceState = controller.getSnapshot();
+      expect(state.batteryPercent).assertEqual(12);
+      expect(state.isCharging).assertFalse();
+      expect(state.thermalLevel).assertEqual(ThermalLevel.NORMAL);
+      expect(state.queueDepth).assertEqual(1);
+      expect(state.memoryPressure).assertEqual(MemoryPressure.HIGH);
+      expect(state.availableMemoryMb).assertEqual(320);
+      expect(state.source).assertEqual(DeviceStateSource.MIXED);
+    });
+
     it('marksCompleteDebugStateAndRejectsInvalidValues', 0, () => {
       const controller: DeviceStateController = new DeviceStateController();
       controller.applyDebugState({
@@ -252,6 +314,12 @@ export default function schedulerUnitTest(): void {
         appVisibility: AppVisibility.FOREGROUND,
         recentLatencyMs: null,
         queueDepth: 0,
+        systemCpuUsage: 18,
+        appCpuUsage: 4,
+        memoryPressure: MemoryPressure.NORMAL,
+        totalMemoryMb: 8192,
+        freeMemoryMb: 4096,
+        availableMemoryMb: 2048,
         availableBackends: [Backend.CPU]
       }, 100);
       expect(controller.getSnapshot().source).assertEqual(DeviceStateSource.INJECTED);
@@ -289,6 +357,49 @@ export default function schedulerUnitTest(): void {
       expect((plan as LocalExecutionPlan).modelTier).assertEqual(ModelTier.LIGHTWEIGHT);
       expect((plan as LocalExecutionPlan).threadCount).assertEqual(1);
       expect(plan.queueAction).assertEqual(QueueAction.PAUSE);
+    });
+
+    it('keepsBackgroundIndexUsableWhenHealthy', 0, () => {
+      const state: DeviceState = createState(85, true, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const plan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.BACKGROUND_BATCH,
+          AccuracyPreference.SPEED_FIRST,
+          true,
+          false,
+          'background_index_update',
+          2000
+        ),
+        state,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+
+      expect(plan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(plan.threadCount).assertEqual(2);
+    });
+
+    it('letsHealthyBackgroundIndexUsePerformanceModeWithoutThrottle', 0, () => {
+      const state: DeviceState = createState(85, true, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const plan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.BACKGROUND_BATCH,
+          AccuracyPreference.SPEED_FIRST,
+          true,
+          false,
+          'background_index_update',
+          2000
+        ),
+        state,
+        PolicyMode.FIXED_PERFORMANCE
+      ) as LocalExecutionPlan;
+
+      expect(plan.modelTier).assertEqual(ModelTier.HIGH_ACCURACY);
+      expect(plan.threadCount).assertEqual(4);
+      expect(plan.queueAction).assertEqual(QueueAction.ENQUEUE);
     });
 
     it('rejectsNonDegradableWorkAtCriticalThermal', 0, () => {
@@ -340,30 +451,203 @@ export default function schedulerUnitTest(): void {
       expect(plan.maxRetries).assertEqual(1);
     });
 
-    it('reportsCpuRuntimeEvenWhenDeviceDeclaresNpu', 0, () => {
+    it('usesGenericBackendPreferenceWithoutCapabilityNameInference', 0, () => {
       const state: DeviceState = createState(80, true, ThermalLevel.NORMAL);
       state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
 
       const plan: ExecutionPlan = policy.evaluate(
-        createProfile(),
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
         state,
         PolicyMode.ADAPTIVE
       );
 
-      expect((plan as LocalExecutionPlan).backend).assertEqual(Backend.CPU);
+      expect((plan as LocalExecutionPlan).backend).assertEqual(Backend.GPU);
     });
 
-    it('reportsCpuRuntimeEvenWhenDeviceDeclaresGpu', 0, () => {
+    it('selectsGpuBackendWhenAvailableAndNpuAbsent', 0, () => {
       const state: DeviceState = createState(80, true, ThermalLevel.NORMAL);
       state.availableBackends = [Backend.CPU, Backend.GPU];
 
       const plan: ExecutionPlan = policy.evaluate(
-        createProfile(),
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
         state,
         PolicyMode.ADAPTIVE
       );
 
-      expect((plan as LocalExecutionPlan).backend).assertEqual(Backend.CPU);
+      expect((plan as LocalExecutionPlan).backend).assertEqual(Backend.GPU);
+    });
+
+    it('doesNotInferBusinessCostFromCapabilityNames', 0, () => {
+      const state: DeviceState = createState(85, true, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const imagePlan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
+        state,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+      const textPlan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.SPEED_FIRST,
+          true,
+          false,
+          'text_product_embedding_search',
+          240
+        ),
+        state,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+
+      expect(imagePlan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(imagePlan.threadCount).assertEqual(2);
+      expect(imagePlan.backend).assertEqual(Backend.GPU);
+      expect(textPlan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(textPlan.threadCount).assertEqual(2);
+      expect(textPlan.backend).assertEqual(Backend.GPU);
+    });
+
+    it('usesWeightedHotStateInsteadOfAlwaysForcingOneThread', 0, () => {
+      const state: DeviceState = createState(55, false, ThermalLevel.HOT, 0, 240);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const imagePlan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
+        state,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+
+      expect(imagePlan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(imagePlan.threadCount).assertEqual(2);
+      expect(imagePlan.reasonCodes.indexOf('TASK_PROFILE_GENERIC') >= 0).assertTrue();
+    });
+
+    it('usesMemoryPressureAsRuntimeConstraint', 0, () => {
+      const state: DeviceState = createState(90, true, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+      state.memoryPressure = MemoryPressure.HIGH;
+      state.availableMemoryMb = 320;
+
+      const plan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
+        state,
+        PolicyMode.FIXED_PERFORMANCE
+      ) as LocalExecutionPlan;
+
+      expect(plan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(plan.reasonCodes.indexOf('MEMORY_PRESSURE_BALANCED') >= 0).assertTrue();
+    });
+
+    it('evaluatesCombinedBatteryAndMemoryConditions', 0, () => {
+      const imageProfile: TaskProfile = createProfile(
+        TaskType.USER_INITIATED,
+        AccuracyPreference.QUALITY_FIRST,
+        true,
+        false,
+        'image_product_embedding_search',
+        160
+      );
+      const healthyCharging: DeviceState = createState(85, true, ThermalLevel.NORMAL, 1, 180);
+      healthyCharging.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+      healthyCharging.memoryPressure = MemoryPressure.HIGH;
+      healthyCharging.availableMemoryMb = 320;
+
+      const memoryPressurePlan: LocalExecutionPlan = policy.evaluate(
+        imageProfile,
+        healthyCharging,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+      expect(memoryPressurePlan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(memoryPressurePlan.threadCount).assertEqual(2);
+
+      healthyCharging.batteryPercent = 12;
+      healthyCharging.isCharging = false;
+      const combinedProtectionPlan: LocalExecutionPlan = policy.evaluate(
+        imageProfile,
+        healthyCharging,
+        PolicyMode.ADAPTIVE
+      ) as LocalExecutionPlan;
+      expect(combinedProtectionPlan.modelTier).assertEqual(ModelTier.LIGHTWEIGHT);
+      expect(combinedProtectionPlan.threadCount).assertEqual(1);
+      expect(combinedProtectionPlan.reasonCodes.indexOf('LOW_BATTERY_PROTECTION') >= 0).assertTrue();
+    });
+
+    it('treatsFixedPowerSavingAsBiasNotAbsoluteLock', 0, () => {
+      const state: DeviceState = createState(90, true, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const plan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.QUALITY_FIRST,
+          true,
+          false,
+          'image_product_embedding_search',
+          160
+        ),
+        state,
+        PolicyMode.FIXED_POWER_SAVING
+      ) as LocalExecutionPlan;
+
+      expect(plan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(plan.reasonCodes.indexOf('FIXED_POWER_SAVING_BIAS_APPLIED') >= 0).assertTrue();
+    });
+
+    it('keepsTextSearchResponsiveInHealthyPowerSavingMode', 0, () => {
+      const state: DeviceState = createState(85, false, ThermalLevel.NORMAL);
+      state.availableBackends = [Backend.CPU, Backend.GPU, Backend.NPU];
+
+      const plan: LocalExecutionPlan = policy.evaluate(
+        createProfile(
+          TaskType.USER_INITIATED,
+          AccuracyPreference.SPEED_FIRST,
+          true,
+          false,
+          'text_product_embedding_search',
+          240
+        ),
+        state,
+        PolicyMode.FIXED_POWER_SAVING
+      ) as LocalExecutionPlan;
+
+      expect(plan.modelTier).assertEqual(ModelTier.BALANCED);
+      expect(plan.threadCount).assertEqual(2);
+      expect(plan.reasonCodes.indexOf('FIXED_POWER_SAVING_BIAS_APPLIED') >= 0).assertTrue();
     });
   });
 
@@ -384,6 +668,21 @@ export default function schedulerUnitTest(): void {
       const steppedUp: LocalExecutionPlan = controller.apply(createPlan(ModelTier.HIGH_ACCURACY), 1200);
       expect(steppedUp.modelTier).assertEqual(ModelTier.BALANCED);
       expect(steppedUp.threadCount).assertEqual(2);
+    });
+
+    it('keepsTierMemorySeparateByCapabilityKey', 0, () => {
+      const controller: HysteresisController = new HysteresisController(1000, 500);
+      controller.apply(createPlan(ModelTier.LIGHTWEIGHT), 0, 'background_index_update');
+      const imagePlan: LocalExecutionPlan = controller.apply(
+        createPlan(ModelTier.HIGH_ACCURACY),
+        100,
+        'image_product_embedding_search'
+      );
+
+      expect(imagePlan.modelTier).assertEqual(ModelTier.HIGH_ACCURACY);
+      expect(imagePlan.threadCount).assertEqual(4);
+      expect(controller.getCurrentTier('background_index_update')).assertEqual(ModelTier.LIGHTWEIGHT);
+      expect(controller.getCurrentTier('image_product_embedding_search')).assertEqual(ModelTier.HIGH_ACCURACY);
     });
   });
 }

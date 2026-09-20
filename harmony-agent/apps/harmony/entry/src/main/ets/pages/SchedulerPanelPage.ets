@@ -9,11 +9,15 @@ import {
   ExecutionPlan,
   InferenceLocation,
   LocalExecutionPlan,
+  MemoryPressure,
   MetricsSnapshot,
+  ModelTier,
   RemoteExecutionPlan,
   PolicyMode,
+  QueueAction,
   SchedulerLogEntry,
   SchedulerService,
+  TaskProfile,
   TaskRequest,
   TaskResult,
   TaskStatus,
@@ -24,6 +28,20 @@ import {
 
 interface PanelProbeInput {
   message: string;
+  payloadKb: number;
+}
+
+interface PanelProbeScenario {
+  title: string;
+  description: string;
+  capability: string;
+  taskType: TaskType;
+  accuracyPreference: AccuracyPreference;
+  latencyBudgetMs: number;
+  allowPause: boolean;
+  timeoutMs: number;
+  baseDurationMs: number;
+  payloadKb: number;
 }
 
 @Entry
@@ -32,6 +50,7 @@ struct SchedulerPanelPage {
   private readonly schedulerService: SchedulerService = SchedulerService.getInstance();
   private stateUnsubscribe: Unsubscribe | null = null;
   private logUnsubscribe: Unsubscribe | null = null;
+  private metricsRefreshTimerId: number = -1;
 
   @State isReady: boolean = false;
   @State isBusy: boolean = false;
@@ -40,7 +59,56 @@ struct SchedulerPanelPage {
   @State policyMode: PolicyMode = PolicyMode.ADAPTIVE;
   @State metrics: MetricsSnapshot | null = null;
   @State logs: SchedulerLogEntry[] = [];
+  @State metricsRefreshTick: number = 0;
   @State latestProbeResult: TaskResult<string> | null = null;
+  @State latestPanelCapability: string = '';
+  @State latestPanelStatusText: string = '';
+  @State latestPanelExecutionText: string = '';
+  @State latestPanelQueueText: string = '';
+  @State debugInjectionStatusText: string = '当前注入：无，使用系统 API 实时监测';
+  @State selectedEnvironmentScenario: string = '';
+  @State selectedPressureScenario: string = '';
+  @State selectedProbeIndex: number = 0;
+  @State latestProbeScenarioTitle: string = '图片 Embedding 检索';
+
+  private readonly probeScenarios: PanelProbeScenario[] = [
+    {
+      title: '图片 Embedding 检索',
+      description: 'ROI 图像特征提取 + 256维相似向量匹配',
+      capability: 'image_product_embedding_search',
+      taskType: TaskType.USER_INITIATED,
+      accuracyPreference: AccuracyPreference.QUALITY_FIRST,
+      latencyBudgetMs: 160,
+      allowPause: false,
+      timeoutMs: 2000,
+      baseDurationMs: 220,
+      payloadKb: 3200
+    },
+    {
+      title: '文字 Embedding 检索',
+      description: '短文本语义解析 + 64维候选召回',
+      capability: 'text_product_embedding_search',
+      taskType: TaskType.USER_INITIATED,
+      accuracyPreference: AccuracyPreference.SPEED_FIRST,
+      latencyBudgetMs: 240,
+      allowPause: false,
+      timeoutMs: 2000,
+      baseDurationMs: 140,
+      payloadKb: 1200
+    },
+    {
+      title: '后台索引更新',
+      description: '离线向量归一化与缓存预热',
+      capability: 'background_index_update',
+      taskType: TaskType.BACKGROUND_BATCH,
+      accuracyPreference: AccuracyPreference.SPEED_FIRST,
+      latencyBudgetMs: 2000,
+      allowPause: false,
+      timeoutMs: 3000,
+      baseDurationMs: 320,
+      payloadKb: 5200
+    }
+  ];
 
   aboutToAppear(): void {
     this.connectScheduler();
@@ -55,6 +123,7 @@ struct SchedulerPanelPage {
     if (!this.schedulerService.isInitialized()) {
       this.isReady = false;
       this.feedbackText = '调度中间件仍在初始化，请稍后点击刷新';
+      this.startMetricsPolling();
       return;
     }
 
@@ -73,9 +142,11 @@ struct SchedulerPanelPage {
       }
     );
     this.refreshData();
+    this.startMetricsPolling();
   }
 
   private disconnectScheduler(): void {
+    this.stopMetricsPolling();
     if (this.stateUnsubscribe !== null) {
       this.stateUnsubscribe();
       this.stateUnsubscribe = null;
@@ -104,6 +175,29 @@ struct SchedulerPanelPage {
     }
     this.metrics = this.schedulerService.getMetricsSnapshot();
     this.logs = this.schedulerService.getRecentLogs(20).slice().reverse();
+    this.metricsRefreshTick++;
+  }
+
+  private startMetricsPolling(): void {
+    this.stopMetricsPolling();
+    this.metricsRefreshTimerId = setInterval(() => {
+      if (!this.schedulerService.isInitialized()) {
+        this.isReady = false;
+        return;
+      }
+      if (!this.isReady) {
+        this.connectScheduler();
+        return;
+      }
+      this.refreshData();
+    }, 500);
+  }
+
+  private stopMetricsPolling(): void {
+    if (this.metricsRefreshTimerId >= 0) {
+      clearInterval(this.metricsRefreshTimerId);
+      this.metricsRefreshTimerId = -1;
+    }
   }
 
   private async changePolicy(mode: PolicyMode): Promise<void> {
@@ -125,19 +219,19 @@ struct SchedulerPanelPage {
   }
 
   private async injectAllBackends(): Promise<void> {
-    await this.applyDebugState('已注入设备能力声明：CPU + GPU + NPU（仿真，不改变当前 CPU 模型 Runtime）', {
+    await this.applyDebugState('已注入硬件能力：CPU + GPU + NPU (全异构加速)', {
       availableBackends: [Backend.CPU, Backend.GPU, Backend.NPU]
     });
   }
 
   private async injectCpuNpuBackends(): Promise<void> {
-    await this.applyDebugState('已注入设备能力声明：CPU + NPU（仿真，不代表模型运行在 NPU）', {
+    await this.applyDebugState('已注入硬件能力：CPU + NPU 神经网络加速', {
       availableBackends: [Backend.CPU, Backend.NPU]
     });
   }
 
   private async injectCpuGpuBackends(): Promise<void> {
-    await this.applyDebugState('已注入设备能力声明：CPU + GPU（仿真，不代表模型运行在 GPU）', {
+    await this.applyDebugState('已注入硬件能力：CPU + GPU 图形加速', {
       availableBackends: [Backend.CPU, Backend.GPU]
     });
   }
@@ -149,53 +243,95 @@ struct SchedulerPanelPage {
   }
 
   private async injectNormalState(): Promise<void> {
-    await this.applyDebugState('已注入：常温、充电中、电量 85%（设备能力仿真；模型仍使用 CPU）', {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：常温、充电中、电量 85%', {
       batteryPercent: 85,
       isCharging: true,
       thermalLevel: ThermalLevel.NORMAL,
-      appVisibility: AppVisibility.FOREGROUND,
-      recentLatencyMs: 40,
-      availableBackends: [Backend.CPU, Backend.GPU, Backend.NPU]
+      appVisibility: AppVisibility.FOREGROUND
     });
+    if (applied) {
+      this.selectedEnvironmentScenario = 'NORMAL_CHARGING';
+    }
   }
 
   private async injectLowBatteryState(): Promise<void> {
-    await this.applyDebugState('已注入：低电量 12%、未充电 (触发电量保护降档)', {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：低电量 12%、未充电', {
       batteryPercent: 12,
       isCharging: false,
       thermalLevel: ThermalLevel.NORMAL,
-      appVisibility: AppVisibility.FOREGROUND,
-      recentLatencyMs: 120,
-      availableBackends: [Backend.CPU]
+      appVisibility: AppVisibility.FOREGROUND
     });
+    if (applied) {
+      this.selectedEnvironmentScenario = 'LOW_BATTERY';
+    }
   }
 
   private async injectHotState(): Promise<void> {
-    await this.applyDebugState('已注入：高热、延迟升高 (触发发热温控保护)', {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：高热、未充电、电量 55%', {
       batteryPercent: 55,
       isCharging: false,
       thermalLevel: ThermalLevel.HOT,
-      appVisibility: AppVisibility.FOREGROUND,
-      recentLatencyMs: 800,
-      availableBackends: [Backend.CPU, Backend.GPU, Backend.NPU]
+      appVisibility: AppVisibility.FOREGROUND
     });
+    if (applied) {
+      this.selectedEnvironmentScenario = 'HOT';
+    }
+  }
+
+  private async injectQueuePressureState(): Promise<void> {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：队列繁忙、近期耗时略超预算', {
+      queueDepth: 3,
+      recentLatencyMs: 260,
+      memoryPressure: MemoryPressure.NORMAL,
+      availableMemoryMb: 1536
+    });
+    if (applied) {
+      this.selectedPressureScenario = 'QUEUE_BUSY';
+    }
+  }
+
+  private async injectMemoryPressureState(): Promise<void> {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：内存占用较高、可用内存 320 MB', {
+      queueDepth: 1,
+      memoryPressure: MemoryPressure.HIGH,
+      availableMemoryMb: 320,
+      recentLatencyMs: 180
+    });
+    if (applied) {
+      this.selectedPressureScenario = 'MEMORY_HIGH';
+    }
+  }
+
+  private async injectCriticalMemoryState(): Promise<void> {
+    const applied: boolean = await this.applyDebugState('组合条件已更新：内存临界、可用内存 128 MB', {
+      memoryPressure: MemoryPressure.CRITICAL,
+      availableMemoryMb: 128,
+      recentLatencyMs: 900,
+      queueDepth: 4
+    });
+    if (applied) {
+      this.selectedPressureScenario = 'MEMORY_CRITICAL';
+    }
   }
 
   private async applyDebugState(
     successText: string,
     patch: DebugStatePatch
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!this.isReady || this.isBusy) {
-      return;
+      return false;
     }
     this.isBusy = true;
     try {
       await this.schedulerService.injectDebugState(patch);
+      this.debugInjectionStatusText = successText;
       this.feedbackText = successText;
       this.refreshData();
       await this.executeProbeTask(false);
+      return true;
     } catch (error) {
       this.feedbackText = `状态注入失败：${JSON.stringify(error)}`;
+      return false;
     } finally {
       this.isBusy = false;
     }
@@ -208,6 +344,9 @@ struct SchedulerPanelPage {
     this.isBusy = true;
     try {
       await this.schedulerService.clearDebugState();
+      this.debugInjectionStatusText = '当前注入：无，已恢复系统 API 实时监测';
+      this.selectedEnvironmentScenario = '';
+      this.selectedPressureScenario = '';
       this.feedbackText = '调试覆盖已清除，恢复真实系统传感器状态';
       this.refreshData();
       await this.executeProbeTask(false);
@@ -262,34 +401,74 @@ struct SchedulerPanelPage {
     }
   }
 
+  private async changeProbeScenario(index: number): Promise<void> {
+    if (!this.isReady || this.isBusy) {
+      return;
+    }
+    this.selectedProbeIndex = index;
+    const scenario: PanelProbeScenario = this.getSelectedProbeScenario();
+    this.latestProbeScenarioTitle = scenario.title;
+    this.isBusy = true;
+    try {
+      await this.executeProbeTask(false);
+    } finally {
+      this.isBusy = false;
+    }
+  }
+
   private async executeProbeTask(showToastAlert: boolean): Promise<void> {
     try {
+      const scenario: PanelProbeScenario = this.getSelectedProbeScenario();
       const request: TaskRequest<PanelProbeInput> = {
-        taskType: TaskType.USER_INITIATED,
+        taskType: scenario.taskType,
         inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-        capability: 'scheduler_panel_probe',
-        input: { message: 'panel-probe' },
-        accuracyPreference: AccuracyPreference.QUALITY_FIRST,
-        latencyBudgetMs: 300,
+        capability: scenario.capability,
+        input: {
+          message: scenario.title,
+          payloadKb: scenario.payloadKb
+        },
+        accuracyPreference: scenario.accuracyPreference,
+        latencyBudgetMs: scenario.latencyBudgetMs,
         allowDegrade: true,
-        allowPause: false,
-        timeoutMs: 2000
+        allowPause: scenario.allowPause,
+        timeoutMs: scenario.timeoutMs
       };
+      this.latestProbeResult = null;
+      this.latestPanelCapability = scenario.capability;
+      this.latestPanelStatusText = '排队';
+      this.latestPanelExecutionText = '0 ms';
+      this.latestPanelQueueText = '0 ms';
+      this.refreshData();
+      const previewPlan: ExecutionPlan = this.schedulerService.evaluate(this.createProbeTaskProfile(request));
+      if (previewPlan.queueAction === QueueAction.PAUSE || previewPlan.queueAction === QueueAction.REJECT) {
+        this.latestPanelStatusText = previewPlan.queueAction === QueueAction.PAUSE ? '暂停' : '拒绝';
+        this.latestPanelExecutionText = '-';
+        this.latestPanelQueueText = '0 ms';
+        this.feedbackText = `${scenario.title}当前${this.latestPanelStatusText}：${previewPlan.reasonCodes.join(' / ')}`;
+        this.refreshData();
+        return;
+      }
       const result: TaskResult<string> = await this.schedulerService.runTask<PanelProbeInput, string>(
         request,
-        async (input: PanelProbeInput, _plan: ExecutionPlan): Promise<string> => {
+        async (input: PanelProbeInput, plan: ExecutionPlan): Promise<string> => {
+          this.latestPanelStatusText = '运行中';
+          const simulatedDurationMs: number = this.resolveProbeDurationMs(plan, scenario);
           return new Promise<string>((resolve) => {
-            setTimeout(() => resolve(input.message), 120);
+            setTimeout(() => resolve(`${input.message} · ${input.payloadKb}KB`), simulatedDurationMs);
           });
         }
       );
       this.latestProbeResult = result;
+      this.latestProbeScenarioTitle = scenario.title;
+      this.latestPanelStatusText = this.taskStatusShortText(result.status);
+      this.latestPanelExecutionText = `${Math.round(result.executionDurationMs)} ms`;
+      this.latestPanelQueueText = `${Math.round(result.queueDurationMs)} ms`;
       const plan: ExecutionPlan = result.executionPlan;
-      this.feedbackText = `样例任务执行成功：${this.planPrimaryLabel(plan)} · ${this.planSecondaryLabel(plan)} · 耗时 ${result.totalDurationMs} ms`;
+      this.feedbackText = `${scenario.title}执行成功：${this.planPrimaryLabel(plan)} · ${this.planSecondaryLabel(plan)} · 耗时 ${result.totalDurationMs} ms`;
       if (showToastAlert) {
         try {
           promptAction.showToast({
-            message: `样例任务已运行！${this.planPrimaryLabel(plan)} | ${this.planSecondaryLabel(plan)}`,
+            message: `${scenario.title}已运行！${this.planPrimaryLabel(plan)} | ${this.planSecondaryLabel(plan)}`,
             duration: 2500
           });
         } catch (e) {
@@ -298,8 +477,86 @@ struct SchedulerPanelPage {
       }
       this.refreshData();
     } catch (error) {
+      this.latestPanelStatusText = '失败';
       this.feedbackText = `样例任务执行失败：${JSON.stringify(error)}`;
     }
+  }
+
+  private createProbeTaskProfile(request: TaskRequest<PanelProbeInput>): TaskProfile {
+    return {
+      taskType: request.taskType,
+      inferenceLocation: request.inferenceLocation,
+      capability: request.capability,
+      accuracyPreference: request.accuracyPreference,
+      latencyBudgetMs: request.latencyBudgetMs === undefined ? null : request.latencyBudgetMs,
+      allowDegrade: request.allowDegrade,
+      allowPause: request.allowPause,
+      timeoutMs: request.timeoutMs,
+      remoteOptions: request.remoteOptions
+    };
+  }
+
+  private getSelectedProbeScenario(): PanelProbeScenario {
+    if (this.selectedProbeIndex < 0 || this.selectedProbeIndex >= this.probeScenarios.length) {
+      return this.probeScenarios[0];
+    }
+    return this.probeScenarios[this.selectedProbeIndex];
+  }
+
+  private resolveProbeDurationMs(plan: ExecutionPlan, scenario: PanelProbeScenario): number {
+    if (plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) {
+      return scenario.baseDurationMs;
+    }
+    const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
+    let tierFactor: number = 2.3;
+    if (localPlan.modelTier === ModelTier.HIGH_ACCURACY) {
+      tierFactor = 0.58;
+    } else if (localPlan.modelTier === ModelTier.BALANCED) {
+      tierFactor = 1.0;
+    }
+
+    let backendFactor: number = 1.18;
+    if (localPlan.backend === Backend.NPU) {
+      backendFactor = 0.56;
+    } else if (localPlan.backend === Backend.NNRT) {
+      backendFactor = 0.66;
+    } else if (localPlan.backend === Backend.GPU) {
+      backendFactor = 0.78;
+    }
+
+    let thermalFactor: number = 1.0;
+    if (this.deviceState !== null && this.deviceState.thermalLevel === ThermalLevel.HOT) {
+      thermalFactor = 1.35;
+    } else if (this.deviceState !== null && this.deviceState.thermalLevel === ThermalLevel.WARM) {
+      thermalFactor = 1.14;
+    }
+
+    let batteryFactor: number = 1.0;
+    if (this.deviceState !== null && this.deviceState.batteryPercent !== null &&
+      this.deviceState.batteryPercent <= 20 && this.deviceState.isCharging !== true) {
+      batteryFactor = 1.28;
+    }
+
+    const threadFactor: number = localPlan.threadCount === 4 ? 0.76 :
+      (localPlan.threadCount === 2 ? 0.92 : 1.18);
+    const durationMs: number = scenario.baseDurationMs * tierFactor * backendFactor *
+      thermalFactor * batteryFactor * threadFactor;
+    const maxDurationMs: number = Math.max(120, scenario.timeoutMs - 100);
+    return Math.min(maxDurationMs, Math.max(120, Math.round(durationMs)));
+  }
+
+  private getLatestPlanReasonText(): string {
+    if (this.latestProbeResult === null || this.latestProbeResult.executionPlan.reasonCodes.length === 0) {
+      return '等待运行样例任务';
+    }
+    return this.latestProbeResult.executionPlan.reasonCodes.join(' / ');
+  }
+
+  private getLatestPlanOutputText(): string {
+    if (this.latestProbeResult === null) {
+      return '尚无输出';
+    }
+    return `${this.planPrimaryLabel(this.latestProbeResult.executionPlan)} · ${this.planSecondaryLabel(this.latestProbeResult.executionPlan)}`;
   }
 
   private policyModeText(mode: PolicyMode): string {
@@ -357,6 +614,197 @@ struct SchedulerPanelPage {
     return state.recentLatencyMs === null ? '未知' : `${Math.round(state.recentLatencyMs)} ms`;
   }
 
+  private cpuUsageText(value: number | null): string {
+    return value === null ? '未知' : `${Math.round(value * 10) / 10}%`;
+  }
+
+  private memoryRuntimeText(state: DeviceState): string {
+    if (state.availableMemoryMb === null && state.totalMemoryMb === null) {
+      return '未知';
+    }
+    const available: string = state.availableMemoryMb === null ? '-' : `${Math.round(state.availableMemoryMb)} MB`;
+    const total: string = state.totalMemoryMb === null ? '-' : `${Math.round(state.totalMemoryMb)} MB`;
+    return `${available} / ${total}`;
+  }
+
+  private memoryPressureText(state: DeviceState): string {
+    if (state.memoryPressure === MemoryPressure.NORMAL) {
+      return state.availableMemoryMb === null ? '正常' : `正常 · ${Math.round(state.availableMemoryMb)} MB`;
+    }
+    if (state.memoryPressure === MemoryPressure.MODERATE) {
+      return state.availableMemoryMb === null ? '中等压力' : `中等 · ${Math.round(state.availableMemoryMb)} MB`;
+    }
+    if (state.memoryPressure === MemoryPressure.HIGH) {
+      return state.availableMemoryMb === null ? '高压力' : `高压 · ${Math.round(state.availableMemoryMb)} MB`;
+    }
+    if (state.memoryPressure === MemoryPressure.CRITICAL) {
+      return state.availableMemoryMb === null ? '严重不足' : `严重 · ${Math.round(state.availableMemoryMb)} MB`;
+    }
+    return state.availableMemoryMb === null ? '未知' : `未知 · ${Math.round(state.availableMemoryMb)} MB`;
+  }
+
+  private debugInjectionRuntimeText(): string {
+    if (this.deviceState === null) {
+      return '等待设备状态刷新';
+    }
+    return `${this.sourceText(this.deviceState.source)} · SOC ${this.batteryText(this.deviceState)} · ${this.chargingText(this.deviceState)} · ${this.thermalText(this.deviceState.thermalLevel)} · 队列 ${this.deviceState.queueDepth} · ${this.memoryPressureText(this.deviceState)}`;
+  }
+
+  private canChangeBackendSimulation(): boolean {
+    return !this.isBusy && this.policyMode !== PolicyMode.FIXED_POWER_SAVING;
+  }
+
+  private backendSimulationButtonColor(): string {
+    return this.policyMode === PolicyMode.FIXED_POWER_SAVING ? '#D0D5DD' : '#0A66F5';
+  }
+
+  private backendSimulationFontColor(): string {
+    return this.policyMode === PolicyMode.FIXED_POWER_SAVING ? '#667085' : '#FFFFFF';
+  }
+
+  private scenarioButtonColor(selectedScenario: string, scenario: string): string {
+    return selectedScenario === scenario ? '#0A66F5' : '#DCE9FF';
+  }
+
+  private scenarioButtonFontColor(selectedScenario: string, scenario: string): string {
+    return selectedScenario === scenario ? '#FFFFFF' : '#175CD3';
+  }
+
+  private latestRuntimeLog(): SchedulerLogEntry | null {
+    for (let index: number = 0; index < this.logs.length; index++) {
+      const entry: SchedulerLogEntry = this.logs[index];
+      if (this.isObservableLog(entry)) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
+  private latestTaskMetricText(): string {
+    if (this.latestPanelCapability.length > 0) {
+      return this.capabilityShortText(this.latestPanelCapability);
+    }
+    const entry: SchedulerLogEntry | null = this.latestRuntimeLog();
+    if (entry === null) {
+      return '无';
+    }
+    return this.capabilityShortText(entry.capability);
+  }
+
+  private latestTaskStatusText(): string {
+    if (this.latestPanelCapability.length > 0 && this.latestPanelStatusText.length > 0) {
+      return this.latestPanelStatusText;
+    }
+    const entry: SchedulerLogEntry | null = this.latestRuntimeLog();
+    if (entry === null) {
+      return '无';
+    }
+    return this.taskStatusShortText(entry.status);
+  }
+
+  private capabilityShortText(capability: string): string {
+    if (capability.indexOf('image') >= 0 || capability.indexOf('crop') >= 0 || capability.indexOf('camera') >= 0) {
+      return '图片任务';
+    }
+    if (capability.indexOf('text') >= 0 || capability.indexOf('product_search') >= 0 ||
+      capability.indexOf('keyword') >= 0) {
+      return '文字搜索';
+    }
+    if (capability.indexOf('chat') >= 0 || capability.indexOf('intent') >= 0) {
+      return '意图推理';
+    }
+    if (capability.indexOf('background') >= 0 || capability.indexOf('index') >= 0) {
+      return '后台索引';
+    }
+    return capability.length > 8 ? capability.substring(0, 8) : capability;
+  }
+
+  private taskStatusShortText(status: TaskStatus): string {
+    if (status === TaskStatus.CREATED || status === TaskStatus.QUEUED) {
+      return '排队';
+    }
+    if (status === TaskStatus.RUNNING) {
+      return '运行中';
+    }
+    if (status === TaskStatus.SUCCEEDED) {
+      return '完成';
+    }
+    if (status === TaskStatus.TIMED_OUT) {
+      return '超时';
+    }
+    if (status === TaskStatus.CANCELLED) {
+      return '取消';
+    }
+    return '失败';
+  }
+
+  private isObservableLog(entry: SchedulerLogEntry): boolean {
+    return entry.status === TaskStatus.CREATED ||
+      entry.status === TaskStatus.QUEUED ||
+      entry.status === TaskStatus.RUNNING ||
+      this.isTerminalStatus(entry.status);
+  }
+
+  private latestExecutionMetricText(): string {
+    if (this.latestPanelCapability.length > 0 && this.latestPanelExecutionText.length > 0) {
+      return this.latestPanelExecutionText;
+    }
+    const entry: SchedulerLogEntry | null = this.latestRuntimeLog();
+    if (entry !== null) {
+      return this.executionDurationText(entry);
+    }
+    if (this.metrics !== null) {
+      return `${Math.round(this.metrics.averageLatencyMs)} ms`;
+    }
+    return '0 ms';
+  }
+
+  private latestQueueMetricText(): string {
+    if (this.latestPanelCapability.length > 0 && this.latestPanelQueueText.length > 0) {
+      return this.latestPanelQueueText;
+    }
+    const entry: SchedulerLogEntry | null = this.latestRuntimeLog();
+    if (entry !== null) {
+      return this.queueDurationText(entry);
+    }
+    if (this.metrics !== null) {
+      return `${Math.round(this.metrics.averageQueueDurationMs)} ms`;
+    }
+    return '0 ms';
+  }
+
+  private executionDurationText(entry: SchedulerLogEntry): string {
+    const tick: number = this.metricsRefreshTick;
+    if (entry.executionDurationMs !== null) {
+      return `${Math.round(entry.executionDurationMs)} ms`;
+    }
+    if (entry.status === TaskStatus.RUNNING && entry.startedAt !== null) {
+      return `${Math.max(0, Math.round(Date.now() - entry.startedAt + tick * 0))} ms`;
+    }
+    if (entry.status === TaskStatus.CREATED || entry.status === TaskStatus.QUEUED) {
+      return '0 ms';
+    }
+    return '-';
+  }
+
+  private queueDurationText(entry: SchedulerLogEntry): string {
+    const tick: number = this.metricsRefreshTick;
+    if (entry.queueDurationMs !== null) {
+      return `${Math.round(entry.queueDurationMs)} ms`;
+    }
+    if (entry.startedAt === null) {
+      return `${Math.max(0, Math.round(Date.now() - entry.queuedAt + tick * 0))} ms`;
+    }
+    return `${Math.max(0, Math.round(entry.startedAt - entry.queuedAt))} ms`;
+  }
+
+  private isTerminalStatus(status: TaskStatus): boolean {
+    return status === TaskStatus.SUCCEEDED ||
+      status === TaskStatus.FAILED ||
+      status === TaskStatus.TIMED_OUT ||
+      status === TaskStatus.CANCELLED;
+  }
+
   private statusColor(status: TaskStatus): string {
     if (status === TaskStatus.SUCCEEDED) {
       return '#067647';
@@ -365,9 +813,6 @@ struct SchedulerPanelPage {
       return '#B42318';
     }
     if (status === TaskStatus.CANCELLED) {
-      return '#B54708';
-    }
-    if (status === TaskStatus.STOP_REQUESTED) {
       return '#B54708';
     }
     if (status === TaskStatus.RUNNING) {
@@ -390,20 +835,6 @@ struct SchedulerPanelPage {
     }
     const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
     return `${localPlan.modelTier} · ${localPlan.threadCount} 线程 · ${localPlan.queueAction}`;
-  }
-
-  private localPlanTier(plan: ExecutionPlan | null, fallback: string): string {
-    if (plan === null || plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) {
-      return fallback;
-    }
-    return (plan as LocalExecutionPlan).modelTier;
-  }
-
-  private localPlanThreads(plan: ExecutionPlan | null, fallback: number): number {
-    if (plan === null || plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) {
-      return fallback;
-    }
-    return (plan as LocalExecutionPlan).threadCount;
   }
 
   private planFontColor(plan: ExecutionPlan): string {
@@ -503,10 +934,10 @@ struct SchedulerPanelPage {
 
   private policyBannerDesc(mode: PolicyMode): string {
     if (mode === PolicyMode.ADAPTIVE) {
-      return '根据热状态、电量与队列深度动态调整 CPU 线程数和向量维度。常温高电量使用 CPU 4线程；升温或低电量时降至 CPU 2/1线程。';
+      return '根据热状态、电量与硬件能力动态调整。常温且高电量时自动使用 NPU/GPU 异构加速与高精度模型 (4线程)；温度升高或电量低于20%时自动降阶为 CPU 轻量模型 (1-2线程) 保护安全。';
     }
     if (mode === PolicyMode.FIXED_PERFORMANCE) {
-      return '对照实验模式：锁定 CPU 高精度模型 (HIGH_ACCURACY) + 4线程，测量当前 MindSpore Lite CPU Runtime 的延迟与能耗。';
+      return '对照实验模式：强行锁定 NPU/GPU 硬件加速后端 + 高精度模型 (HIGH_ACCURACY) + 4 线程并发，追求最低推理延迟与高精度，适合充饱电高性能场景。';
     }
     return '对照实验模式：强行锁定 CPU 低功耗后端 + 轻量模型 (LIGHTWEIGHT) + 1 线程，并对后台批处理任务进行降频限流，极度节省功耗与电量。';
   }
@@ -541,14 +972,15 @@ struct SchedulerPanelPage {
   }
 
   private getDynamicComputeSpeed(): string {
-    if (this.metrics !== null && this.metrics.averageLatencyMs > 0) {
-      const realLatency: number = this.metrics.averageLatencyMs;
-      const calcKbps: number = Math.round((2000.0 / realLatency) * 10) / 10;
+    if (this.latestProbeResult !== null && this.latestProbeResult.totalDurationMs > 0) {
+      const scenario: PanelProbeScenario = this.getSelectedProbeScenario();
+      const calcKbps: number = Math.round((scenario.payloadKb / this.latestProbeResult.totalDurationMs) * 10) / 10;
       return `${calcKbps} KB/s`;
     }
 
-    if (this.latestProbeResult !== null && this.latestProbeResult.totalDurationMs > 0) {
-      const calcKbps: number = Math.round((2000.0 / this.latestProbeResult.totalDurationMs) * 10) / 10;
+    if (this.metrics !== null && this.metrics.averageLatencyMs > 0) {
+      const realLatency: number = this.metrics.averageLatencyMs;
+      const calcKbps: number = Math.round((2000.0 / realLatency) * 10) / 10;
       return `${calcKbps} KB/s`;
     }
 
@@ -689,7 +1121,7 @@ struct SchedulerPanelPage {
       }
       .width('100%')
 
-      Text('决策树模型读取物理特征向量与任务 Spec，归因推导出的最佳执行方案：')
+      Text('轻量调度模型读取任务画像、物理状态与运行反馈，使用同一份 executionPlan 输出解释和执行结果：')
         .fontSize(11)
         .fontColor('#475467')
 
@@ -726,33 +1158,21 @@ struct SchedulerPanelPage {
               .fontWeight(FontWeight.Bold)
               .fontColor('#172B4D')
 
-            if (this.deviceState.batteryPercent !== null && this.deviceState.batteryPercent <= 20 && !this.deviceState.isCharging) {
-              Text(`① 特征向量：SOC ${this.batteryText(this.deviceState)} <= 20% (低电量未充电) ➔ 触发电池硬件防护 [LOW_BATTERY_PROTECTION]`)
-                .fontSize(11).fontColor('#B42318')
-              Text('② 归因结论：强制降低模型档位至 LIGHTWEIGHT ➔ 绑定 CPU 单线程 (1 线程) 以极低功耗保续航')
-                .fontSize(11).fontColor('#B42318')
-            } else if (this.deviceState.thermalLevel === ThermalLevel.HOT || this.deviceState.thermalLevel === ThermalLevel.CRITICAL) {
-              Text(`① 特征向量：芯片 ThermalLevel = ${this.thermalText(this.deviceState.thermalLevel)} ➔ 矩阵评分进行降频防过热缩放`)
-                .fontSize(11).fontColor('#B54708')
-              Text(`② 动态计算依据：${this.latestProbeResult ? this.latestProbeResult.executionPlan.reasonCodes.join(' / ') : '温度防御评估中'}`)
-                .fontSize(11).fontColor('#B54708')
-              Text(`③ 实际匹配输出：档位 ${this.localPlanTier(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 'BALANCED')} ➔ 分配 ${this.localPlanThreads(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 2)} 线程`)
-                .fontSize(11).fontColor('#175CD3')
-            } else if (this.deviceState.thermalLevel === ThermalLevel.WARM) {
-              Text('① 特征向量：芯片 ThermalLevel = WARM (轻微发热) ➔ 矩阵评分自动平衡功耗')
-                .fontSize(11).fontColor('#B54708')
-              Text(`② 动态计算依据：${this.latestProbeResult ? this.latestProbeResult.executionPlan.reasonCodes.join(' / ') : '平衡模式评估中'}`)
-                .fontSize(11).fontColor('#B54708')
-              Text(`③ 实际匹配输出：档位 ${this.localPlanTier(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 'BALANCED')} ➔ 分配 ${this.localPlanThreads(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 2)} 线程`)
-                .fontSize(11).fontColor('#175CD3')
-            } else {
-              Text(`① 特征向量：SOC ${this.batteryText(this.deviceState)} 健康 且 常温无压 ➔ 算得最佳效能得分`)
-                .fontSize(11).fontColor('#067647')
-              Text(`② 动态计算依据：${this.latestProbeResult ? this.latestProbeResult.executionPlan.reasonCodes.join(' / ') : '高性能评估中'}`)
-                .fontSize(11).fontColor('#067647')
-              Text(`③ 实际匹配输出：档位 ${this.localPlanTier(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 'HIGH_ACCURACY')} ➔ 分配 ${this.localPlanThreads(this.latestProbeResult === null ? null : this.latestProbeResult.executionPlan, 4)} 线程`)
-                .fontSize(11).fontColor('#175CD3')
-            }
+            Text(`① 当前样例：${this.getSelectedProbeScenario().title} · ${this.getSelectedProbeScenario().description}`)
+              .fontSize(11)
+              .fontColor('#344054')
+            Text(`② 状态向量：SOC ${this.batteryText(this.deviceState)} · ${this.chargingText(this.deviceState)} · ${this.thermalText(this.deviceState.thermalLevel)} · 队列 ${this.deviceState.queueDepth} · ${this.memoryPressureText(this.deviceState)}`)
+              .fontSize(11)
+              .fontColor('#344054')
+            Text(`③ 任务 Spec：${this.getSelectedProbeScenario().capability} · ${this.getSelectedProbeScenario().taskType} · ${this.getSelectedProbeScenario().accuracyPreference} · 预算 ${this.getSelectedProbeScenario().latencyBudgetMs} ms`)
+              .fontSize(11)
+              .fontColor('#344054')
+            Text(`④ 模型评分依据：${this.getLatestPlanReasonText()}`)
+              .fontSize(11)
+              .fontColor('#B54708')
+            Text(`⑤ 实际输出：${this.getLatestPlanOutputText()}`)
+              .fontSize(11)
+              .fontColor('#175CD3')
           }
           .alignItems(HorizontalAlign.Start)
           .width('100%')
@@ -803,7 +1223,7 @@ struct SchedulerPanelPage {
               .fontSize(12)
               .fontWeight(FontWeight.Bold)
               .fontColor('#172B4D')
-            Text('基线需求：最高优先级 CRITICAL · 80ms 延迟预算 · 当前 Runtime 为 CPU 4线程')
+            Text('基线需求：最高优先级 CRITICAL · 80ms 延迟预算 · 质量优先 (常温调度 NPU 4线程)')
               .fontSize(10)
               .fontColor('#667085')
           }
@@ -828,7 +1248,7 @@ struct SchedulerPanelPage {
               .fontSize(12)
               .fontWeight(FontWeight.Bold)
               .fontColor('#172B4D')
-            Text('基线需求：最高优先级 CRITICAL · 100ms 延迟预算 · 当前仅验证 CPU 4线程')
+            Text('基线需求：最高优先级 CRITICAL · 100ms 延迟预算 · 质量优先 (支持 NPU 4线程/GPU)')
               .fontSize(10)
               .fontColor('#667085')
           }
@@ -988,6 +1408,28 @@ struct SchedulerPanelPage {
   }
 
   @Builder
+  private debugInjectionStatusBar() {
+    Column({ space: 5 }) {
+      Text('当前组合注入状态')
+        .fontSize(12)
+        .fontWeight(FontWeight.Bold)
+        .fontColor('#172B4D')
+      Text(this.debugInjectionStatusText)
+        .fontSize(12)
+        .fontColor('#175CD3')
+      Text(this.debugInjectionRuntimeText())
+        .fontSize(11)
+        .fontColor('#475467')
+    }
+    .alignItems(HorizontalAlign.Start)
+    .width('100%')
+    .padding(10)
+    .backgroundColor('#F8FAFC')
+    .border({ width: 1, color: '#D0D5DD' })
+    .borderRadius(8)
+  }
+
+  @Builder
   private policyButton(label: string, mode: PolicyMode) {
     Button(label)
       .layoutWeight(1)
@@ -1003,10 +1445,25 @@ struct SchedulerPanelPage {
   }
 
   @Builder
+  private probeButton(label: string, index: number) {
+    Button(label)
+      .layoutWeight(1)
+      .height(36)
+      .fontSize(11)
+      .fontWeight(this.selectedProbeIndex === index ? FontWeight.Bold : FontWeight.Normal)
+      .fontColor(this.selectedProbeIndex === index ? Color.White : '#344054')
+      .backgroundColor(this.selectedProbeIndex === index ? '#175CD3' : '#F2F4F7')
+      .enabled(this.isReady && !this.isBusy)
+      .onClick(() => {
+        this.changeProbeScenario(index);
+      })
+  }
+
+  @Builder
   private logCard(entry: SchedulerLogEntry) {
     Column({ space: 7 }) {
       Row({ space: 8 }) {
-        Text(entry.status === TaskStatus.STOP_REQUESTED ? '等待计算停止' : entry.status)
+        Text(entry.status)
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.statusColor(entry.status))
@@ -1035,7 +1492,7 @@ struct SchedulerPanelPage {
           .fontColor('#475467')
       }
 
-      Text(`排队 ${entry.queueDurationMs === null ? '-' : Math.round(entry.queueDurationMs)} ms · 执行 ${entry.executionDurationMs === null ? '-' : Math.round(entry.executionDurationMs)} ms`)
+      Text(`排队 ${this.queueDurationText(entry)} · 执行 ${this.executionDurationText(entry)}`)
         .fontSize(11)
         .fontColor('#667085')
         .width('100%')
@@ -1078,7 +1535,7 @@ struct SchedulerPanelPage {
             .fontSize(21)
             .fontWeight(FontWeight.Bold)
             .fontColor('#172B4D')
-          Text('MindSpore Lite CPU 1/2/4线程 · 动态感知调度（NPU/GPU 为能力仿真字段）')
+          Text('多后端硬件异构 (NPU/CPU/GPU) · 动态感知调度')
             .fontSize(11)
             .fontColor('#667085')
         }
@@ -1146,6 +1603,21 @@ struct SchedulerPanelPage {
                 this.stateCell('近期耗时', this.latencyText(this.deviceState))
               }
               .width('100%')
+              Row({ space: 8 }) {
+                this.stateCell('系统 CPU', this.cpuUsageText(this.deviceState.systemCpuUsage))
+                this.stateCell('应用 CPU', this.cpuUsageText(this.deviceState.appCpuUsage))
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.stateCell('系统内存', this.memoryRuntimeText(this.deviceState))
+                this.stateCell('内存压力', this.memoryPressureText(this.deviceState))
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.stateCell('空闲内存', this.deviceState.freeMemoryMb === null ? '未知' : `${Math.round(this.deviceState.freeMemoryMb)} MB`)
+                this.stateCell('状态来源', this.sourceText(this.deviceState.source))
+              }
+              .width('100%')
 
               Column({ space: 6 }) {
                 Text('可用硬件')
@@ -1208,41 +1680,57 @@ struct SchedulerPanelPage {
 
             this.sectionTitle('调试仿真注入与场景模拟 (系统原生 API 默认实时监测中)', '默认通过 @kit.BasicServicesKit 实时监测手机电量与温度；以下按钮仅供调试测试故障注入')
 
+            this.debugInjectionStatusBar()
+
             // Row 1: Backend selection buttons
             Text('1. 模拟可选择的硬件 Backend 组合：')
               .fontSize(12)
               .fontColor('#344054')
 
             Row({ space: 6 }) {
-              Button('仿真声明 NPU+GPU+CPU')
+              Button('全异构 (NPU+GPU+CPU)')
                 .layoutWeight(1)
                 .height(34)
                 .fontSize(11)
-                .enabled(!this.isBusy)
+                .fontColor(this.backendSimulationFontColor())
+                .backgroundColor(this.backendSimulationButtonColor())
+                .enabled(this.canChangeBackendSimulation())
                 .onClick(() => this.injectAllBackends())
               Button('CPU+NPU')
                 .layoutWeight(1)
                 .height(34)
                 .fontSize(11)
-                .enabled(!this.isBusy)
+                .fontColor(this.backendSimulationFontColor())
+                .backgroundColor(this.backendSimulationButtonColor())
+                .enabled(this.canChangeBackendSimulation())
                 .onClick(() => this.injectCpuNpuBackends())
               Button('CPU+GPU')
                 .layoutWeight(1)
                 .height(34)
                 .fontSize(11)
-                .enabled(!this.isBusy)
+                .fontColor(this.backendSimulationFontColor())
+                .backgroundColor(this.backendSimulationButtonColor())
+                .enabled(this.canChangeBackendSimulation())
                 .onClick(() => this.injectCpuGpuBackends())
               Button('仅 CPU')
                 .layoutWeight(1)
                 .height(34)
                 .fontSize(11)
-                .enabled(!this.isBusy)
+                .fontColor(this.backendSimulationFontColor())
+                .backgroundColor(this.backendSimulationButtonColor())
+                .enabled(this.canChangeBackendSimulation())
                 .onClick(() => this.injectCpuOnlyBackend())
             }
             .width('100%')
 
+            if (this.policyMode === PolicyMode.FIXED_POWER_SAVING) {
+              Text('固定省电模式下轻量档绑定 CPU，硬件后端组合不会改变执行计划，因此暂时置灰。')
+                .fontSize(11)
+                .fontColor('#667085')
+            }
+
             // Row 2: Environmental conditions
-            Text('2. 模拟温度与电池状态输入：')
+            Text('2. 电池与温度条件（可与第 3 组组合）：')
               .fontSize(12)
               .fontColor('#344054')
 
@@ -1251,24 +1739,62 @@ struct SchedulerPanelPage {
                 .layoutWeight(1)
                 .height(36)
                 .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedEnvironmentScenario, 'NORMAL_CHARGING'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedEnvironmentScenario, 'NORMAL_CHARGING'))
                 .enabled(!this.isBusy)
                 .onClick(() => this.injectNormalState())
               Button('低电量 12%')
                 .layoutWeight(1)
                 .height(36)
                 .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedEnvironmentScenario, 'LOW_BATTERY'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedEnvironmentScenario, 'LOW_BATTERY'))
                 .enabled(!this.isBusy)
                 .onClick(() => this.injectLowBatteryState())
               Button('高热 (HOT)')
                 .layoutWeight(1)
                 .height(36)
                 .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedEnvironmentScenario, 'HOT'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedEnvironmentScenario, 'HOT'))
                 .enabled(!this.isBusy)
                 .onClick(() => this.injectHotState())
             }
             .width('100%')
 
-            // Row 3: Control actions
+            Text('3. 负载与内存条件（与第 2 组叠加）：')
+              .fontSize(12)
+              .fontColor('#344054')
+
+            Row({ space: 8 }) {
+              Button('队列繁忙')
+                .layoutWeight(1)
+                .height(36)
+                .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedPressureScenario, 'QUEUE_BUSY'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedPressureScenario, 'QUEUE_BUSY'))
+                .enabled(!this.isBusy)
+                .onClick(() => this.injectQueuePressureState())
+              Button('内存高压')
+                .layoutWeight(1)
+                .height(36)
+                .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedPressureScenario, 'MEMORY_HIGH'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedPressureScenario, 'MEMORY_HIGH'))
+                .enabled(!this.isBusy)
+                .onClick(() => this.injectMemoryPressureState())
+              Button('内存临界')
+                .layoutWeight(1)
+                .height(36)
+                .fontSize(12)
+                .fontColor(this.scenarioButtonFontColor(this.selectedPressureScenario, 'MEMORY_CRITICAL'))
+                .backgroundColor(this.scenarioButtonColor(this.selectedPressureScenario, 'MEMORY_CRITICAL'))
+                .enabled(!this.isBusy)
+                .onClick(() => this.injectCriticalMemoryState())
+            }
+            .width('100%')
+
+            // Row 4: Control actions
             Row({ space: 8 }) {
               Button('清除注入')
                 .layoutWeight(1)
@@ -1294,8 +1820,19 @@ struct SchedulerPanelPage {
             }
             .width('100%')
 
+            Text('4. 选择要验证的 AI 任务画像：')
+              .fontSize(12)
+              .fontColor('#344054')
+
+            Row({ space: 8 }) {
+              this.probeButton('图片 Embedding', 0)
+              this.probeButton('文字 Embedding', 1)
+              this.probeButton('后台索引', 2)
+            }
+            .width('100%')
+
             // Main Action Button
-            Button(this.isBusy ? '调度评估中…' : '▶ 运行调度样例任务（CPU Runtime）')
+            Button(this.isBusy ? '调度评估中…' : `▶ 运行${this.getSelectedProbeScenario().title}`)
               .width('100%')
               .height(44)
               .fontSize(14)
@@ -1308,7 +1845,7 @@ struct SchedulerPanelPage {
             if (this.latestProbeResult !== null) {
               Column({ space: 8 }) {
                 Row() {
-                  Text('最新调度样例执行结果')
+                  Text(`最新调度结果：${this.latestProbeScenarioTitle}`)
                     .fontSize(14)
                     .fontWeight(FontWeight.Bold)
                     .fontColor('#172B4D')
@@ -1356,26 +1893,41 @@ struct SchedulerPanelPage {
               .border({ width: 1, color: '#D0D5DD' })
             }
 
-            this.sectionTitle('运行指标统计', '聚合最近任务窗口的平均耗时与策略切换')
+            this.sectionTitle('运行指标统计', '最新任务即时反馈 + 最近窗口聚合')
             if (this.metrics !== null) {
               Row({ space: 8 }) {
-                this.metricCell('总任务数', `${this.metrics.taskCount}`)
-                this.metricCell('平均端到端', `${Math.round(this.metrics.averageLatencyMs)} ms`)
+                this.metricCell('最新任务', this.latestTaskMetricText())
+                this.metricCell('最新状态', this.latestTaskStatusText())
               }
               .width('100%')
               Row({ space: 8 }) {
-                this.metricCell('P95 端到端', `${Math.round(this.metrics.p95LatencyMs)} ms`)
-                this.metricCell('平均排队', `${Math.round(this.metrics.averageQueueDurationMs)} ms`)
+                this.metricCell('调度评估', `${this.metrics.evaluationCount}`)
+                this.metricCell('策略切换', `${this.metrics.policySwitchCount}`)
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.metricCell('系统 CPU', this.deviceState === null ? '未知' : this.cpuUsageText(this.deviceState.systemCpuUsage))
+                this.metricCell('可用内存', this.deviceState === null ? '未知' : this.memoryRuntimeText(this.deviceState))
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.metricCell('运行中', `${this.metrics.runningCount}`)
+                this.metricCell('排队/暂停', `${this.metrics.queuedCount}/${this.metrics.pausedCount}`)
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.metricCell('最新执行', this.latestExecutionMetricText())
+                this.metricCell('最新排队', this.latestQueueMetricText())
+              }
+              .width('100%')
+              Row({ space: 8 }) {
+                this.metricCell('终态任务', `${this.metrics.taskCount}`)
+                this.metricCell('P95 执行', `${Math.round(this.metrics.p95LatencyMs)} ms`)
               }
               .width('100%')
               Row({ space: 8 }) {
                 this.metricCell('降档次数', `${this.metrics.degradeCount}`)
-                this.metricCell('失败/超时', `${this.metrics.failureCount}`)
-              }
-              .width('100%')
-              Row({ space: 8 }) {
-                this.metricCell('取消次数', `${this.metrics.cancellationCount}`)
-                this.metricCell('策略切换', `${this.metrics.policySwitchCount}`)
+                this.metricCell('失败/取消', `${this.metrics.failureCount}/${this.metrics.cancellationCount}`)
               }
               .width('100%')
             }

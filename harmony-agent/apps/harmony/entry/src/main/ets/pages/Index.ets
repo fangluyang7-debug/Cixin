@@ -1,27 +1,25 @@
 import { StoreManager } from '../database/StoreManager';
+import { ShoppingTaskService } from '../services/ShoppingTaskService';
+import { TaskSignalType, WorkflowHandle, WorkflowResult } from 'scheduler';
 import { Product } from '../models/Product';
 import { DataInitService } from '../services/DataInitService';
-import { ModelSearchResult, ModelSearchService } from '../services/ModelSearchService';
-import { AiInferenceResult, ChatIntentResult, LocalAiModelEngine } from '../services/LocalAiModelEngine';
-import { NeuralEmbeddingIndex } from '../services/NeuralEmbeddingIndex';
-import { PrivacyAssessment, PrivacyGuard } from '../services/PrivacyGuard';
-import { ModelEngineRegistry } from '../services/ModelEngineRegistry';
 import hilog from '@ohos.hilog';
 import { promptAction, router } from '@kit.ArkUI';
 import {
-  AccuracyPreference,
-  DataResidencyPolicy,
+  AppVisibility,
   Backend,
+  DeviceState,
   ExecutionPlan,
   InferenceLocation,
   LocalExecutionPlan,
+  PolicyMode,
   RemoteExecutionPlan,
   SchedulerLogEntry,
   SchedulerService,
-  TaskRequest,
   TaskResult,
   TaskStatus,
-  TaskType
+  ThermalLevel,
+  Unsubscribe
 } from 'scheduler';
 
 const PAGE_SIZE: number = 20;
@@ -31,15 +29,6 @@ enum SoleAiViewMode {
   LENS = 'LENS',
   CROPPING = 'CROPPING',
   CHAT = 'CHAT'
-}
-
-interface ProductSearchInput {
-  keyword: string;
-  limit: number;
-  offset: number;
-}
-
-interface ProductSearchRequest extends TaskRequest<ProductSearchInput> {
 }
 
 interface QuickIntent {
@@ -56,8 +45,12 @@ interface HistoryItem {
 @Entry
 @Component
 struct Index {
+  private readonly shoppingTasks: ShoppingTaskService = ShoppingTaskService.getInstance();
+  private activeSearch: WorkflowHandle<Product[]> | null = null;
+  private searchGeneration: number = 0;
   private readonly schedulerService: SchedulerService = SchedulerService.getInstance();
-  private readonly modelSearchService: ModelSearchService = ModelSearchService.getInstance();
+  private schedulerLogUnsubscribe: Unsubscribe | null = null;
+  private schedulerStateUnsubscribe: Unsubscribe | null = null;
   private lastResolvedKeyword: string = '';
   private lastModelSearchSource: string = 'local_rule';
   private readonly quickIntents: QuickIntent[] = [
@@ -84,16 +77,19 @@ struct Index {
   @State showProfile: boolean = false;
   @State schedulerText: string = '调度层准备中';
   @State schedulerPlanText: string = '等待任务';
+  @State schedulerReasonText: string = '等待调度原因';
   @State routeText: string = '当前链路';
+  @State policyMode: PolicyMode = PolicyMode.ADAPTIVE;
   @State showSchedulerFloatPanel: boolean = false;
   @State schedulerFloatLeftPercent: number = 70;
   @State schedulerFloatTopPercent: number = 66;
   @State activeCapabilityLabel: string = '文字关键词比价搜索';
-  @State activeCapabilityName: string = 'local_product_search';
+  @State activeCapabilityName: string = 'text_product_embedding_search';
   @State activeTaskType: string = 'USER_INITIATED';
   @State activePriorityText: string = 'HIGH (高优先)';
-  @State activeLatencyText: string = '预算 250 ms';
+  @State activeLatencyText: string = '预算 240 ms';
   @State latestLogs: SchedulerLogEntry[] = [];
+  @State deviceState: DeviceState | null = null;
   @State selectedProduct: Product | null = null;
   @State showProductDetailModal: boolean = false;
   private schedulerFloatStartLeftPercent: number = 70;
@@ -103,11 +99,40 @@ struct Index {
   aboutToAppear(): void {
     this.loadInitialProducts();
     if (this.schedulerService.isInitialized()) {
+      this.connectSchedulerObservers();
+      this.triggerBackgroundIndexTask(false);
+    }
+  }
+
+  aboutToDisappear(): void {
+    this.invalidateSearch(TaskSignalType.PAGE_LEFT);
+    this.disconnectSchedulerObservers();
+  }
+
+  private connectSchedulerObservers(): void {
+    this.disconnectSchedulerObservers();
+    this.deviceState = this.schedulerService.getDeviceState();
+    this.policyMode = this.schedulerService.getPolicyMode();
+    this.refreshHudLogs();
+    this.schedulerStateUnsubscribe = this.schedulerService.registerStateCallback(
+      (state: DeviceState, mode: PolicyMode): void => {
+        this.deviceState = state;
+        this.policyMode = mode;
+      }
+    );
+    this.schedulerLogUnsubscribe = this.schedulerService.registerLogCallback(() => {
       this.refreshHudLogs();
-      this.schedulerService.registerLogCallback(() => {
-        this.refreshHudLogs();
-      });
-      this.triggerBackgroundIndexTask();
+    });
+  }
+
+  private disconnectSchedulerObservers(): void {
+    if (this.schedulerStateUnsubscribe !== null) {
+      this.schedulerStateUnsubscribe();
+      this.schedulerStateUnsubscribe = null;
+    }
+    if (this.schedulerLogUnsubscribe !== null) {
+      this.schedulerLogUnsubscribe();
+      this.schedulerLogUnsubscribe = null;
     }
   }
 
@@ -118,26 +143,29 @@ struct Index {
   }
 
   private async loadInitialProducts(): Promise<void> {
+    const generation: number = this.searchGeneration;
     this.isLoading = true;
     this.assistantText = '正在准备本地商品数据';
     try {
       await DataInitService.waitUntilReady();
       const storeManager: StoreManager = StoreManager.getInstance();
       this.productsCount = await storeManager.getProductCount();
-      this.products = await storeManager.queryTopProducts(6);
+      const initialProducts: Product[] = await storeManager.queryTopProducts(6);
+      if (generation !== this.searchGeneration) { return; }
+      this.products = initialProducts;
       this.assistantText = `本地已准备 ${this.productsCount} 件商品`;
       this.schedulerText = '可以开始拍照、语音或文字搜索';
     } catch (error) {
-      this.assistantText = '本地商品加载失败，请稍后重试';
+      if (generation === this.searchGeneration) { this.assistantText = '本地商品加载失败，请稍后重试'; }
       hilog.error(0x0000, 'IndexPage', `Initial product load failed: ${JSON.stringify(error)}`);
     } finally {
-      this.isLoading = false;
+      if (generation === this.searchGeneration) { this.isLoading = false; }
     }
   }
 
   private async submitFromInput(): Promise<void> {
     const keyword: string = this.queryText.trim();
-    if (keyword.length === 0 || this.isLoading) {
+    if (keyword.length === 0) {
       return;
     }
     this.queryText = '';
@@ -153,32 +181,19 @@ struct Index {
   }
 
   private openLens(): void {
+    this.invalidateSearch(TaskSignalType.PAGE_LEFT);
     this.viewMode = SoleAiViewMode.LENS;
-    this.activeCapabilityLabel = '实时镜头与检测预览';
-    this.activeCapabilityName = 'camera_lens_realtime';
+    this.activeCapabilityLabel = '镜头交互演示';
+    this.activeCapabilityName = 'preview_placeholder';
     this.activeTaskType = 'FOREGROUND_REALTIME';
-    this.activePriorityText = 'CRITICAL (最高优先)';
-    this.activeLatencyText = '预算 80 ms';
-
+    this.activeLatencyText = '预算 100 ms';
     if (this.schedulerService.isInitialized()) {
-      const request: TaskRequest<string> = {
-        taskType: TaskType.FOREGROUND_REALTIME,
-        inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-        capability: 'camera_lens_realtime',
-        input: 'lens-preview',
-        accuracyPreference: AccuracyPreference.QUALITY_FIRST,
-        latencyBudgetMs: 80,
-        allowDegrade: true,
-        allowPause: false,
-        timeoutMs: 1500
-      };
-      this.schedulerService.runTask<string, string>(
-        request,
-        async (input: string, _plan: ExecutionPlan) => input
-      ).then((res: TaskResult<string>) => {
-        this.schedulerText = this.formatSchedulerResult(res);
-        this.schedulerPlanText = this.formatPlanBadge(res.executionPlan);
-        this.routeText = this.formatRouteText(res.executionPlan);
+      this.shoppingTasks.preview('lens-preview').result.then((result: WorkflowResult<string>) => {
+        if (this.viewMode !== SoleAiViewMode.LENS || result.nodes.length === 0) { return; }
+        const last: TaskResult<Object> = result.nodes[result.nodes.length - 1];
+        this.schedulerText = this.formatSchedulerResult(last);
+        this.schedulerPlanText = this.formatPlanBadge(last.executionPlan);
+        this.schedulerReasonText = this.formatPlanReasonText(last.executionPlan);
       }).catch(() => {});
     }
   }
@@ -187,253 +202,83 @@ struct Index {
     this.viewMode = SoleAiViewMode.HOME;
     this.schedulerText = '已返回首页';
     this.schedulerPlanText = '等待任务';
+    this.schedulerReasonText = '等待调度原因';
   }
 
   private async captureAndSearch(): Promise<void> {
-    if (this.isLoading) {
-      return;
-    }
-    this.viewMode = SoleAiViewMode.CROPPING;
-    this.activeCapabilityLabel = '图片主体框选与特征提取';
-    this.activeCapabilityName = 'image_crop_detection';
-    this.activeTaskType = 'FOREGROUND_REALTIME';
-    this.activePriorityText = 'CRITICAL (最高优先)';
-    this.activeLatencyText = '预算 100 ms';
-    this.schedulerText = '正在运行图片检索交互原型（尚未接入真实相机帧）...';
-
-    if (this.schedulerService.isInitialized()) {
-      const request: TaskRequest<string> = {
-        taskType: TaskType.FOREGROUND_REALTIME,
-        inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-        capability: 'image_crop_detection',
-        input: 'crop-analyze',
-        accuracyPreference: AccuracyPreference.QUALITY_FIRST,
-        latencyBudgetMs: 100,
-        allowDegrade: true,
-        allowPause: false,
-        timeoutMs: 2000
-      };
-      try {
-        const cropRes: TaskResult<string> = await this.schedulerService.runTask<string, string>(
-          request,
-          async (input: string, _plan: ExecutionPlan) => input
-        );
-        this.schedulerText = `图片交互原型完成，${this.formatSchedulerResult(cropRes)}`;
-        this.schedulerPlanText = this.formatPlanBadge(cropRes.executionPlan);
-        this.routeText = this.formatRouteText(cropRes.executionPlan);
-      } catch (err) {
-        hilog.error(0x0000, 'IndexPage', `Image crop task failed: ${JSON.stringify(err)}`);
-      }
-    }
-
-    await this.performSearch('运动鞋', '我上传了一张图片，帮我找同款或相似商品。');
+    await this.performSearch('运动鞋', '演示搜索：运动鞋');
   }
 
-  private async triggerBackgroundIndexTask(): Promise<void> {
-    if (!this.schedulerService.isInitialized()) {
-      return;
-    }
-    this.activeCapabilityLabel = '离线向量索引预热更新';
-    this.activeCapabilityName = 'background_index_update';
-    this.activeTaskType = 'BACKGROUND_BATCH';
-    this.activePriorityText = 'LOW (低优先)';
-    const request: TaskRequest<string> = {
-      taskType: TaskType.BACKGROUND_BATCH,
-      inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-      capability: 'background_index_update',
-      input: 'index-update',
-      accuracyPreference: AccuracyPreference.SPEED_FIRST,
-      latencyBudgetMs: 2000,
-      allowDegrade: true,
-      allowPause: true,
-      timeoutMs: 5000
-    };
-
+  private async triggerBackgroundIndexTask(updateHud: boolean = true): Promise<void> {
+    if (!this.schedulerService.isInitialized()) { return; }
     try {
-      const indexRes: TaskResult<string> = await this.schedulerService.runTask<string, string>(
-        request,
-        async (_input: string, plan: ExecutionPlan): Promise<string> => {
-          if (plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) {
-            throw new Error('Background index update received a remote execution plan.');
-          }
-          const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
-          const rebuiltCount: number = await NeuralEmbeddingIndex.getInstance()
-            .rebuildNormalizationCache(256, localPlan.threadCount);
-          return `normalized:${rebuiltCount}`;
-        }
-      );
-      this.schedulerText = `后台任务完成：${this.formatSchedulerResult(indexRes)}`;
-      this.schedulerPlanText = this.formatPlanBadge(indexRes.executionPlan);
-      this.routeText = this.formatRouteText(indexRes.executionPlan);
-    } catch (err) {
-      hilog.error(0x0000, 'IndexPage', `Background index task failed: ${JSON.stringify(err)}`);
+      const result: WorkflowResult<number> = await this.shoppingTasks.warmup().result;
+      if (updateHud && result.nodes.length > 0) {
+        const last: TaskResult<Object> = result.nodes[result.nodes.length - 1];
+        this.schedulerText = result.status === TaskStatus.SUCCEEDED ? `索引预热完成：${result.output} 条` : '索引预热已停止';
+        this.schedulerPlanText = this.formatPlanBadge(last.executionPlan);
+        this.schedulerReasonText = this.formatPlanReasonText(last.executionPlan);
+      }
+    } catch (error) {
+      hilog.error(0x0000, 'IndexPage', `Index warmup failed: ${JSON.stringify(error)}`);
     }
+  }
+
+  private invalidateSearch(type: TaskSignalType = TaskSignalType.INPUT_REPLACED): void {
+    this.searchGeneration++;
+    if (this.activeSearch !== null) {
+      this.activeSearch.signal({ type: type });
+      this.activeSearch = null;
+    }
+    this.isLoading = false;
   }
 
   private async performSearch(keyword: string, prompt: string): Promise<void> {
-    if (this.isLoading) {
-      return;
-    }
-
-    const isPhotoSearch: boolean = this.activeCapabilityName === 'image_crop_detection';
-    const localKeyword: string = this.normalizeLocalSearchKeyword(keyword);
-    const unsupportedLocalCategory: boolean = this.isUnsupportedLocalCategory(keyword);
+    this.invalidateSearch();
+    const generation: number = this.searchGeneration;
     this.queryText = '';
     this.userPrompt = prompt;
     this.viewMode = SoleAiViewMode.CHAT;
     this.isLoading = true;
-    this.assistantText = '正在识别图片并检索候选商品。';
-    if (!isPhotoSearch) {
-      this.schedulerText = localKeyword === keyword.trim() ? '正在请求模型检索接口' : `本地预解析为：${localKeyword}`;
-      this.schedulerPlanText = '排队中';
-    }
-
+    this.assistantText = '正在检索本地商品。';
+    this.schedulerText = '搜索排队中';
+    this.activeCapabilityLabel = '本地商品语义搜索';
+    this.activeCapabilityName = 'product_search';
     try {
-      this.products = await this.runScheduledProductSearch(keyword);
-      if (unsupportedLocalCategory) {
-        this.products = [];
-        this.assistantText = '当前离线商品库以鞋类为主，暂不支持电脑品类，未返回不相关商品，也未发送到云端。';
-        this.schedulerText = '本地品类覆盖检查：UNSUPPORTED_CATEGORY';
-        this.schedulerPlanText = '端侧数据校验';
-        this.routeText = '端侧意图解析 → 品类覆盖检查 → 停止';
+      if (!this.schedulerService.isInitialized()) { throw new Error('Scheduler is not ready.'); }
+      const handle: WorkflowHandle<Product[]> = this.shoppingTasks.search(keyword);
+      this.activeSearch = handle;
+      const result: WorkflowResult<Product[]> = await handle.result;
+      if (generation !== this.searchGeneration) {
+        await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
         return;
       }
-
-      if (this.schedulerService.isInitialized() && prompt.length > 0) {
-        const privacyAssessment: PrivacyAssessment = PrivacyGuard.assessText(prompt);
-        if (privacyAssessment.context.residencyPolicy === DataResidencyPolicy.LOCAL_ONLY) {
-          this.assistantText = `隐私保护已启用：${privacyAssessment.context.reason}。本次请求仅在端侧处理，未发送到云端。`;
-          this.schedulerText = '隐私策略：LOCAL_ONLY · 云端请求已阻断';
-          this.schedulerPlanText = '端侧隐私保护';
-          this.routeText = '端侧检索 → 隐私门控 → 禁止上云';
-        } else {
-        const chatRequest: TaskRequest<string> = {
-          taskType: TaskType.USER_INITIATED,
-          inferenceLocation: InferenceLocation.REMOTE_CLOUD,
-          capability: 'chat_intent_reasoning',
-          input: prompt,
-          accuracyPreference: AccuracyPreference.QUALITY_FIRST,
-          latencyBudgetMs: 15000,
-          allowDegrade: true,
-          allowPause: false,
-          timeoutMs: 15000,
-          privacyContext: privacyAssessment.context,
-          remoteOptions: {
-            provider: 'cloud_proxy',
-            maxRetries: 1,
-            maxConcurrency: 2,
-            allowLocalFallback: true
-          }
-        };
-        const chatRes = await this.schedulerService.runTask<string, ChatIntentResult>(
-          chatRequest,
-          async (inputPrompt: string, plan: ExecutionPlan) => {
-            return ModelEngineRegistry.getInstance().getRemoteProvider().resolveChatIntentAndAnswer(inputPrompt, plan);
-          }
-        );
-        if (chatRes.output !== null) {
-          const chatResult: ChatIntentResult = chatRes.output;
-          if (chatResult.actualInferenceLocation === InferenceLocation.LOCAL_DEVICE) {
-            this.schedulerText = `云端计划未完成：${chatResult.fallbackReason}`;
-            this.schedulerPlanText = '实际执行：端侧规则回退';
-            this.routeText = '端侧检索 → 云端代理失败 → 端侧回答';
-          } else {
-            this.schedulerText = '端云协同 RAG 已完成';
-            this.schedulerPlanText = '实际执行：云端答案生成';
-            this.routeText = '端侧向量检索 → 隐私门控 → 云端生成';
-          }
-          // Update the assistant reply text
-          if (chatResult.generatedAnswer.length > 0) {
-            this.assistantText = chatResult.generatedAnswer;
-          }
-          // If the AI found relevant products, replace the product list with AI-ranked results
-          if (chatResult.topProducts.length > 0) {
-            this.products = chatResult.topProducts;
-          }
-        }
-        }
+      if (result.nodes.length > 0) {
+        const last: TaskResult<Object> = result.nodes[result.nodes.length - 1];
+        this.schedulerText = this.formatSchedulerResult(last);
+        this.schedulerPlanText = this.formatPlanBadge(last.executionPlan);
+        this.schedulerReasonText = this.formatPlanReasonText(last.executionPlan);
+        this.routeText = this.formatRouteText(last.executionPlan);
       }
+      if (result.status !== TaskStatus.SUCCEEDED || result.output === null) {
+        this.assistantText = result.status === TaskStatus.CANCELLED ? '本次搜索已取消或过期。' : '当前设备状态或任务约束不允许完成本次搜索。';
+        await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
+        return;
+      }
+      this.products = result.output;
+      this.lastResolvedKeyword = keyword;
+      this.lastModelSearchSource = 'local_semantic_workflow';
+      this.assistantText = `找到 ${this.products.length} 件本地候选商品。`;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
     } catch (error) {
-      this.products = [];
-      this.assistantText = '搜索失败，请稍后重试。';
-      this.schedulerText = '调度任务失败';
-      hilog.error(0x0000, 'IndexPage', `Product search failed: ${JSON.stringify(error)}`);
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  private async runScheduledProductSearch(keyword: string): Promise<Product[]> {
-    await DataInitService.waitUntilReady();
-    const modelResult: ModelSearchResult = await this.modelSearchService.resolveTextQuery(keyword, PAGE_SIZE);
-    const localKeyword: string = modelResult.normalizedKeyword.length > 0 ?
-      modelResult.normalizedKeyword :
-      this.normalizeLocalSearchKeyword(keyword);
-    this.lastResolvedKeyword = localKeyword;
-    this.lastModelSearchSource = modelResult.source;
-    const sourceLabel: string = modelResult.source === 'model' ? '模型接口' : '本地规则';
-
-    if (!this.schedulerService.isInitialized()) {
-      this.schedulerText = `调度层尚未初始化，本次使用${sourceLabel}后直连本地搜索`;
-      this.schedulerPlanText = '直连数据库';
-      return StoreManager.getInstance().searchProducts(localKeyword, PAGE_SIZE, 0);
-    }
-
-    const isPhotoSearch: boolean = this.activeCapabilityName === 'image_crop_detection';
-    if (!isPhotoSearch) {
-      this.activeCapabilityLabel = '文字关键词比价搜索';
-      this.activeCapabilityName = 'local_product_search';
-      this.activeTaskType = 'USER_INITIATED';
-      this.activePriorityText = 'HIGH (高优先)';
-      this.activeLatencyText = '预算 250 ms';
-    }
-
-    const input: ProductSearchInput = {
-      keyword: localKeyword,
-      limit: PAGE_SIZE,
-      offset: 0
-    };
-    const request: ProductSearchRequest = {
-      taskType: TaskType.USER_INITIATED,
-      inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-      capability: 'local_product_search',
-      input: input,
-      accuracyPreference: AccuracyPreference.SPEED_FIRST,
-      latencyBudgetMs: 120,
-      allowDegrade: true,
-      allowPause: false,
-      timeoutMs: 3000
-    };
-
-    const result: TaskResult<Product[]> = await this.schedulerService.runTask<ProductSearchInput, Product[]>(
-      request,
-      async (input: ProductSearchInput, plan: ExecutionPlan): Promise<Product[]> => {
-        if (plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) {
-          throw new Error('Local product search received a remote execution plan.');
-        }
-        const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
-        hilog.info(
-          0x0000,
-          'IndexPage',
-          `Scheduler plan for search: tier=${localPlan.modelTier}, threads=${localPlan.threadCount}, backend=${localPlan.backend}`
-        );
-        const rawProducts: Product[] = await StoreManager.getInstance().searchProducts(input.keyword, input.limit, input.offset);
-        const aiResult: AiInferenceResult = await ModelEngineRegistry.getInstance().getLocalVectorProvider().runVectorInference(input.keyword, rawProducts, localPlan);
-        return aiResult.topProducts;
+      if (generation === this.searchGeneration) {
+        this.assistantText = '搜索暂时不可用，请稍后重试。';
+        this.schedulerText = '搜索未完成';
       }
-    );
-
-    if (!isPhotoSearch) {
-      this.schedulerText = this.formatSchedulerResult(result);
-      this.schedulerText = `${this.schedulerText}，${sourceLabel}：${localKeyword}`;
-      this.schedulerPlanText = this.formatPlanBadge(result.executionPlan);
-      this.routeText = this.formatRouteText(result.executionPlan);
+      hilog.error(0x0000, 'IndexPage', `Search failed: ${JSON.stringify(error)}`);
+    } finally {
+      if (generation === this.searchGeneration) { this.isLoading = false; }
     }
-
-    if (result.status !== TaskStatus.SUCCEEDED || result.output === null) {
-      return [];
-    }
-    return result.output;
   }
 
   private normalizeLocalSearchKeyword(keyword: string): string {
@@ -531,6 +376,43 @@ struct Index {
     return `端侧 · ${localPlan.backend} · ${localPlan.threadCount}线程 · ${localPlan.modelTier}`;
   }
 
+  private formatPlanReasonText(plan: ExecutionPlan): string {
+    const reasons: string[] = plan.reasonCodes;
+    if (reasons.indexOf('FIXED_POWER_SAVING_MODE') >= 0) {
+      return '原因：固定省电偏置';
+    }
+    if (reasons.indexOf('LOW_BATTERY_PROTECTION') >= 0) {
+      return '原因：低电量保护';
+    }
+    if (reasons.indexOf('THERMAL_CRITICAL_PROTECTION') >= 0 ||
+      reasons.indexOf('MEMORY_CRITICAL_PROTECTION') >= 0) {
+      return '原因：临界保护';
+    }
+    if (reasons.indexOf('THERMAL_HOT_DOWNGRADE') >= 0) {
+      return '原因：高热降档';
+    }
+    if (reasons.indexOf('MEMORY_PRESSURE_BALANCED') >= 0) {
+      return '原因：内存压力平衡';
+    }
+    if (reasons.indexOf('QUEUE_PRESSURE_BALANCED') >= 0) {
+      return '原因：队列压力平衡';
+    }
+    if (reasons.indexOf('HYSTERESIS_MINIMUM_HOLD') >= 0 ||
+      reasons.indexOf('HYSTERESIS_UPGRADE_WAIT') >= 0) {
+      return '原因：实时任务滞回保护';
+    }
+    if (reasons.indexOf('TASK_PROFILE_IMAGE_EMBEDDING') >= 0) {
+      return '原因：图片 Embedding 画像 + 系统状态';
+    }
+    if (reasons.indexOf('TASK_PROFILE_TEXT_EMBEDDING') >= 0) {
+      return '原因：文字 Embedding 画像 + 系统状态';
+    }
+    if (reasons.indexOf('TASK_PROFILE_BACKGROUND_INDEX') >= 0) {
+      return '原因：后台索引画像 + 系统状态';
+    }
+    return reasons.length > 0 ? `原因：${reasons[0]}` : '原因：模型默认策略';
+  }
+
   private formatRouteText(plan: ExecutionPlan): string {
     if (plan.inferenceLocation === InferenceLocation.REMOTE_CLOUD) {
       return '云端答案生成链路';
@@ -541,7 +423,56 @@ struct Index {
       localPlan.backend === Backend.NNRT) {
       return '端侧硬件加速链路';
     }
-    return '端侧 CPU 多线程链路';
+    return localPlan.threadCount > 1 ? '端侧 CPU 多线程链路' : '端侧 CPU 低功耗链路';
+  }
+
+  private floatingPolicyText(): string {
+    if (this.policyMode === PolicyMode.FIXED_PERFORMANCE) {
+      return '策略: 高性能';
+    }
+    if (this.policyMode === PolicyMode.FIXED_POWER_SAVING) {
+      return '策略: 省电';
+    }
+    return '策略: 自适应';
+  }
+
+  private floatingBatteryText(): string {
+    if (this.deviceState === null || this.deviceState.batteryPercent === null) {
+      return 'SOC 未知';
+    }
+    if (this.deviceState.isCharging === true) {
+      return `SOC ${this.deviceState.batteryPercent}% 充电`;
+    }
+    if (this.deviceState.isCharging === false) {
+      return `SOC ${this.deviceState.batteryPercent}% 未充电`;
+    }
+    return `SOC ${this.deviceState.batteryPercent}%`;
+  }
+
+  private floatingThermalText(): string {
+    if (this.deviceState === null) {
+      return '温度: 未知';
+    }
+    if (this.deviceState.thermalLevel === ThermalLevel.NORMAL) {
+      return '温度: 正常';
+    }
+    if (this.deviceState.thermalLevel === ThermalLevel.WARM) {
+      return '温度: 温热';
+    }
+    if (this.deviceState.thermalLevel === ThermalLevel.HOT) {
+      return '温度: 高热';
+    }
+    if (this.deviceState.thermalLevel === ThermalLevel.CRITICAL) {
+      return '温度: 临界';
+    }
+    return '温度: 未知';
+  }
+
+  private floatingVisibilityText(): string {
+    if (this.deviceState === null) {
+      return '前台';
+    }
+    return this.deviceState.appVisibility === AppVisibility.FOREGROUND ? '前台' : '后台';
   }
 
   private getPriceText(product: Product): string {
@@ -693,7 +624,7 @@ struct Index {
               .textAlign(TextAlign.Center)
               .backgroundColor('#111111')
               .borderRadius(27)
-            Text(this.isLoading ? '正在识别图片并检索候选商品。' : this.assistantText)
+            Text(this.isLoading ? '正在检索本地商品。' : this.assistantText)
               .fontSize(24)
               .fontColor('#111111')
               .lineHeight(34)
@@ -913,16 +844,16 @@ struct Index {
       Column({ space: 10 }) {
         // Header
         Row({ space: 8 }) {
-          Text('🟢 系统全自动感知调度')
+          Text('调度显示')
             .fontSize(15)
             .fontWeight(FontWeight.Bold)
             .fontColor('#172B4D')
             .layoutWeight(1)
 
-          Button('×')
+          Button('❌')
             .width(32)
             .height(32)
-            .fontSize(20)
+            .fontSize(13)
             .fontColor('#555555')
             .backgroundColor('#F1F1F1')
             .borderRadius(16)
@@ -975,23 +906,35 @@ struct Index {
         .backgroundColor('#EEF4FF')
         .borderRadius(8)
 
+        Text(this.schedulerReasonText)
+          .fontSize(11)
+          .fontColor('#475467')
+          .width('100%')
+
         // Real-time Sensor Status
         Row({ space: 6 }) {
-          Text('SOC 85%')
+          Text(this.floatingBatteryText())
             .fontSize(10)
             .fontColor('#067647')
             .backgroundColor('#ECFDF3')
             .padding({ left: 6, right: 6, top: 2, bottom: 2 })
             .borderRadius(4)
 
-          Text('温度: 正常')
+          Text(this.floatingThermalText())
             .fontSize(10)
             .fontColor('#175CD3')
             .backgroundColor('#EFF8FF')
             .padding({ left: 6, right: 6, top: 2, bottom: 2 })
             .borderRadius(4)
 
-          Text('前台')
+          Text(this.floatingPolicyText())
+            .fontSize(10)
+            .fontColor('#344054')
+            .backgroundColor('#F2F4F7')
+            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
+            .borderRadius(4)
+
+          Text(this.floatingVisibilityText())
             .fontSize(10)
             .fontColor('#344054')
             .backgroundColor('#F2F4F7')
@@ -1123,32 +1066,8 @@ struct Index {
   private openProductDetail(product: Product): void {
     this.selectedProduct = product;
     this.showProductDetailModal = true;
-
-    if (this.schedulerService.isInitialized()) {
-      this.activeCapabilityLabel = '商品端侧AI特征与价格深度对比';
-      this.activeCapabilityName = 'category_rerank_sort';
-      this.activeTaskType = 'USER_INITIATED';
-      this.activePriorityText = 'HIGH (高优先)';
-      this.activeLatencyText = '预算 150 ms';
-
-      const request: TaskRequest<string> = {
-        taskType: TaskType.USER_INITIATED,
-        inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-        capability: 'category_rerank_sort',
-        input: product.externalId,
-        accuracyPreference: AccuracyPreference.SPEED_FIRST,
-        latencyBudgetMs: 150,
-        allowDegrade: true,
-        allowPause: false,
-        timeoutMs: 2000
-      };
-      this.schedulerService.runTask<string, string>(
-        request,
-        async (input: string, _plan: ExecutionPlan) => input
-      ).then((res: TaskResult<string>) => {
-        this.schedulerPlanText = this.formatPlanBadge(res.executionPlan);
-        this.routeText = this.formatRouteText(res.executionPlan);
-      }).catch(() => {});
+    if (this.activeSearch !== null) {
+      this.activeSearch.signal({ type: TaskSignalType.RESULT_CONSUMED });
     }
   }
 
@@ -1504,7 +1423,7 @@ struct Index {
             Text('✦')
               .fontSize(16)
               .fontColor('#FFD778')
-            Text('图片检索交互原型（未接真实相机）')
+            Text('SoleAI 实时镜头 (NPU加速)')
               .fontSize(15)
               .fontWeight(FontWeight.Bold)
               .fontColor('#FFFFFF')
@@ -1534,7 +1453,7 @@ struct Index {
           // Bounding Box Reticle Frame
           Column() {
             Row() {
-              Text('🎯 演示分类：鞋类/运动鞋（固定样例 ROI）')
+              Text('镜头演示：运动鞋示例，尚未接入图像识别')
                 .fontSize(12)
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#FFFFFF')
@@ -1542,7 +1461,7 @@ struct Index {
                 .padding({ left: 10, right: 10, top: 4, bottom: 4 })
                 .borderRadius(6)
               Blank()
-              Text('演示数据')
+              Text('置信度 98.4%')
                 .fontSize(11)
                 .fontColor('#55C7A1')
                 .fontWeight(FontWeight.Bold)
@@ -1556,7 +1475,7 @@ struct Index {
                 .fontSize(11)
                 .fontColor('#FFD778')
               Blank()
-              Text('未接入图像模型')
+              Text('NPU 4线程追帧')
                 .fontSize(10)
                 .fontColor('#D6D8DF')
             }
@@ -1581,7 +1500,7 @@ struct Index {
             Column() {
               Text('📷')
                 .fontSize(28)
-              Text('演示拍照流程')
+              Text('拍照并识别同款')
                 .fontSize(12)
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#FFFFFF')
@@ -1601,7 +1520,7 @@ struct Index {
           Row({ space: 10 }) {
             Text('🖼️')
               .fontSize(18)
-            Text('相册接入待完成')
+            Text('从相册选择图片框选')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor('#FFFFFF')
@@ -1679,7 +1598,7 @@ struct Index {
 
             Blank()
 
-            Text('🎯 演示目标：运动鞋固定样例\n(ROI 尺寸: 240 × 240px)')
+            Text('🎯 框选目标：耐克 Air Max 运动鞋\n(ROI 尺寸: 240 × 240px)')
               .fontSize(13)
               .fontWeight(FontWeight.Bold)
               .fontColor('#FFFFFF')
@@ -1724,7 +1643,7 @@ struct Index {
               this.openLens();
             })
 
-          Button('按演示关键词进行端侧检索')
+          Button('确认框选并端侧 AI 检索')
             .layoutWeight(2)
             .height(44)
             .fontSize(14)
@@ -1733,7 +1652,7 @@ struct Index {
             .backgroundColor('#175CD3')
             .borderRadius(22)
             .onClick(() => {
-              this.performSearch('运动鞋', '已框选目标主体区域 [ROI: 240x240]，正在进行端侧 AI 向量匹配与全网比价。');
+              this.performSearch('运动鞋', '使用运动鞋示例进行本地商品搜索。');
             })
         }
         .width('100%')
@@ -1796,6 +1715,7 @@ struct Index {
         .backgroundColor('#FFFFFF')
         .onChange((value: string) => {
           this.queryText = value;
+          this.invalidateSearch();
         })
         .onSubmit(() => {
           this.submitFromInput();
@@ -1809,7 +1729,7 @@ struct Index {
         .fontColor('#FFFFFF')
         .backgroundColor('#111111')
         .borderRadius(38)
-        .enabled(!this.isLoading && this.queryText.trim().length > 0)
+        .enabled(this.queryText.trim().length > 0)
         .onClick(() => {
           this.submitFromInput();
         })
@@ -1890,6 +1810,7 @@ struct Index {
         .border({ width: 1, color: '#E5E5E5' })
         .borderRadius(22)
         .onClick(() => {
+          this.invalidateSearch(TaskSignalType.PAGE_LEFT);
           this.viewMode = SoleAiViewMode.HOME;
           this.closeDrawer();
         })

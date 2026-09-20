@@ -8,7 +8,6 @@ import {
 import { Product } from '../models/Product';
 import { IAiModelProvider, ModelProviderType } from './IAiModelProvider';
 import { AiInferenceResult, ChatIntentResult, LocalAiModelEngine } from './LocalAiModelEngine';
-import { PrivacyGuard } from './PrivacyGuard';
 import hilog from '@ohos.hilog';
 import { http } from '@kit.NetworkKit';
 
@@ -21,7 +20,10 @@ export class LocalTensorEngineProvider implements IAiModelProvider {
   public readonly providerType: ModelProviderType = 'LOCAL_TENSOR';
 
   public supportsCapability(capability: string): boolean {
-    return capability === 'local_product_search' || capability === 'chat_intent_reasoning';
+    return capability === 'local_product_search' ||
+      capability === 'text_product_embedding_search' ||
+      capability === 'image_product_embedding_search' ||
+      capability === 'chat_intent_reasoning';
   }
 
   public async runVectorInference(
@@ -77,7 +79,7 @@ export class MindSporeLiteProvider implements IAiModelProvider {
 }
 
 /**
- * 3. Pluggable Cloud LLM / Remote Proxy Provider
+ * 3. Pluggable Cloud LLM / Remote Proxy Provider Stub
  */
 export class CloudModelProxyProvider implements IAiModelProvider {
   public readonly providerId: string = 'cloud_proxy';
@@ -112,8 +114,6 @@ export class CloudModelProxyProvider implements IAiModelProvider {
     prompt: string,
     plan?: ExecutionPlan
   ): Promise<ChatIntentResult> {
-    // Defense in depth: never let a caller bypass the scheduler privacy gate.
-    PrivacyGuard.assertCloudAllowed(prompt);
     // Get local intent parsing first as a base
     const localRes = await LocalAiModelEngine.getInstance().resolveChatIntentAndAnswer(
       prompt,
@@ -158,8 +158,6 @@ export class CloudModelProxyProvider implements IAiModelProvider {
               generatedAnswer: proxyResponse.answer,
               confidenceScore: localRes.confidenceScore,
               modelName: `CloudProxy(${proxyResponse.source})`,
-              actualInferenceLocation: InferenceLocation.REMOTE_CLOUD,
-              fallbackReason: '',
               inferenceDurationMs: localRes.inferenceDurationMs,
               topProducts: localRes.topProducts
             };
@@ -182,8 +180,6 @@ export class CloudModelProxyProvider implements IAiModelProvider {
       generatedAnswer: localRes.generatedAnswer.length > 0 ? localRes.generatedAnswer : `为您找到了${localRes.topProducts.length}个相关商品，请参考上方列表。`,
       confidenceScore: localRes.confidenceScore,
       modelName: 'CloudProxy-LocalFallback',
-      actualInferenceLocation: InferenceLocation.LOCAL_DEVICE,
-      fallbackReason: '云端代理不可达或响应无效，已使用端侧规则结果',
       inferenceDurationMs: localRes.inferenceDurationMs + 50,
       topProducts: localRes.topProducts
     };
@@ -228,7 +224,7 @@ export class ModelEngineRegistry {
   public getLocalVectorProvider(): IAiModelProvider {
     const active = this.providers.get(this.activeProviderId);
     if (active !== undefined && active.providerType !== 'REMOTE_CLOUD' &&
-      active.supportsCapability('local_product_search')) {
+      active.supportsCapability('text_product_embedding_search')) {
       return active;
     }
     const local = this.providers.get('mindspore_lite');

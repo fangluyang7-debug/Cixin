@@ -15,17 +15,6 @@ export enum InferenceLocation {
   REMOTE_CLOUD = 'REMOTE_CLOUD'
 }
 
-
-export enum DataSensitivity {
-  PUBLIC = 'PUBLIC',
-  PERSONAL = 'PERSONAL',
-  SENSITIVE = 'SENSITIVE'
-}
-
-export enum DataResidencyPolicy {
-  CLOUD_ALLOWED = 'CLOUD_ALLOWED',
-  LOCAL_ONLY = 'LOCAL_ONLY'
-}
 export enum AccuracyPreference {
   QUALITY_FIRST = 'QUALITY_FIRST',
   BALANCED = 'BALANCED',
@@ -43,6 +32,14 @@ export enum ThermalLevel {
   NORMAL = 'NORMAL',
   WARM = 'WARM',
   HOT = 'HOT',
+  CRITICAL = 'CRITICAL'
+}
+
+export enum MemoryPressure {
+  UNKNOWN = 'UNKNOWN',
+  NORMAL = 'NORMAL',
+  MODERATE = 'MODERATE',
+  HIGH = 'HIGH',
   CRITICAL = 'CRITICAL'
 }
 
@@ -77,7 +74,6 @@ export enum TaskStatus {
   CREATED = 'CREATED',
   QUEUED = 'QUEUED',
   RUNNING = 'RUNNING',
-  STOP_REQUESTED = 'STOP_REQUESTED',
   SUCCEEDED = 'SUCCEEDED',
   FAILED = 'FAILED',
   TIMED_OUT = 'TIMED_OUT',
@@ -128,13 +124,6 @@ export interface SchedulerConfig {
   minimumTierHoldMs: number;
   executors: ExecutorConfig[];
 }
-export interface PrivacyContext {
-  sensitivity: DataSensitivity;
-  residencyPolicy: DataResidencyPolicy;
-  cloudConsent: boolean;
-  reason: string;
-}
-
 
 export interface TaskRequest<TInput> {
   taskId?: string;
@@ -147,9 +136,11 @@ export interface TaskRequest<TInput> {
   allowDegrade: boolean;
   allowPause: boolean;
   timeoutMs: number;
-  privacyContext?: PrivacyContext;
   remoteOptions?: RemoteExecutionOptions;
   metadata?: Record<string, string>;
+  template?: TaskTemplate;
+  context?: TaskContext;
+  submittedAt?: number;
 }
 
 export interface TaskProfile {
@@ -161,8 +152,11 @@ export interface TaskProfile {
   allowDegrade: boolean;
   allowPause: boolean;
   timeoutMs: number;
-  privacyContext?: PrivacyContext;
   remoteOptions?: RemoteExecutionOptions;
+  template?: TaskTemplate;
+  context?: TaskContext;
+  submittedAt?: number;
+  metadata?: Record<string, string>;
 }
 
 export interface TaskResult<TOutput> {
@@ -174,7 +168,6 @@ export interface TaskResult<TOutput> {
   executionDurationMs: number;
   totalDurationMs: number;
   errorCode?: string;
-  stopRequestedAt?: number;
 }
 
 export interface TaskHandle<TOutput> {
@@ -190,6 +183,9 @@ export interface BaseExecutionPlan {
   queueAction: QueueAction;
   reasonCodes: string[];
   policyVersion: string;
+  utilityScore?: number;
+  prediction?: ResourcePrediction;
+  qualityLevelId?: string;
 }
 
 export interface LocalExecutionPlan extends BaseExecutionPlan {
@@ -217,6 +213,9 @@ export interface CancellationSignal {
 
 export interface ExecutorResult<TOutput> {
   output: TOutput;
+  completed?: boolean;
+  checkpoint?: TaskCheckpoint;
+  telemetry?: ExecutorTelemetry;
 }
 
 export interface WorkloadExecutor<TInput, TOutput> {
@@ -224,7 +223,8 @@ export interface WorkloadExecutor<TInput, TOutput> {
   inferenceLocation: InferenceLocation;
   supports(plan: ExecutionPlan): boolean;
   warmup?(plan: ExecutionPlan): Promise<void>;
-  execute(input: TInput, plan: ExecutionPlan, signal: CancellationSignal): Promise<ExecutorResult<TOutput>>;
+  execute(input: TInput, plan: ExecutionPlan, signal: CancellationSignal,
+    checkpoint?: TaskCheckpoint): Promise<ExecutorResult<TOutput>>;
   dispose(): Promise<void>;
 }
 
@@ -235,6 +235,12 @@ export interface DeviceState {
   appVisibility: AppVisibility;
   recentLatencyMs: number | null;
   queueDepth: number;
+  systemCpuUsage: number | null;
+  appCpuUsage: number | null;
+  memoryPressure: MemoryPressure;
+  totalMemoryMb: number | null;
+  freeMemoryMb: number | null;
+  availableMemoryMb: number | null;
   availableBackends: Backend[];
   source: DeviceStateSource;
   capturedAt: number;
@@ -247,6 +253,12 @@ export interface RealDeviceStatePatch {
   appVisibility?: AppVisibility;
   recentLatencyMs?: number | null;
   queueDepth?: number;
+  systemCpuUsage?: number | null;
+  appCpuUsage?: number | null;
+  memoryPressure?: MemoryPressure;
+  totalMemoryMb?: number | null;
+  freeMemoryMb?: number | null;
+  availableMemoryMb?: number | null;
   availableBackends?: Backend[];
 }
 
@@ -257,6 +269,12 @@ export interface DebugStatePatch {
   appVisibility?: AppVisibility;
   recentLatencyMs?: number | null;
   queueDepth?: number;
+  systemCpuUsage?: number | null;
+  appCpuUsage?: number | null;
+  memoryPressure?: MemoryPressure;
+  totalMemoryMb?: number | null;
+  freeMemoryMb?: number | null;
+  availableMemoryMb?: number | null;
   availableBackends?: Backend[];
 }
 
@@ -274,11 +292,15 @@ export interface SchedulerLogEntry {
   executionDurationMs: number | null;
   totalDurationMs: number | null;
   errorCode?: string;
-  stopRequestedAt?: number;
+  telemetry?: TaskTelemetry;
 }
 
 export interface MetricsSnapshot {
+  evaluationCount: number;
   taskCount: number;
+  runningCount: number;
+  queuedCount: number;
+  pausedCount: number;
   averageLatencyMs: number;
   p95LatencyMs: number;
   averageQueueDurationMs: number;
@@ -292,5 +314,167 @@ export interface MetricsSnapshot {
 export type Unsubscribe = () => void;
 export type StateCallback = (state: DeviceState, mode: PolicyMode) => void;
 export type SchedulerLogCallback = (entry: SchedulerLogEntry) => void;
-export type TaskExecutor<TInput, TOutput> =
-  (input: TInput, plan: ExecutionPlan, signal: CancellationSignal) => Promise<TOutput>;
+export type TaskExecutor<TInput, TOutput> = (input: TInput, plan: ExecutionPlan) => Promise<TOutput>;
+
+export enum Interruptibility {
+  NON_INTERRUPTIBLE = 'NON_INTERRUPTIBLE',
+  CANCEL_RESTART = 'CANCEL_RESTART',
+  CHECKPOINT = 'CHECKPOINT'
+}
+
+export enum DuplicatePolicy {
+  KEEP_ALL = 'KEEP_ALL',
+  KEEP_LATEST = 'KEEP_LATEST',
+  MERGE_EQUIVALENT = 'MERGE_EQUIVALENT'
+}
+
+export enum PrivacyPolicy {
+  LOCAL_ONLY = 'LOCAL_ONLY',
+  SANITIZED_REMOTE = 'SANITIZED_REMOTE',
+  REMOTE_ALLOWED = 'REMOTE_ALLOWED'
+}
+
+export enum DependencyFailurePolicy {
+  CANCEL_WORKFLOW = 'CANCEL_WORKFLOW',
+  SKIP_DEPENDENTS = 'SKIP_DEPENDENTS'
+}
+
+export interface ResourceHints {
+  modelVersion: string;
+  modelSizeMb?: number;
+  expectedMemoryMb?: number;
+  baselineInputTokens?: number;
+  baselineCandidateCount?: number;
+  baselineInputElements?: number;
+  complexity?: number;
+}
+
+export interface QualityLevel {
+  id: string;
+  modelTier: ModelTier;
+  estimatedLatencyMs: number;
+  estimatedMemoryMb?: number;
+  relativeEnergyCost?: number;
+  supportedBackends: Backend[];
+  supportedThreadCounts: ThreadCount[];
+}
+
+export interface WorkflowNode {
+  id: string;
+  templateId: string;
+  dependsOn: string[];
+  failurePolicy: DependencyFailurePolicy;
+}
+
+export interface TaskTemplate {
+  capability: string;
+  taskType: TaskType;
+  inferenceLocation: InferenceLocation;
+  qualityLevels: QualityLevel[];
+  interruptibility: Interruptibility;
+  duplicatePolicy: DuplicatePolicy;
+  privacyPolicy: PrivacyPolicy;
+  resourceHints: ResourceHints;
+  timeoutMs: number;
+  workflow?: WorkflowNode[];
+  outputNodeId?: string;
+  remoteOptions?: RemoteExecutionOptions;
+}
+
+export interface TaskContext {
+  deadlineMs?: number;
+  freshnessMs?: number;
+  userVisible: boolean;
+  userWaiting: boolean;
+  accuracyFloor: ModelTier;
+  businessImportance?: number;
+  inputShape?: number[];
+  inputTokens?: number;
+  candidateCount?: number;
+  batchSize?: number;
+  requestReplaced?: boolean;
+  workflowId?: string;
+  parentTaskId?: string;
+  dependencyTaskIds?: string[];
+  deduplicationKey?: string;
+  networkAllowed?: boolean;
+  inputSanitized?: boolean;
+  highQuality?: boolean;
+}
+
+export enum TaskSignalType {
+  PAGE_LEFT = 'PAGE_LEFT',
+  INPUT_REPLACED = 'INPUT_REPLACED',
+  CANCEL = 'CANCEL',
+  RESULT_DISPLAYED = 'RESULT_DISPLAYED',
+  RESULT_CONSUMED = 'RESULT_CONSUMED',
+  RESULT_IGNORED = 'RESULT_IGNORED',
+  WAITING_CHANGED = 'WAITING_CHANGED',
+  QUALITY_REQUIRED = 'QUALITY_REQUIRED'
+}
+
+export interface TaskSignal {
+  type: TaskSignalType;
+  value?: boolean;
+}
+
+export interface TaskCheckpoint {
+  cursor: number;
+  data?: Object;
+}
+
+export interface ExecutorTelemetry {
+  modelVersion?: string;
+  modelSizeMb?: number;
+  actualBackend?: Backend;
+  actualThreads?: number;
+  peakMemoryMb?: number;
+  inputTokens?: number;
+  inputShape?: number[];
+  batchSize?: number;
+  candidateCount?: number;
+}
+
+export interface ResourcePrediction {
+  latencyMs: number;
+  memoryMb: number | null;
+  relativeEnergyCost: number;
+  thermalRisk: number;
+  deadlineMissRisk: number;
+  confidence: number;
+  sampleCount: number;
+  source: string;
+}
+
+export interface TaskTelemetry {
+  prediction?: ResourcePrediction;
+  actual?: ExecutorTelemetry;
+  predictionErrorMs?: number;
+  sliceDurationMs?: number;
+  checkpointCount: number;
+  workflowId?: string;
+  deadlineMissed: boolean;
+  resultConsumed?: boolean;
+  signal?: TaskSignalType;
+}
+
+export interface WorkflowInput<TInput> {
+  input: TInput;
+  outputs: Record<string, Object>;
+}
+
+export interface WorkflowResult<TOutput> {
+  workflowId: string;
+  status: TaskStatus;
+  output: TOutput | null;
+  nodes: TaskResult<Object>[];
+  skippedNodeIds: string[];
+  reasonCode?: string;
+}
+
+export interface WorkflowHandle<TOutput> {
+  workflowId: string;
+  result: Promise<WorkflowResult<TOutput>>;
+  cancel(): Promise<boolean>;
+  signal(signal: TaskSignal): Promise<void>;
+}

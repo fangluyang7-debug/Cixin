@@ -1,7 +1,6 @@
 import {
   CancellationSignal,
   DebugStatePatch,
-  DataResidencyPolicy,
   DeviceState,
   ExecutionPlan,
   ExecutorResult,
@@ -28,6 +27,9 @@ import {
   WorkloadExecutor
 } from './SchedulerTypes';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
+import { ExecutorTelemetry, Interruptibility, MemoryPressure, TaskCheckpoint, TaskSignal, TaskSignalType, TaskTelemetry, ThermalLevel } from './SchedulerTypes';
+import { qualityRank, SemanticPolicy } from '../policy/SemanticPolicy';
+import { SchedulerRuntime } from './SchedulerClient';
 import { HysteresisController } from '../policy/HysteresisController';
 import { SchedulerPolicy } from '../policy/SchedulerPolicy';
 import { DeviceStateController } from '../state/DeviceStateController';
@@ -38,8 +40,8 @@ import { QueueItem, TaskQueue } from '../queue/TaskQueue';
 const DEFAULT_METRICS_WINDOW_SIZE: number = 100;
 const MAX_LOG_HISTORY_SIZE: number = 500;
 
-type InternalExecute = (plan: ExecutionPlan, signal: CancellationSignal) => Promise<ExecutorResult<Object>>;
-type InternalSupports = (plan: ExecutionPlan) => boolean;
+type InternalExecute = (plan: ExecutionPlan, signal: CancellationSignal,
+  checkpoint?: TaskCheckpoint) => Promise<ExecutorResult<Object>>;
 type InternalComplete = (result: TaskResult<Object>) => void;
 type CancelCallback = () => Promise<boolean>;
 type StatusCallback = () => TaskStatus;
@@ -49,16 +51,23 @@ interface InternalTask extends QueueItem {
   profile: TaskProfile;
   plan: ExecutionPlan;
   execute: InternalExecute;
-  supports: InternalSupports;
-  manuallyPaused: boolean;
-  priorityOverride: TaskPriority | null;
-  stopReason: SchedulerErrorCode | null;
-  stopRequestedAt: number | null;
   cancellation: CancellationController;
   status: TaskStatus;
   queuedAt: number;
   startedAt: number | null;
   complete: InternalComplete;
+  manualPaused: boolean;
+  checkpoint?: TaskCheckpoint;
+  checkpointCount: number;
+  activeDurationMs: number;
+  queueDurationMs: number;
+  lastEnqueuedAt: number;
+  expiryTimer: number;
+  stopReason?: string;
+  actual?: ExecutorTelemetry;
+  executionState?: DeviceState;
+  manualPriority?: TaskPriority;
+  lastSliceDurationMs: number;
 }
 
 class TaskDeferred<TOutput> {
@@ -135,7 +144,7 @@ class FunctionWorkloadExecutor<TInput, TOutput> implements WorkloadExecutor<TInp
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task was cancelled before execution.');
     }
-    const output: TOutput = await this.callback(input, plan, signal);
+    const output: TOutput = await this.callback(input, plan);
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task result was discarded after cancellation.');
     }
@@ -146,13 +155,14 @@ class FunctionWorkloadExecutor<TInput, TOutput> implements WorkloadExecutor<TInp
   }
 }
 
-export class SchedulerService {
+export class SchedulerService implements SchedulerRuntime {
   private static instance: SchedulerService | null = null;
 
   private initialized: boolean = false;
   private policyMode: PolicyMode = PolicyMode.ADAPTIVE;
   private config: SchedulerConfig | null = null;
   private policy: SchedulerPolicy | null = null;
+  private semanticPolicy: SemanticPolicy = new SemanticPolicy();
   private hysteresis: HysteresisController | null = null;
   private stateController: DeviceStateController | null = null;
   private executorRegistry: ExecutorRegistry | null = null;
@@ -162,12 +172,13 @@ export class SchedulerService {
   private processorPromise: Promise<void> | null = null;
   private schedulerPaused: boolean = false;
   private nextTaskSequence: number = 0;
+  private evaluationCount: number = 0;
   private stateCallbacks: StateCallback[] = [];
   private logCallbacks: SchedulerLogCallback[] = [];
   private logHistory: SchedulerLogEntry[] = [];
   private policySwitchCount: number = 0;
 
-  private constructor() {
+  public constructor() {
   }
 
   public static getInstance(): SchedulerService {
@@ -189,6 +200,7 @@ export class SchedulerService {
     this.config = config;
     this.policyMode = config.defaultPolicyMode;
     this.policy = new SchedulerPolicy();
+    this.semanticPolicy = new SemanticPolicy();
     this.hysteresis = new HysteresisController(
       config.upgradeStableDurationMs,
       config.minimumTierHoldMs
@@ -201,6 +213,7 @@ export class SchedulerService {
     this.processorPromise = null;
     this.schedulerPaused = false;
     this.nextTaskSequence = 0;
+    this.evaluationCount = 0;
     this.logHistory = [];
     this.policySwitchCount = 0;
     this.initialized = true;
@@ -235,9 +248,8 @@ export class SchedulerService {
     if (this.hysteresis !== null) {
       this.hysteresis.reset();
     }
-    this.refreshQueuedTasks();
-    this.scheduleDrain();
     this.notifyStateCallbacks();
+    this.scheduleDrain();
   }
 
   public async pause(): Promise<void> {
@@ -267,12 +279,23 @@ export class SchedulerService {
         'Scheduler policy components are unavailable.'
       );
     }
+    this.evaluationCount++;
     const stateSnapshot: DeviceState = state === undefined ? this.getDeviceState() : state;
+    if (profile.template !== undefined && profile.context !== undefined) {
+      return this.semanticPolicy.evaluate(profile, stateSnapshot, this.policyMode);
+    }
     const candidate: ExecutionPlan = this.policy.evaluate(profile, stateSnapshot, this.policyMode);
+    candidate.reasonCodes.push('SEMANTICS_UNSPECIFIED');
     if (candidate.inferenceLocation === InferenceLocation.REMOTE_CLOUD) {
       return candidate;
     }
-    return this.hysteresis.apply(candidate as LocalExecutionPlan);
+    if (this.policyMode !== PolicyMode.ADAPTIVE) {
+      return candidate;
+    }
+    if (!this.shouldApplyHysteresis(profile)) {
+      return candidate;
+    }
+    return this.hysteresis.apply(candidate as LocalExecutionPlan, Date.now(), this.createHysteresisKey(profile));
   }
 
   public async schedule<TInput, TOutput>(
@@ -339,7 +362,7 @@ export class SchedulerService {
     const deviceState: DeviceState = this.getDeviceState();
     const plan: ExecutionPlan = this.evaluate(profile, deviceState);
     const queuedAt: number = Date.now();
-    if (plan.queueAction === QueueAction.REJECT) {
+    if (plan.queueAction === QueueAction.REJECT && request.template === undefined) {
       throw new SchedulerError(
         SchedulerErrorCode.THERMAL_PROTECTION,
         `Task ${taskId} was rejected by the current safety policy.`
@@ -348,7 +371,7 @@ export class SchedulerService {
 
     const executor: WorkloadExecutor<TInput, TOutput> | null =
       this.requireExecutorRegistry().find<TInput, TOutput>(request.capability, plan);
-    if (executor === null) {
+    if (executor === null && plan.queueAction !== QueueAction.REJECT && plan.queueAction !== QueueAction.PAUSE) {
       throw new SchedulerError(
         SchedulerErrorCode.CAPABILITY_UNAVAILABLE,
         `No executor supports capability ${request.capability} and the selected execution plan.`
@@ -356,18 +379,22 @@ export class SchedulerService {
     }
 
     const deferred: TaskDeferred<TOutput> = new TaskDeferred<TOutput>();
-    const execute: InternalExecute = async (
-      currentPlan: ExecutionPlan,
-      signal: CancellationSignal
-    ): Promise<ExecutorResult<Object>> => {
-      if (executor.warmup !== undefined) {
-        await executor.warmup(currentPlan);
+    const execute: InternalExecute = async (currentPlan: ExecutionPlan, signal: CancellationSignal,
+      checkpoint?: TaskCheckpoint): Promise<ExecutorResult<Object>> => {
+      const currentExecutor: WorkloadExecutor<TInput, TOutput> | null = executor ??
+        this.requireExecutorRegistry().find<TInput, TOutput>(request.capability, currentPlan);
+      if (currentExecutor === null || !currentExecutor.supports(currentPlan)) {
+        throw new SchedulerError(SchedulerErrorCode.CAPABILITY_UNAVAILABLE, 'Executor does not support refreshed plan.');
+      }
+      if (checkpoint === undefined && currentExecutor.warmup !== undefined) {
+        await currentExecutor.warmup(currentPlan);
       }
       if (signal.isCancellationRequested) {
-        throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Stopped during warmup.');
+        throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task stopped during warmup.');
       }
-      const executorResult: ExecutorResult<TOutput> = await executor.execute(request.input, currentPlan, signal);
-      return { output: executorResult.output as Object };
+      const executorResult: ExecutorResult<TOutput> = await currentExecutor.execute(request.input, currentPlan, signal, checkpoint);
+      return { output: executorResult.output as Object, completed: executorResult.completed,
+        checkpoint: executorResult.checkpoint, telemetry: executorResult.telemetry };
     };
     const complete: InternalComplete = (internalResult: TaskResult<Object>): void => {
       const typedResult: TaskResult<TOutput> = {
@@ -378,8 +405,7 @@ export class SchedulerService {
         queueDurationMs: internalResult.queueDurationMs,
         executionDurationMs: internalResult.executionDurationMs,
         totalDurationMs: internalResult.totalDurationMs,
-        errorCode: internalResult.errorCode,
-        stopRequestedAt: internalResult.stopRequestedAt
+        errorCode: internalResult.errorCode
       };
       deferred.complete(typedResult);
     };
@@ -394,16 +420,19 @@ export class SchedulerService {
       profile: profile,
       plan: plan,
       execute: execute,
-      supports: (currentPlan: ExecutionPlan): boolean => executor.supports(currentPlan),
-      manuallyPaused: false,
-      priorityOverride: null,
-      stopReason: null,
-      stopRequestedAt: null,
       cancellation: new CancellationController(),
       status: TaskStatus.QUEUED,
       queuedAt: queuedAt,
       startedAt: null,
-      complete: complete
+      complete: complete,
+      manualPaused: false,
+      checkpointCount: 0,
+      activeDurationMs: 0,
+      queueDurationMs: 0,
+      lastEnqueuedAt: queuedAt,
+      expiryTimer: -1,
+      lastSliceDurationMs: 0,
+      utilityScore: plan.utilityScore
     };
     this.tasks.set(taskId, task);
     this.appendLogEntry({
@@ -420,7 +449,12 @@ export class SchedulerService {
       executionDurationMs: null,
       totalDurationMs: null
     });
-    this.requireTaskQueue().enqueue(task);
+    if (plan.queueAction === QueueAction.REJECT) {
+      this.finishTask(task, TaskStatus.FAILED, null, SchedulerErrorCode.POLICY_REJECTED);
+    } else {
+      this.requireTaskQueue().enqueue(task);
+      this.armExpiry(task);
+    }
     this.updateQueueDepth();
     this.scheduleDrain();
 
@@ -433,11 +467,16 @@ export class SchedulerService {
   }
 
   public async cancelTask(taskId: string): Promise<boolean> {
+    return this.stopTask(taskId, SchedulerErrorCode.TASK_CANCELLED);
+  }
+
+  private async stopTask(taskId: string, reason: string): Promise<boolean> {
     this.requireInitialized();
     const task: InternalTask | undefined = this.tasks.get(taskId);
     if (task === undefined) {
       return false;
     }
+    task.stopReason = task.stopReason ?? reason;
 
     if (task.status === TaskStatus.QUEUED) {
       const removed: InternalTask | null = this.requireTaskQueue().remove(taskId);
@@ -445,13 +484,13 @@ export class SchedulerService {
         return false;
       }
       task.cancellation.cancel();
-      this.finishTask(task, TaskStatus.CANCELLED, null, SchedulerErrorCode.TASK_CANCELLED);
+      this.finishTask(task, TaskStatus.CANCELLED, null, task.stopReason);
       this.updateQueueDepth();
       return true;
     }
 
     if (task.status === TaskStatus.RUNNING) {
-      return this.requestStop(task, SchedulerErrorCode.TASK_CANCELLED);
+      return task.cancellation.cancel();
     }
     return false;
   }
@@ -471,6 +510,39 @@ export class SchedulerService {
     return null;
   }
 
+  public async signalTask(taskId: string, signal: TaskSignal): Promise<void> {
+    this.requireInitialized();
+    const task: InternalTask | undefined = this.tasks.get(taskId);
+    if (signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.PAGE_LEFT ||
+      signal.type === TaskSignalType.INPUT_REPLACED) {
+      await this.stopTask(taskId, signal.type);
+      return;
+    }
+    if (task !== undefined && task.profile.context !== undefined) {
+      if (signal.type === TaskSignalType.WAITING_CHANGED) { task.profile.context.userWaiting = signal.value === true; }
+      if (signal.type === TaskSignalType.QUALITY_REQUIRED) { task.profile.context.highQuality = signal.value !== false; }
+      this.scheduleDrain();
+    }
+    for (let i: number = this.logHistory.length - 1; i >= 0; i--) {
+      const log: SchedulerLogEntry = this.logHistory[i];
+      if (log.taskId === taskId && log.telemetry !== undefined) {
+        log.telemetry.signal = signal.type;
+        if (signal.type === TaskSignalType.RESULT_CONSUMED || signal.type === TaskSignalType.RESULT_IGNORED) {
+          this.semanticPolicy.observeConsumption(log.capability, signal.type === TaskSignalType.RESULT_CONSUMED,
+            log.telemetry.resultConsumed);
+        }
+        if (signal.type === TaskSignalType.RESULT_CONSUMED) { log.telemetry.resultConsumed = true; }
+        if (signal.type === TaskSignalType.RESULT_IGNORED) { log.telemetry.resultConsumed = false; }
+        break;
+      }
+    }
+  }
+
+  public exportAudit(): string {
+    this.requireInitialized();
+    return JSON.stringify(this.logHistory);
+  }
+
   public async setTaskPriority(taskId: string, priority: TaskPriority): Promise<void> {
     this.requireInitialized();
     const task: InternalTask | undefined = this.tasks.get(taskId);
@@ -485,18 +557,18 @@ export class SchedulerService {
     }
     task.priority = priority;
     task.plan.priority = priority;
-    task.priorityOverride = priority;
+    task.manualPriority = priority;
   }
 
   public async pauseBackgroundTasks(reason?: string): Promise<number> {
     this.requireInitialized();
-    if (reason !== undefined && reason.length > 0) {
-      // The reason will be attached to scheduler logs in the observability task.
-    }
-    const count: number = this.requireTaskQueue().pauseBackgroundTasks();
-    this.requireTaskQueue().getItems().forEach((task: InternalTask) => {
-      if (task.taskType === TaskType.BACKGROUND_BATCH && task.pausable) {
-        task.manuallyPaused = true;
+    let count: number = 0;
+    this.tasks.forEach((task: InternalTask) => {
+      if (task.taskType === TaskType.BACKGROUND_BATCH && task.pausable && !task.manualPaused) {
+        task.manualPaused = true;
+        task.paused = true;
+        task.plan.reasonCodes.push(reason === undefined ? 'MANUAL_PAUSE' : `MANUAL_PAUSE:${reason}`);
+        count++;
       }
     });
     return count;
@@ -505,17 +577,28 @@ export class SchedulerService {
   public async resumeBackgroundTasks(): Promise<number> {
     this.requireInitialized();
     const queue: TaskQueue<InternalTask> = this.requireTaskQueue();
-    const items: InternalTask[] = queue.getItems();
+    const items: InternalTask[] = Array.from(this.tasks.values());
     let resumedCount: number = 0;
     for (let index: number = 0; index < items.length; index++) {
       const task: InternalTask = items[index];
       if (task.taskType !== TaskType.BACKGROUND_BATCH || !task.paused) {
         continue;
       }
-      task.manuallyPaused = false;
-      if (this.refreshQueuedTask(task) && !task.paused) {
+      task.manualPaused = false;
+      if (task.status === TaskStatus.RUNNING) {
+        task.paused = false;
         resumedCount++;
+        continue;
       }
+      const refreshedPlan: ExecutionPlan = this.evaluate(task.profile);
+      if (refreshedPlan.queueAction === QueueAction.PAUSE || refreshedPlan.queueAction === QueueAction.REJECT) {
+        continue;
+      }
+      task.plan = refreshedPlan;
+      task.priority = refreshedPlan.priority;
+      task.paused = false;
+      queue.updatePriority(task.taskId, task.priority);
+      resumedCount++;
     }
     if (resumedCount > 0) {
       this.scheduleDrain();
@@ -531,9 +614,9 @@ export class SchedulerService {
   public updateRealDeviceState(patch: RealDeviceStatePatch): void {
     this.requireInitialized();
     if (this.requireStateController().applyRealState(patch)) {
-      this.refreshQueuedTasks();
-      this.scheduleDrain();
+      this.protectRunningTask();
       this.notifyStateCallbacks();
+      this.scheduleDrain();
     }
   }
 
@@ -546,18 +629,23 @@ export class SchedulerService {
       );
     }
     if (this.requireStateController().applyDebugState(patch)) {
-      this.refreshQueuedTasks();
-      this.scheduleDrain();
+      this.protectRunningTask();
+      if (this.hysteresis !== null) {
+        this.hysteresis.reset();
+      }
       this.notifyStateCallbacks();
+      this.scheduleDrain();
     }
   }
 
   public async clearDebugState(): Promise<void> {
     this.requireInitialized();
     if (this.requireStateController().clearDebugState()) {
-      this.refreshQueuedTasks();
-      this.scheduleDrain();
+      if (this.hysteresis !== null) {
+        this.hysteresis.reset();
+      }
       this.notifyStateCallbacks();
+      this.scheduleDrain();
     }
   }
 
@@ -587,15 +675,19 @@ export class SchedulerService {
     this.requireInitialized();
     const terminalLogs: SchedulerLogEntry[] = this.getTerminalLogEntries();
     const latencyValues: number[] = terminalLogs
-      .filter((entry: SchedulerLogEntry) => entry.totalDurationMs !== null)
-      .map((entry: SchedulerLogEntry) => entry.totalDurationMs as number)
+      .filter((entry: SchedulerLogEntry) => entry.executionDurationMs !== null)
+      .map((entry: SchedulerLogEntry) => entry.executionDurationMs as number)
       .sort((left: number, right: number) => left - right);
     const queueValues: number[] = terminalLogs
       .filter((entry: SchedulerLogEntry) => entry.queueDurationMs !== null)
       .map((entry: SchedulerLogEntry) => entry.queueDurationMs as number);
 
     return {
+      evaluationCount: this.evaluationCount,
       taskCount: terminalLogs.length,
+      runningCount: this.runningTask === null ? 0 : 1,
+      queuedCount: this.taskQueue === null ? 0 : this.taskQueue.getSize(),
+      pausedCount: this.countPausedTasks(),
       averageLatencyMs: this.average(latencyValues),
       p95LatencyMs: this.percentile95(latencyValues),
       averageQueueDurationMs: this.average(queueValues),
@@ -617,7 +709,7 @@ export class SchedulerService {
   public getRecentLogs(limit: number = 20): SchedulerLogEntry[] {
     this.requireInitialized();
     const normalizedLimit: number = Math.max(1, Math.floor(limit));
-    return this.logHistory.slice(Math.max(0, this.logHistory.length - normalizedLimit));
+    return JSON.parse(JSON.stringify(this.logHistory.slice(Math.max(0, this.logHistory.length - normalizedLimit)))) as SchedulerLogEntry[];
   }
 
   public async shutdown(): Promise<void> {
@@ -635,7 +727,7 @@ export class SchedulerService {
       this.updateQueueDepth();
     }
     if (this.runningTask !== null) {
-      this.requestStop(this.runningTask, SchedulerErrorCode.TASK_CANCELLED);
+      this.runningTask.cancellation.cancel();
     }
     if (this.processorPromise !== null) {
       await this.processorPromise;
@@ -655,70 +747,11 @@ export class SchedulerService {
     this.processorPromise = null;
     this.schedulerPaused = false;
     this.policyMode = PolicyMode.ADAPTIVE;
+    this.evaluationCount = 0;
     this.stateCallbacks = [];
     this.logCallbacks = [];
     this.logHistory = [];
     this.policySwitchCount = 0;
-  }
-
-  private refreshQueuedTask(task: InternalTask): boolean {
-    const plan: ExecutionPlan = this.evaluate(task.profile);
-    if (task.priorityOverride !== null) {
-      plan.priority = task.priorityOverride;
-    }
-    task.plan = plan;
-    task.priority = plan.priority;
-    if (plan.queueAction === QueueAction.REJECT || !task.supports(plan)) {
-      this.requireTaskQueue().remove(task.taskId);
-      this.finishTask(task, TaskStatus.FAILED, null,
-        plan.queueAction === QueueAction.REJECT ? SchedulerErrorCode.THERMAL_PROTECTION :
-          SchedulerErrorCode.CAPABILITY_UNAVAILABLE);
-      return false;
-    }
-    task.paused = task.manuallyPaused || plan.queueAction === QueueAction.PAUSE;
-    return true;
-  }
-
-  private refreshQueuedTasks(): void {
-    if (!this.initialized || this.taskQueue === null) {
-      return;
-    }
-    const items: InternalTask[] = this.taskQueue.getItems();
-    items.forEach((task: InternalTask) => this.refreshQueuedTask(task));
-    this.updateQueueDepth();
-  }
-
-  private requestStop(task: InternalTask, reason: SchedulerErrorCode): boolean {
-    if (task.stopReason !== null) {
-      return false;
-    }
-    task.stopReason = reason;
-    task.stopRequestedAt = Date.now();
-    task.status = TaskStatus.STOP_REQUESTED;
-    this.appendLogEntry({
-      taskId: task.taskId,
-      taskType: task.taskType,
-      capability: task.capability,
-      deviceState: this.requireStateController().getSnapshot(),
-      executionPlan: task.plan,
-      status: TaskStatus.STOP_REQUESTED,
-      queuedAt: task.queuedAt,
-      startedAt: task.startedAt,
-      finishedAt: null,
-      queueDurationMs: task.startedAt === null ? null : task.startedAt - task.queuedAt,
-      executionDurationMs: null,
-      totalDurationMs: null,
-      errorCode: reason,
-      stopRequestedAt: task.stopRequestedAt
-    });
-    task.cancellation.cancel();
-    return true;
-  }
-
-  private finishStoppedTask(task: InternalTask): void {
-    const timedOut: boolean = task.stopReason === SchedulerErrorCode.TASK_TIMEOUT;
-    this.finishTask(task, timedOut ? TaskStatus.TIMED_OUT : TaskStatus.CANCELLED,
-      null, timedOut ? SchedulerErrorCode.TASK_TIMEOUT : SchedulerErrorCode.TASK_CANCELLED);
   }
 
   private scheduleDrain(): void {
@@ -737,10 +770,20 @@ export class SchedulerService {
     });
   }
 
+  private protectRunningTask(): void {
+    const task: InternalTask | null = this.runningTask;
+    if (task === null || task.profile.template === undefined) { return; }
+    const state: DeviceState = this.getDeviceState();
+    if (state.thermalLevel === ThermalLevel.CRITICAL || state.memoryPressure === MemoryPressure.CRITICAL ||
+      (state.availableMemoryMb !== null && state.availableMemoryMb < 192)) {
+      task.stopReason = task.stopReason ?? 'DEVICE_PROTECTION';
+      task.cancellation.cancel();
+    }
+  }
+
   private async drainQueue(): Promise<void> {
     while (this.initialized && !this.schedulerPaused && this.taskQueue !== null) {
-      // Ported admission-before-side-effects from Cixin 0f50f8c GuardedExecutionService.
-      this.refreshQueuedTasks();
+      this.refreshQueuedPlans();
       const task: InternalTask | null = this.taskQueue.dequeue();
       if (task === null) {
         return;
@@ -754,54 +797,149 @@ export class SchedulerService {
 
   private async executeTask(task: InternalTask): Promise<void> {
     task.status = TaskStatus.RUNNING;
-    task.startedAt = Date.now();
+    const sliceStartedAt: number = Date.now();
+    const activeBefore: number = task.activeDurationMs;
+    task.queueDurationMs += sliceStartedAt - task.lastEnqueuedAt;
+    if (task.startedAt === null) { task.startedAt = sliceStartedAt; }
+    task.executionState = this.getDeviceState();
     this.appendLogEntry({
-      taskId: task.taskId,
-      taskType: task.taskType,
-      capability: task.capability,
-      deviceState: this.getDeviceState(),
-      executionPlan: task.plan,
-      status: TaskStatus.RUNNING,
-      queuedAt: task.queuedAt,
-      startedAt: task.startedAt,
-      finishedAt: null,
-      queueDurationMs: task.startedAt - task.queuedAt,
-      executionDurationMs: null,
-      totalDurationMs: null
+      taskId: task.taskId, taskType: task.taskType, capability: task.capability,
+      deviceState: task.executionState, executionPlan: task.plan, status: TaskStatus.RUNNING,
+      queuedAt: task.queuedAt, startedAt: task.startedAt, finishedAt: null,
+      queueDurationMs: task.queueDurationMs, executionDurationMs: null, totalDurationMs: null
     });
     const timeoutId: number = setTimeout(() => {
-      this.requestStop(task, SchedulerErrorCode.TASK_TIMEOUT);
-    }, task.profile.timeoutMs);
-
+      task.stopReason = task.stopReason ?? SchedulerErrorCode.TASK_TIMEOUT;
+      task.cancellation.cancel();
+    }, Math.max(1, task.profile.timeoutMs - task.activeDurationMs));
     try {
-      // Keep the slot until the executor settles, even when it cannot abort.
-      // Adapted from the collaborator's stop -> await Handler -> release protocol.
-      const executorResult: ExecutorResult<Object> = await task.execute(task.plan, task.cancellation.signal);
-      clearTimeout(timeoutId);
-      if (Date.now() - (task.startedAt as number) >= task.profile.timeoutMs && task.stopReason === null) {
-        this.requestStop(task, SchedulerErrorCode.TASK_TIMEOUT);
+      // A timeout requests a stop; the slot remains occupied until the executor settles.
+      const result: ExecutorResult<Object> = await task.execute(task.plan, task.cancellation.signal, task.checkpoint);
+      task.lastSliceDurationMs = Date.now() - sliceStartedAt;
+      task.activeDurationMs = activeBefore + task.lastSliceDurationMs;
+      task.actual = result.telemetry ?? task.actual;
+      const expired: string | undefined = this.expiryReason(task);
+      if (expired !== undefined) { task.stopReason = task.stopReason ?? expired; task.cancellation.cancel(); }
+      if (task.activeDurationMs >= task.profile.timeoutMs) {
+        task.stopReason = task.stopReason ?? SchedulerErrorCode.TASK_TIMEOUT;
+        task.cancellation.cancel();
       }
-      if (task.stopReason !== null) {
-        this.finishStoppedTask(task);
+      if (task.cancellation.signal.isCancellationRequested) {
+        this.finishTask(task, task.stopReason === SchedulerErrorCode.TASK_TIMEOUT ? TaskStatus.TIMED_OUT : TaskStatus.CANCELLED,
+          null, task.stopReason ?? SchedulerErrorCode.TASK_CANCELLED);
         return;
       }
-      this.finishTask(task, TaskStatus.SUCCEEDED, executorResult.output);
+      if (task.profile.context !== undefined && task.plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE &&
+        qualityRank((task.plan as LocalExecutionPlan).modelTier) <
+        (task.profile.context.highQuality ? 2 : qualityRank(task.profile.context.accuracyFloor))) {
+        this.finishTask(task, TaskStatus.FAILED, null, 'QUALITY_CONSTRAINT_CHANGED');
+        return;
+      }
+      const actual: ExecutorTelemetry | undefined = result.telemetry;
+      const matchesPlan: boolean = task.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE ||
+        ((actual?.actualBackend === undefined || actual.actualBackend === (task.plan as LocalExecutionPlan).backend) &&
+          (actual?.actualThreads === undefined || actual.actualThreads === (task.plan as LocalExecutionPlan).threadCount));
+      if (!matchesPlan) { task.plan.reasonCodes.push('EXECUTOR_SETTINGS_DIFFER_FROM_PLAN'); }
+      if (task.executionState !== undefined && matchesPlan) {
+        this.semanticPolicy.observe(task.profile, task.executionState, task.plan, task.lastSliceDurationMs);
+      }
+      if (result.completed === false) {
+        if (task.profile.template?.interruptibility !== Interruptibility.CHECKPOINT ||
+          result.checkpoint === undefined || !Number.isFinite(result.checkpoint.cursor) ||
+          result.checkpoint.cursor <= (task.checkpoint?.cursor ?? -1)) {
+          throw new SchedulerError(SchedulerErrorCode.INVALID_TASK, 'Yield requires a progressing checkpoint.');
+        }
+        task.checkpoint = result.checkpoint;
+        task.checkpointCount++;
+        task.status = TaskStatus.QUEUED;
+        task.lastEnqueuedAt = Date.now();
+        task.paused = task.manualPaused;
+        this.appendLogEntry({
+          taskId: task.taskId, taskType: task.taskType, capability: task.capability,
+          deviceState: task.executionState!, executionPlan: task.plan, status: TaskStatus.QUEUED,
+          queuedAt: task.queuedAt, startedAt: task.startedAt, finishedAt: null,
+          queueDurationMs: task.queueDurationMs, executionDurationMs: task.activeDurationMs,
+          totalDurationMs: Date.now() - task.queuedAt,
+          telemetry: { prediction: task.plan.prediction, actual: task.actual, checkpointCount: task.checkpointCount,
+            sliceDurationMs: task.lastSliceDurationMs,
+            predictionErrorMs: task.plan.prediction === undefined ? undefined : task.lastSliceDurationMs - task.plan.prediction.latencyMs,
+            workflowId: task.profile.context?.workflowId, deadlineMissed: false }
+        });
+        this.requireTaskQueue().enqueue(task);
+        this.updateQueueDepth();
+        return;
+      }
+      this.finishTask(task, TaskStatus.SUCCEEDED, result.output);
     } catch (error) {
-      clearTimeout(timeoutId);
+      task.lastSliceDurationMs = Date.now() - sliceStartedAt;
+      task.activeDurationMs = activeBefore + task.lastSliceDurationMs;
       const schedulerError: SchedulerError | null = error instanceof SchedulerError ? error : null;
-      if (task.stopReason !== null) {
-        this.finishStoppedTask(task);
-      } else if (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_TIMEOUT) {
+      if (task.stopReason === SchedulerErrorCode.TASK_TIMEOUT ||
+        (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_TIMEOUT)) {
+        task.cancellation.cancel();
         this.finishTask(task, TaskStatus.TIMED_OUT, null, SchedulerErrorCode.TASK_TIMEOUT);
       } else if (task.cancellation.signal.isCancellationRequested ||
         (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_CANCELLED)) {
-        this.finishTask(task, TaskStatus.CANCELLED, null, SchedulerErrorCode.TASK_CANCELLED);
+        this.finishTask(task, TaskStatus.CANCELLED, null, task.stopReason ?? SchedulerErrorCode.TASK_CANCELLED);
       } else {
-        const errorCode: string = schedulerError === null ?
-          SchedulerErrorCode.INTERNAL_ERROR : schedulerError.code;
-        this.finishTask(task, TaskStatus.FAILED, null, errorCode);
+        this.finishTask(task, TaskStatus.FAILED, null,
+          schedulerError === null ? SchedulerErrorCode.INTERNAL_ERROR : schedulerError.code);
+      }
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  private refreshQueuedPlans(): void {
+    const queue: TaskQueue<InternalTask> = this.requireTaskQueue();
+    const items: InternalTask[] = queue.getItems();
+    for (let i: number = 0; i < items.length; i++) {
+      const task: InternalTask = items[i];
+      const expired: string | undefined = this.expiryReason(task);
+      if (expired !== undefined) {
+        queue.remove(task.taskId);
+        this.finishTask(task, TaskStatus.CANCELLED, null, expired);
+        continue;
+      }
+      const plan: ExecutionPlan = this.evaluate(task.profile);
+      task.plan = plan;
+      task.priority = task.manualPriority ?? plan.priority;
+      if (task.manualPriority !== undefined) { plan.priority = task.manualPriority; }
+      task.utilityScore = task.manualPriority === undefined ? plan.utilityScore : undefined;
+      task.paused = task.manualPaused || plan.queueAction === QueueAction.PAUSE;
+      if (plan.queueAction === QueueAction.REJECT) {
+        queue.remove(task.taskId);
+        this.finishTask(task, TaskStatus.FAILED, null, SchedulerErrorCode.POLICY_REJECTED);
       }
     }
+    this.updateQueueDepth();
+  }
+
+  private expiryReason(task: InternalTask): string | undefined {
+    const context = task.profile.context;
+    if (context === undefined) { return undefined; }
+    if (context.requestReplaced) { return TaskSignalType.INPUT_REPLACED; }
+    const elapsed: number = Date.now() - (task.profile.submittedAt ?? task.queuedAt);
+    if (context.freshnessMs !== undefined && elapsed >= context.freshnessMs) {
+      return SchedulerErrorCode.RESULT_EXPIRED;
+    }
+    if (context.deadlineMs !== undefined && elapsed >= context.deadlineMs) {
+      return SchedulerErrorCode.DEADLINE_EXCEEDED;
+    }
+    return undefined;
+  }
+
+  private armExpiry(task: InternalTask): void {
+    const context = task.profile.context;
+    if (context === undefined) { return; }
+    const limit: number = Math.min(context.deadlineMs ?? Infinity, context.freshnessMs ?? Infinity);
+    if (!Number.isFinite(limit)) { return; }
+    const remaining: number = limit - (Date.now() - (task.profile.submittedAt ?? task.queuedAt));
+    task.expiryTimer = setTimeout(() => {
+      if (this.initialized && this.tasks.has(task.taskId)) {
+        this.stopTask(task.taskId, this.expiryReason(task) ?? SchedulerErrorCode.RESULT_EXPIRED);
+      }
+    }, Math.max(1, remaining));
   }
 
   private finishTask(
@@ -814,9 +952,19 @@ export class SchedulerService {
       return;
     }
     const finishedAt: number = Date.now();
-    const queueDurationMs: number = task.startedAt === null ?
-      finishedAt - task.queuedAt : task.startedAt - task.queuedAt;
-    const executionDurationMs: number = task.startedAt === null ? 0 : finishedAt - task.startedAt;
+    clearTimeout(task.expiryTimer);
+    const queueDurationMs: number = task.queueDurationMs +
+      (task.status === TaskStatus.QUEUED ? finishedAt - task.lastEnqueuedAt : 0);
+    const executionDurationMs: number = task.activeDurationMs;
+    const telemetry: TaskTelemetry = {
+      prediction: task.plan.prediction, actual: task.actual, checkpointCount: task.checkpointCount,
+      sliceDurationMs: task.lastSliceDurationMs,
+      predictionErrorMs: task.plan.prediction === undefined || task.startedAt === null ? undefined :
+        task.lastSliceDurationMs - task.plan.prediction.latencyMs,
+      workflowId: task.profile.context?.workflowId,
+      deadlineMissed: task.profile.context?.deadlineMs !== undefined &&
+        finishedAt - (task.profile.submittedAt ?? task.queuedAt) > task.profile.context.deadlineMs
+    };
     task.status = status;
     const result: TaskResult<Object> = {
       taskId: task.taskId,
@@ -826,8 +974,7 @@ export class SchedulerService {
       queueDurationMs: queueDurationMs,
       executionDurationMs: executionDurationMs,
       totalDurationMs: finishedAt - task.queuedAt,
-      errorCode: errorCode,
-      stopRequestedAt: task.stopRequestedAt === null ? undefined : task.stopRequestedAt
+      errorCode: errorCode
     };
     this.tasks.delete(task.taskId);
     this.appendLogEntry({
@@ -844,7 +991,7 @@ export class SchedulerService {
       executionDurationMs: executionDurationMs,
       totalDurationMs: finishedAt - task.queuedAt,
       errorCode: errorCode,
-      stopRequestedAt: task.stopRequestedAt === null ? undefined : task.stopRequestedAt
+      telemetry: telemetry
     });
     if (status === TaskStatus.SUCCEEDED &&
       this.initialized &&
@@ -864,7 +1011,7 @@ export class SchedulerService {
   }
 
   private appendLogEntry(entry: SchedulerLogEntry): void {
-    this.logHistory.push(entry);
+    this.logHistory.push(JSON.parse(JSON.stringify(entry)) as SchedulerLogEntry);
     if (this.logHistory.length > MAX_LOG_HISTORY_SIZE) {
       this.logHistory.shift();
     }
@@ -887,6 +1034,20 @@ export class SchedulerService {
     const windowSize: number = this.config === null ?
       DEFAULT_METRICS_WINDOW_SIZE : this.config.metricsWindowSize;
     return terminalLogs.slice(Math.max(0, terminalLogs.length - windowSize));
+  }
+
+  private countPausedTasks(): number {
+    if (this.taskQueue === null) {
+      return 0;
+    }
+    const items: InternalTask[] = this.taskQueue.getItems();
+    let count: number = 0;
+    for (let index: number = 0; index < items.length; index++) {
+      if (items[index].paused) {
+        count++;
+      }
+    }
+    return count;
   }
 
   private average(values: number[]): number {
@@ -936,18 +1097,6 @@ export class SchedulerService {
       );
     }
     if (request.inferenceLocation === InferenceLocation.REMOTE_CLOUD) {
-      if (request.privacyContext !== undefined &&
-        (request.privacyContext.residencyPolicy === DataResidencyPolicy.LOCAL_ONLY ||
-          !request.privacyContext.cloudConsent)) {
-        throw new SchedulerError(
-          SchedulerErrorCode.PRIVACY_POLICY_VIOLATION,
-          `Remote execution blocked by privacy policy: ${request.privacyContext.reason}`
-        );
-      }
-      if (request.privacyContext === undefined) {
-        throw new SchedulerError(SchedulerErrorCode.PRIVACY_POLICY_VIOLATION,
-          'Remote tasks must declare an explicit privacy context and cloud consent.');
-      }
       if (request.remoteOptions === undefined || request.remoteOptions.provider.trim().length === 0) {
         throw new SchedulerError(
           SchedulerErrorCode.INVALID_TASK,
@@ -975,7 +1124,10 @@ export class SchedulerService {
       allowPause: request.allowPause,
       timeoutMs: request.timeoutMs,
       remoteOptions: request.remoteOptions,
-      privacyContext: request.privacyContext
+      template: request.template,
+      context: request.context,
+      submittedAt: request.submittedAt ?? Date.now(),
+      metadata: request.metadata
     };
   }
 
@@ -987,6 +1139,14 @@ export class SchedulerService {
       return requestedId;
     }
     return `scheduler-${Date.now()}-${this.nextTaskSequence++}`;
+  }
+
+  private createHysteresisKey(profile: TaskProfile): string {
+    return `${profile.capability}:${profile.taskType}`;
+  }
+
+  private shouldApplyHysteresis(profile: TaskProfile): boolean {
+    return profile.taskType === TaskType.FOREGROUND_REALTIME;
   }
 
   private validateConfig(config: SchedulerConfig): void {

@@ -1,8 +1,7 @@
 import { http } from '@kit.NetworkKit';
 import hilog from '@ohos.hilog';
-import { DataResidencyPolicy } from 'scheduler';
-import { PrivacyAssessment, PrivacyGuard } from './PrivacyGuard';
 
+const MODEL_SEARCH_PROXY_URL: string = 'http://10.0.2.2:3010';
 const MODEL_SEARCH_TIMEOUT_MS: number = 1800;
 
 interface ModelSearchRequestPayload {
@@ -48,10 +47,6 @@ export class ModelSearchService {
     const trimmedQuery: string = query.trim();
     if (trimmedQuery.length === 0) {
       return this.createFallbackResult(query, '');
-    }
-    const privacyAssessment: PrivacyAssessment = PrivacyGuard.assessText(trimmedQuery);
-    if (privacyAssessment.context.residencyPolicy === DataResidencyPolicy.LOCAL_ONLY) {
-      return this.createFallbackResult(query, `privacy_local_only:${privacyAssessment.context.reason}`);
     }
 
     const requestPayload: ModelSearchRequestPayload = {

@@ -1,8 +1,6 @@
-import { afterEach, describe, expect, it } from '@ohos/hypium';
+import { afterEach, beforeEach, describe, expect, it } from '@ohos/hypium';
 import {
   AccuracyPreference,
-  DataResidencyPolicy,
-  DataSensitivity,
   InferenceLocation,
   MockWorkloadExecutor,
   MockWorkloadInput,
@@ -64,6 +62,7 @@ function sleep(durationMs: number): Promise<void> {
 export default function taskExecutionUnitTest(): void {
   describe('TaskExecutionPipeline', () => {
     const service: SchedulerService = SchedulerService.getInstance();
+    beforeEach(async () => { await service.shutdown(); });
 
     afterEach(async () => {
       await service.shutdown();
@@ -74,7 +73,7 @@ export default function taskExecutionUnitTest(): void {
       service.registerExecutor(new MockWorkloadExecutor());
 
       const handle: TaskHandle<MockWorkloadOutput> = await service.submitTask(
-        createRequest('registered-success', TaskType.USER_INITIATED, 5)
+        createRequest('registered-success', TaskType.USER_INITIATED, 5, 5000)
       );
       const result: TaskResult<MockWorkloadOutput> = await handle.result;
 
@@ -98,12 +97,6 @@ export default function taskExecutionUnitTest(): void {
         allowDegrade: true,
         allowPause: false,
         timeoutMs: 4000,
-        privacyContext: {
-          sensitivity: DataSensitivity.PUBLIC,
-          residencyPolicy: DataResidencyPolicy.CLOUD_ALLOWED,
-          cloudConsent: true,
-          reason: 'unit test public prompt'
-        },
         remoteOptions: {
           provider: 'cloud_proxy',
           maxRetries: 1,
@@ -123,43 +116,6 @@ export default function taskExecutionUnitTest(): void {
       expect(remotePlan.maxConcurrency).assertEqual(2);
     });
 
-    it('blocksRemoteTaskWhenPrivacyRequiresLocalOnly', 0, async () => {
-      await service.initialize(createConfig());
-      const request: TaskRequest<string> = {
-        taskId: 'remote-privacy-block',
-        taskType: TaskType.USER_INITIATED,
-        inferenceLocation: InferenceLocation.REMOTE_CLOUD,
-        capability: 'cloud_answer_generation',
-        input: 'my private address',
-        accuracyPreference: AccuracyPreference.QUALITY_FIRST,
-        allowDegrade: true,
-        allowPause: false,
-        timeoutMs: 1000,
-        privacyContext: {
-          sensitivity: DataSensitivity.SENSITIVE,
-          residencyPolicy: DataResidencyPolicy.LOCAL_ONLY,
-          cloudConsent: false,
-          reason: 'unit test sensitive input'
-        },
-        remoteOptions: {
-          provider: 'cloud_proxy',
-          maxRetries: 0,
-          maxConcurrency: 1,
-          allowLocalFallback: false
-        }
-      };
-      try {
-        await service.runTask<string, string>(
-          request,
-          async (input: string): Promise<string> => input
-        );
-        expect(false).assertTrue();
-      } catch (error) {
-        const schedulerError: SchedulerError = error as SchedulerError;
-        expect(schedulerError.code).assertEqual(SchedulerErrorCode.PRIVACY_POLICY_VIOLATION);
-      }
-    });
-
     it('rejectsRemoteTaskWhenOnlyLocalExecutorIsRegistered', 0, async () => {
       await service.initialize(createConfig());
       service.registerExecutor(new MockWorkloadExecutor('shared_capability'));
@@ -173,12 +129,6 @@ export default function taskExecutionUnitTest(): void {
         allowDegrade: true,
         allowPause: false,
         timeoutMs: 1000,
-        privacyContext: {
-          sensitivity: DataSensitivity.PUBLIC,
-          residencyPolicy: DataResidencyPolicy.CLOUD_ALLOWED,
-          cloudConsent: true,
-          reason: 'unit test public prompt'
-        },
         remoteOptions: {
           provider: 'cloud_proxy',
           maxRetries: 0,

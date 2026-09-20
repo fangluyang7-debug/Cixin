@@ -12,10 +12,12 @@ foreach ($tool in @($node,$hvigor,$ohpm)) {
 }
 $previousSdk = $env:DEVECO_SDK_HOME
 $previousJava = $env:JAVA_HOME
+$previousPath = $env:Path
 Push-Location $projectRoot
 try {
   $env:DEVECO_SDK_HOME = Join-Path $StudioHome 'sdk'
   $env:JAVA_HOME = Join-Path $StudioHome 'jbr'
+  $env:Path = (Join-Path $StudioHome 'jbr/bin') + ';' + $env:Path
   & $ohpm install
   if ($LASTEXITCODE -ne 0) { throw 'ohpm install failed' }
   if ($Task -ne 'test') {
@@ -48,4 +50,5 @@ try {
   Pop-Location
   $env:DEVECO_SDK_HOME = $previousSdk
   $env:JAVA_HOME = $previousJava
+  $env:Path = $previousPath
 }

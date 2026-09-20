@@ -4,7 +4,7 @@
 
 团队请先阅读 [作品说明与开发基线 V1.0](docs/02-作品说明与开发基线-鸿蒙手机资源感知调度中间件.md)。该文档明确功能范围、目标架构、旧作品现状、实现方法及验收标准，替代此前以通用端云 Runtime 为主的产品定位。
 
-手机实现的主要来源是旧初赛目录 `C:\Users\17321\Desktop\harmonyOS\HarmonyOS--\shopping-assistant\apps` 中的原生应用与 scheduler HAR。**旧原生代码已迁入 `apps/harmony`（2026-09-20），开发与验证见 [阶段记录](docs/03-分阶段开发与验证记录.md)**；下述 Node/Web/Python 环境属于此前迁移资产，不是手机核心的必需运行环境。无需部署端侧生成式语言模型，现有轻量 Embedding 模型可作为真实负载。
+手机实现的主要来源是旧初赛目录 `C:\Users\17321\Desktop\harmonyOS\HarmonyOS--\shopping-assistant\apps` 中的原生应用与 scheduler HAR。**旧原生代码已迁入 `apps/harmony`，并已同步最新语义调度 SDK 改造（2026-09-20），开发与验证见 [阶段记录](docs/03-分阶段开发与验证记录.md)**；下述 Node/Web/Python 环境属于此前迁移资产，不是手机核心的必需运行环境。无需部署端侧生成式语言模型，现有轻量 Embedding 模型可作为真实负载。
 
 ## 历史迁移资产与运行说明
 

@@ -7,34 +7,40 @@ import {
 } from '../api/SchedulerTypes';
 import { SchedulerReasonCode } from './SchedulerReasonCode';
 
+interface HysteresisState {
+  currentTier: ModelTier | null;
+  lastTransitionAt: number;
+  pendingUpgradeTier: ModelTier | null;
+  pendingUpgradeSince: number;
+}
+
 export class HysteresisController {
   private readonly upgradeStableDurationMs: number;
   private readonly minimumTierHoldMs: number;
-  private currentTier: ModelTier | null = null;
-  private lastTransitionAt: number = 0;
-  private pendingUpgradeTier: ModelTier | null = null;
-  private pendingUpgradeSince: number = 0;
+  private readonly states: Map<string, HysteresisState> = new Map<string, HysteresisState>();
 
   constructor(upgradeStableDurationMs: number, minimumTierHoldMs: number) {
     this.upgradeStableDurationMs = upgradeStableDurationMs;
     this.minimumTierHoldMs = minimumTierHoldMs;
   }
 
-  public apply(candidate: LocalExecutionPlan, nowMs: number = Date.now()): LocalExecutionPlan {
-    if (this.currentTier === null) {
-      this.currentTier = candidate.modelTier;
-      this.lastTransitionAt = nowMs;
-      this.clearPendingUpgrade();
+  public apply(candidate: LocalExecutionPlan, nowMs: number = Date.now(), key: string = 'default'): LocalExecutionPlan {
+    const state: HysteresisState = this.getState(key);
+    if (state.currentTier === null) {
+      state.currentTier = candidate.modelTier;
+      state.lastTransitionAt = nowMs;
+      this.clearPendingUpgrade(state);
       return this.copyWithTier(candidate, candidate.modelTier, SchedulerReasonCode.HYSTERESIS_INITIAL_TIER);
     }
+    const currentTier: ModelTier = state.currentTier;
 
     const candidateRank: number = this.getTierRank(candidate.modelTier);
-    const currentRank: number = this.getTierRank(this.currentTier);
+    const currentRank: number = this.getTierRank(currentTier);
 
     if (candidateRank < currentRank) {
-      this.currentTier = candidate.modelTier;
-      this.lastTransitionAt = nowMs;
-      this.clearPendingUpgrade();
+      state.currentTier = candidate.modelTier;
+      state.lastTransitionAt = nowMs;
+      this.clearPendingUpgrade(state);
       return this.copyWithTier(
         candidate,
         candidate.modelTier,
@@ -43,44 +49,61 @@ export class HysteresisController {
     }
 
     if (candidateRank === currentRank) {
-      this.clearPendingUpgrade();
+      this.clearPendingUpgrade(state);
       return candidate;
     }
 
-    if (this.pendingUpgradeTier !== candidate.modelTier || nowMs < this.pendingUpgradeSince) {
-      this.pendingUpgradeTier = candidate.modelTier;
-      this.pendingUpgradeSince = nowMs;
+    if (state.pendingUpgradeTier !== candidate.modelTier || nowMs < state.pendingUpgradeSince) {
+      state.pendingUpgradeTier = candidate.modelTier;
+      state.pendingUpgradeSince = nowMs;
     }
 
-    const holdSatisfied: boolean = nowMs - this.lastTransitionAt >= this.minimumTierHoldMs;
-    const stableSatisfied: boolean = nowMs - this.pendingUpgradeSince >= this.upgradeStableDurationMs;
+    const holdSatisfied: boolean = nowMs - state.lastTransitionAt >= this.minimumTierHoldMs;
+    const stableSatisfied: boolean = nowMs - state.pendingUpgradeSince >= this.upgradeStableDurationMs;
     if (!holdSatisfied) {
-      return this.copyWithTier(candidate, this.currentTier, SchedulerReasonCode.HYSTERESIS_MINIMUM_HOLD);
+      return this.copyWithTier(candidate, currentTier, SchedulerReasonCode.HYSTERESIS_MINIMUM_HOLD);
     }
     if (!stableSatisfied) {
-      return this.copyWithTier(candidate, this.currentTier, SchedulerReasonCode.HYSTERESIS_UPGRADE_WAIT);
+      return this.copyWithTier(candidate, currentTier, SchedulerReasonCode.HYSTERESIS_UPGRADE_WAIT);
     }
 
-    const nextTier: ModelTier = this.getNextHigherTier(this.currentTier);
-    this.currentTier = nextTier;
-    this.lastTransitionAt = nowMs;
-    this.clearPendingUpgrade();
+    const nextTier: ModelTier = this.getNextHigherTier(currentTier);
+    state.currentTier = nextTier;
+    state.lastTransitionAt = nowMs;
+    this.clearPendingUpgrade(state);
     return this.copyWithTier(candidate, nextTier, SchedulerReasonCode.HYSTERESIS_STEP_UP);
   }
 
-  public getCurrentTier(): ModelTier | null {
-    return this.currentTier;
+  public getCurrentTier(key: string = 'default'): ModelTier | null {
+    return this.getState(key).currentTier;
   }
 
-  public reset(): void {
-    this.currentTier = null;
-    this.lastTransitionAt = 0;
-    this.clearPendingUpgrade();
+  public reset(key?: string): void {
+    if (key === undefined) {
+      this.states.clear();
+      return;
+    }
+    this.states.delete(key);
   }
 
-  private clearPendingUpgrade(): void {
-    this.pendingUpgradeTier = null;
-    this.pendingUpgradeSince = 0;
+  private getState(key: string): HysteresisState {
+    const existing: HysteresisState | undefined = this.states.get(key);
+    if (existing !== undefined) {
+      return existing;
+    }
+    const created: HysteresisState = {
+      currentTier: null,
+      lastTransitionAt: 0,
+      pendingUpgradeTier: null,
+      pendingUpgradeSince: 0
+    };
+    this.states.set(key, created);
+    return created;
+  }
+
+  private clearPendingUpgrade(state: HysteresisState): void {
+    state.pendingUpgradeTier = null;
+    state.pendingUpgradeSince = 0;
   }
 
   private copyWithTier(

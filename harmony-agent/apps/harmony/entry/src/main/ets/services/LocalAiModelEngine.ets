@@ -1,4 +1,4 @@
-import { Backend, InferenceLocation, LocalExecutionPlan, ModelTier, ThreadCount } from 'scheduler';
+import { Backend, LocalExecutionPlan, ModelTier, ThreadCount } from 'scheduler';
 import { Product } from '../models/Product';
 import { EmbeddingModelInfo, EmbeddingSearchResult } from '../models/EmbeddingModel';
 import { NeuralEmbeddingIndex } from './NeuralEmbeddingIndex';
@@ -26,8 +26,6 @@ export interface ChatIntentResult {
   generatedAnswer: string;
   confidenceScore: number;
   modelName: string;
-  actualInferenceLocation: InferenceLocation;
-  fallbackReason: string;
   inferenceDurationMs: number;
   topProducts: Product[];
 }
@@ -65,6 +63,7 @@ export class LocalAiModelEngine {
     const lowerPrompt: string = prompt.toLowerCase();
     const dimension: number = this.resolveDimension(plan);
     const threadCount: ThreadCount = plan === undefined ? 1 : plan.threadCount;
+    const backend: Backend = plan === undefined ? Backend.CPU : plan.backend;
 
     let brand: string = '';
     if (lowerPrompt.indexOf('耐克') >= 0 || lowerPrompt.indexOf('nike') >= 0) {
@@ -140,8 +139,6 @@ export class LocalAiModelEngine {
       confidenceScore: Math.min(90, confidenceScore),
       modelName: 'RuleIntentParser + soleai-neural-char-v1',
       inferenceDurationMs: Date.now() - startTime,
-      actualInferenceLocation: InferenceLocation.LOCAL_DEVICE,
-      fallbackReason: '',
       topProducts: rankedProducts
     };
   }
@@ -154,6 +151,7 @@ export class LocalAiModelEngine {
     const startTime: number = Date.now();
     const dimension: number = this.resolveDimension(plan);
     const threadCount: ThreadCount = plan === undefined ? 1 : plan.threadCount;
+    const backend: Backend = plan === undefined ? Backend.CPU : plan.backend;
     const searchResults: EmbeddingSearchResult[] =
       await NeuralEmbeddingIndex.getInstance().search(query, dimension, threadCount, 20);
     const products: Product[] = [];
@@ -180,11 +178,11 @@ export class LocalAiModelEngine {
       modelName: `SoleAI MindSpore Lite Neural Embedding (${modelVersion})`,
       sourceInfo:
         `端侧 MindSpore Lite 神经 Embedding（2700条神经模型预生成向量 · ${dimension}维 · ` +
-        `TaskPool ${threadCount}分区 · CPU）`,
+        `调度计划 ${backend}/${threadCount}分区 · 当前执行器 TaskPool CPU）`,
       passCount: 1,
       recommendDegrade: durationMs > 180,
       activeThreads: threadCount,
-      activeBackend: Backend.CPU
+      activeBackend: backend
     };
   }
 

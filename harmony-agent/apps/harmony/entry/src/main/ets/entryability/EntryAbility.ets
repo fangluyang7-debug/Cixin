@@ -1,6 +1,7 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { DataInitService } from '../services/DataInitService';
+import { ShoppingTaskService } from '../services/ShoppingTaskService';
 import { window } from '@kit.ArkUI';
 import {
   AppVisibility,
@@ -44,7 +45,18 @@ export default class EntryAbility extends UIAbility {
       minimumTierHoldMs: 5000,
       executors: [
         {
-          capability: 'local_product_search',
+          capability: 'text_product_embedding_search',
+          inferenceLocation: InferenceLocation.LOCAL_DEVICE,
+          backend: Backend.CPU,
+          supportedModelTiers: [
+            ModelTier.HIGH_ACCURACY,
+            ModelTier.BALANCED,
+            ModelTier.LIGHTWEIGHT
+          ],
+          supportedThreadCounts: [1, 2, 4]
+        },
+        {
+          capability: 'image_product_embedding_search',
           inferenceLocation: InferenceLocation.LOCAL_DEVICE,
           backend: Backend.CPU,
           supportedModelTiers: [
@@ -117,7 +129,7 @@ export default class EntryAbility extends UIAbility {
       await this.schedulerService.shutdown();
       return;
     }
-
+    ShoppingTaskService.getInstance().initialize(this.schedulerService);
     this.deviceStateAdapter = new HarmonyDeviceStateAdapter((patch: RealDeviceStatePatch): void => {
       if (this.schedulerService.isInitialized()) {
         this.schedulerService.updateRealDeviceState(patch);
@@ -128,6 +140,7 @@ export default class EntryAbility extends UIAbility {
     if (this.destroyed) {
       await this.deviceStateAdapter.stop();
       this.deviceStateAdapter = null;
+      await ShoppingTaskService.getInstance().dispose();
       await this.schedulerService.shutdown();
       return;
     }
@@ -148,6 +161,7 @@ export default class EntryAbility extends UIAbility {
       this.deviceStateAdapter = null;
     }
     if (this.schedulerService.isInitialized()) {
+      await ShoppingTaskService.getInstance().dispose();
       await this.schedulerService.shutdown();
     }
   }

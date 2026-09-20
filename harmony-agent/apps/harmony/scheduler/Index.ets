@@ -4,8 +4,6 @@ export {
   Backend,
   CancellationCallback,
   BaseExecutionPlan,
-  DataResidencyPolicy,
-  DataSensitivity,
   BaseExecutorConfig,
   CancellationSignal,
   DeviceState,
@@ -17,9 +15,9 @@ export {
   LocalExecutionPlan,
   LocalExecutorConfig,
   ExecutorResult,
+  MemoryPressure,
   MetricsSnapshot,
   ModelTier,
-  PrivacyContext,
   PolicyMode,
   QueueAction,
   RealDeviceStatePatch,
@@ -58,3 +56,10 @@ export {
 } from './src/main/ets/executor/MockWorkloadExecutor';
 export { QueueItem, TaskQueue } from './src/main/ets/queue/TaskQueue';
 export { SchedulerService } from './src/main/ets/api/SchedulerService';
+export { SchedulerClient, SchedulerRuntime } from './src/main/ets/api/SchedulerClient';
+export {
+  TaskTemplate, TaskContext, TaskSignal, TaskSignalType, TaskTelemetry, ResourceHints,
+  QualityLevel, ResourcePrediction, ExecutorTelemetry, TaskCheckpoint, Interruptibility,
+  DuplicatePolicy, PrivacyPolicy, DependencyFailurePolicy, WorkflowNode, WorkflowInput,
+  WorkflowResult, WorkflowHandle
+} from './src/main/ets/api/SchedulerTypes';

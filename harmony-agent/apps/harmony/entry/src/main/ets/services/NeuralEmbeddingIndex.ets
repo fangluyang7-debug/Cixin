@@ -12,6 +12,7 @@ import { Product } from '../models/Product';
 import { StoreManager } from '../database/StoreManager';
 import { MindSporeEmbeddingEngine } from './MindSporeEmbeddingEngine';
 import { computeQuantizedNormChunk, scoreQuantizedVectorChunk } from './VectorSearchWorker';
+import { CancellationSignal } from 'scheduler';
 
 const ARTIFACT_RAWFILE: string = 'soleai_neural_embedding_v1.json';
 const EXPECTED_FORMAT_VERSION: number = 2;
@@ -20,6 +21,13 @@ const MAX_PRODUCT_COUNT: number = 3000;
 interface IndexedScore {
   index: number;
   score: number;
+}
+
+export interface NormalizationProgress {
+  cursor: number;
+  dimension: number;
+  modelVersion: string;
+  norms: number[];
 }
 
 export class NeuralEmbeddingIndex {
@@ -83,6 +91,17 @@ export class NeuralEmbeddingIndex {
     requestedPartitions: number,
     topK: number
   ): Promise<EmbeddingSearchResult[]> {
+    const vector: Float32Array = await this.encodeQuery(query, requestedPartitions);
+    return this.searchVector(vector, requestedDimension, requestedPartitions, topK);
+  }
+
+  public async encodeQuery(query: string, requestedPartitions: number): Promise<Float32Array> {
+    await this.waitUntilReady();
+    return MindSporeEmbeddingEngine.getInstance().encode(query, Math.max(1, Math.min(4, requestedPartitions)));
+  }
+
+  public async searchVector(queryVector: Float32Array, requestedDimension: number,
+    requestedPartitions: number, topK: number): Promise<EmbeddingSearchResult[]> {
     await this.waitUntilReady();
     if (this.artifact === null || this.products.length === 0) {
       return [];
@@ -92,8 +111,6 @@ export class NeuralEmbeddingIndex {
       1,
       Math.min(4, Math.min(Math.floor(requestedPartitions), this.products.length))
     );
-    const queryVector: Float32Array =
-      await MindSporeEmbeddingEngine.getInstance().encode(query, partitionCount);
     const queryValues: number[] = [];
     for (let index: number = 0; index < dimension; index++) {
       queryValues.push(queryVector[index]);
@@ -130,7 +147,7 @@ export class NeuralEmbeddingIndex {
         end - start
       );
       chunkStarts.push(start);
-      taskPromises.push(taskpool.execute(task, taskpool.Priority.HIGH));
+      taskPromises.push(taskpool.execute(task, taskpool.Priority.HIGH).catch((): Object => [] as number[]));
     }
 
     try {
@@ -138,6 +155,7 @@ export class NeuralEmbeddingIndex {
       const scores: IndexedScore[] = [];
       for (let chunkIndex: number = 0; chunkIndex < chunkResults.length; chunkIndex++) {
         const chunkScores: number[] = chunkResults[chunkIndex] as number[];
+        if (chunkScores.length === 0) { throw new Error('TaskPool partition failed.'); }
         const start: number = chunkStarts[chunkIndex];
         for (let localIndex: number = 0; localIndex < chunkScores.length; localIndex++) {
           scores.push({ index: start + localIndex, score: chunkScores[localIndex] });
@@ -208,6 +226,38 @@ export class NeuralEmbeddingIndex {
       `Rebuilt norm cache: products=${norms.length}, dim=${dimension}, partitions=${partitionCount}`
     );
     return norms.length;
+  }
+
+  public async rebuildNormalizationChunk(previous: NormalizationProgress | undefined,
+    signal: CancellationSignal, chunkSize: number = 128): Promise<NormalizationProgress> {
+    await this.waitUntilReady();
+    if (this.artifact === null) { throw new Error('Index is not ready.'); }
+    const dimension: number = this.artifact.embeddingDimension;
+    const progress: NormalizationProgress = previous ?? {
+      cursor: 0, dimension: dimension, modelVersion: this.artifact.modelVersion, norms: []
+    };
+    if (progress.modelVersion !== this.artifact.modelVersion || progress.dimension !== dimension ||
+      progress.cursor !== progress.norms.length || progress.cursor > this.products.length) {
+      throw new Error('Checkpoint does not match the current index.');
+    }
+    if (signal.isCancellationRequested) { throw new Error('Index update cancelled.'); }
+    const start: number = progress.cursor;
+    const end: number = Math.min(this.products.length, start + chunkSize);
+    if (end > start) {
+      const task: taskpool.Task = new taskpool.Task(computeQuantizedNormChunk,
+        this.productVectorBytes.slice(start * dimension, end * dimension).buffer,
+        this.artifact.productScales.slice(start, end), dimension, dimension, end - start);
+      const values: number[] = await taskpool.execute(task, taskpool.Priority.LOW) as number[];
+      if (signal.isCancellationRequested) { throw new Error('Index update cancelled.'); }
+      if (values.length !== end - start) { throw new Error('Invalid norm chunk.'); }
+      for (let i: number = 0; i < values.length; i++) { progress.norms.push(values[i]); }
+      progress.cursor = end;
+    }
+    // Publish only a complete cache; cancellation leaves the previous cache usable.
+    if (end === this.products.length && !signal.isCancellationRequested) {
+      this.normCaches.set(dimension, new Float32Array(progress.norms));
+    }
+    return progress;
   }
 
   private async load(context: common.Context): Promise<void> {
