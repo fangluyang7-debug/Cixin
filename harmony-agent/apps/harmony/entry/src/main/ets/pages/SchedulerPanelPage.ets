@@ -367,6 +367,9 @@ struct SchedulerPanelPage {
     if (status === TaskStatus.CANCELLED) {
       return '#B54708';
     }
+    if (status === TaskStatus.STOP_REQUESTED) {
+      return '#B54708';
+    }
     if (status === TaskStatus.RUNNING) {
       return '#175CD3';
     }
@@ -1003,7 +1006,7 @@ struct SchedulerPanelPage {
   private logCard(entry: SchedulerLogEntry) {
     Column({ space: 7 }) {
       Row({ space: 8 }) {
-        Text(entry.status)
+        Text(entry.status === TaskStatus.STOP_REQUESTED ? '等待计算停止' : entry.status)
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor(this.statusColor(entry.status))
@@ -1357,11 +1360,11 @@ struct SchedulerPanelPage {
             if (this.metrics !== null) {
               Row({ space: 8 }) {
                 this.metricCell('总任务数', `${this.metrics.taskCount}`)
-                this.metricCell('平均执行', `${Math.round(this.metrics.averageLatencyMs)} ms`)
+                this.metricCell('平均端到端', `${Math.round(this.metrics.averageLatencyMs)} ms`)
               }
               .width('100%')
               Row({ space: 8 }) {
-                this.metricCell('P95 执行', `${Math.round(this.metrics.p95LatencyMs)} ms`)
+                this.metricCell('P95 端到端', `${Math.round(this.metrics.p95LatencyMs)} ms`)
                 this.metricCell('平均排队', `${Math.round(this.metrics.averageQueueDurationMs)} ms`)
               }
               .width('100%')

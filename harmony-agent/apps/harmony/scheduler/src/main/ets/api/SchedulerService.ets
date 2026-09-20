@@ -38,7 +38,8 @@ import { QueueItem, TaskQueue } from '../queue/TaskQueue';
 const DEFAULT_METRICS_WINDOW_SIZE: number = 100;
 const MAX_LOG_HISTORY_SIZE: number = 500;
 
-type InternalExecute = (signal: CancellationSignal) => Promise<ExecutorResult<Object>>;
+type InternalExecute = (plan: ExecutionPlan, signal: CancellationSignal) => Promise<ExecutorResult<Object>>;
+type InternalSupports = (plan: ExecutionPlan) => boolean;
 type InternalComplete = (result: TaskResult<Object>) => void;
 type CancelCallback = () => Promise<boolean>;
 type StatusCallback = () => TaskStatus;
@@ -48,6 +49,11 @@ interface InternalTask extends QueueItem {
   profile: TaskProfile;
   plan: ExecutionPlan;
   execute: InternalExecute;
+  supports: InternalSupports;
+  manuallyPaused: boolean;
+  priorityOverride: TaskPriority | null;
+  stopReason: SchedulerErrorCode | null;
+  stopRequestedAt: number | null;
   cancellation: CancellationController;
   status: TaskStatus;
   queuedAt: number;
@@ -129,7 +135,7 @@ class FunctionWorkloadExecutor<TInput, TOutput> implements WorkloadExecutor<TInp
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task was cancelled before execution.');
     }
-    const output: TOutput = await this.callback(input, plan);
+    const output: TOutput = await this.callback(input, plan, signal);
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task result was discarded after cancellation.');
     }
@@ -229,6 +235,8 @@ export class SchedulerService {
     if (this.hysteresis !== null) {
       this.hysteresis.reset();
     }
+    this.refreshQueuedTasks();
+    this.scheduleDrain();
     this.notifyStateCallbacks();
   }
 
@@ -348,11 +356,17 @@ export class SchedulerService {
     }
 
     const deferred: TaskDeferred<TOutput> = new TaskDeferred<TOutput>();
-    const execute: InternalExecute = async (signal: CancellationSignal): Promise<ExecutorResult<Object>> => {
+    const execute: InternalExecute = async (
+      currentPlan: ExecutionPlan,
+      signal: CancellationSignal
+    ): Promise<ExecutorResult<Object>> => {
       if (executor.warmup !== undefined) {
-        await executor.warmup(plan);
+        await executor.warmup(currentPlan);
       }
-      const executorResult: ExecutorResult<TOutput> = await executor.execute(request.input, plan, signal);
+      if (signal.isCancellationRequested) {
+        throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Stopped during warmup.');
+      }
+      const executorResult: ExecutorResult<TOutput> = await executor.execute(request.input, currentPlan, signal);
       return { output: executorResult.output as Object };
     };
     const complete: InternalComplete = (internalResult: TaskResult<Object>): void => {
@@ -364,7 +378,8 @@ export class SchedulerService {
         queueDurationMs: internalResult.queueDurationMs,
         executionDurationMs: internalResult.executionDurationMs,
         totalDurationMs: internalResult.totalDurationMs,
-        errorCode: internalResult.errorCode
+        errorCode: internalResult.errorCode,
+        stopRequestedAt: internalResult.stopRequestedAt
       };
       deferred.complete(typedResult);
     };
@@ -379,6 +394,11 @@ export class SchedulerService {
       profile: profile,
       plan: plan,
       execute: execute,
+      supports: (currentPlan: ExecutionPlan): boolean => executor.supports(currentPlan),
+      manuallyPaused: false,
+      priorityOverride: null,
+      stopReason: null,
+      stopRequestedAt: null,
       cancellation: new CancellationController(),
       status: TaskStatus.QUEUED,
       queuedAt: queuedAt,
@@ -431,7 +451,7 @@ export class SchedulerService {
     }
 
     if (task.status === TaskStatus.RUNNING) {
-      return task.cancellation.cancel();
+      return this.requestStop(task, SchedulerErrorCode.TASK_CANCELLED);
     }
     return false;
   }
@@ -465,6 +485,7 @@ export class SchedulerService {
     }
     task.priority = priority;
     task.plan.priority = priority;
+    task.priorityOverride = priority;
   }
 
   public async pauseBackgroundTasks(reason?: string): Promise<number> {
@@ -472,7 +493,13 @@ export class SchedulerService {
     if (reason !== undefined && reason.length > 0) {
       // The reason will be attached to scheduler logs in the observability task.
     }
-    return this.requireTaskQueue().pauseBackgroundTasks();
+    const count: number = this.requireTaskQueue().pauseBackgroundTasks();
+    this.requireTaskQueue().getItems().forEach((task: InternalTask) => {
+      if (task.taskType === TaskType.BACKGROUND_BATCH && task.pausable) {
+        task.manuallyPaused = true;
+      }
+    });
+    return count;
   }
 
   public async resumeBackgroundTasks(): Promise<number> {
@@ -485,15 +512,10 @@ export class SchedulerService {
       if (task.taskType !== TaskType.BACKGROUND_BATCH || !task.paused) {
         continue;
       }
-      const refreshedPlan: ExecutionPlan = this.evaluate(task.profile);
-      if (refreshedPlan.queueAction === QueueAction.PAUSE || refreshedPlan.queueAction === QueueAction.REJECT) {
-        continue;
+      task.manuallyPaused = false;
+      if (this.refreshQueuedTask(task) && !task.paused) {
+        resumedCount++;
       }
-      task.plan = refreshedPlan;
-      task.priority = refreshedPlan.priority;
-      task.paused = false;
-      queue.updatePriority(task.taskId, task.priority);
-      resumedCount++;
     }
     if (resumedCount > 0) {
       this.scheduleDrain();
@@ -509,6 +531,8 @@ export class SchedulerService {
   public updateRealDeviceState(patch: RealDeviceStatePatch): void {
     this.requireInitialized();
     if (this.requireStateController().applyRealState(patch)) {
+      this.refreshQueuedTasks();
+      this.scheduleDrain();
       this.notifyStateCallbacks();
     }
   }
@@ -522,6 +546,8 @@ export class SchedulerService {
       );
     }
     if (this.requireStateController().applyDebugState(patch)) {
+      this.refreshQueuedTasks();
+      this.scheduleDrain();
       this.notifyStateCallbacks();
     }
   }
@@ -529,6 +555,8 @@ export class SchedulerService {
   public async clearDebugState(): Promise<void> {
     this.requireInitialized();
     if (this.requireStateController().clearDebugState()) {
+      this.refreshQueuedTasks();
+      this.scheduleDrain();
       this.notifyStateCallbacks();
     }
   }
@@ -559,8 +587,8 @@ export class SchedulerService {
     this.requireInitialized();
     const terminalLogs: SchedulerLogEntry[] = this.getTerminalLogEntries();
     const latencyValues: number[] = terminalLogs
-      .filter((entry: SchedulerLogEntry) => entry.executionDurationMs !== null)
-      .map((entry: SchedulerLogEntry) => entry.executionDurationMs as number)
+      .filter((entry: SchedulerLogEntry) => entry.totalDurationMs !== null)
+      .map((entry: SchedulerLogEntry) => entry.totalDurationMs as number)
       .sort((left: number, right: number) => left - right);
     const queueValues: number[] = terminalLogs
       .filter((entry: SchedulerLogEntry) => entry.queueDurationMs !== null)
@@ -607,7 +635,7 @@ export class SchedulerService {
       this.updateQueueDepth();
     }
     if (this.runningTask !== null) {
-      this.runningTask.cancellation.cancel();
+      this.requestStop(this.runningTask, SchedulerErrorCode.TASK_CANCELLED);
     }
     if (this.processorPromise !== null) {
       await this.processorPromise;
@@ -633,6 +661,66 @@ export class SchedulerService {
     this.policySwitchCount = 0;
   }
 
+  private refreshQueuedTask(task: InternalTask): boolean {
+    const plan: ExecutionPlan = this.evaluate(task.profile);
+    if (task.priorityOverride !== null) {
+      plan.priority = task.priorityOverride;
+    }
+    task.plan = plan;
+    task.priority = plan.priority;
+    if (plan.queueAction === QueueAction.REJECT || !task.supports(plan)) {
+      this.requireTaskQueue().remove(task.taskId);
+      this.finishTask(task, TaskStatus.FAILED, null,
+        plan.queueAction === QueueAction.REJECT ? SchedulerErrorCode.THERMAL_PROTECTION :
+          SchedulerErrorCode.CAPABILITY_UNAVAILABLE);
+      return false;
+    }
+    task.paused = task.manuallyPaused || plan.queueAction === QueueAction.PAUSE;
+    return true;
+  }
+
+  private refreshQueuedTasks(): void {
+    if (!this.initialized || this.taskQueue === null) {
+      return;
+    }
+    const items: InternalTask[] = this.taskQueue.getItems();
+    items.forEach((task: InternalTask) => this.refreshQueuedTask(task));
+    this.updateQueueDepth();
+  }
+
+  private requestStop(task: InternalTask, reason: SchedulerErrorCode): boolean {
+    if (task.stopReason !== null) {
+      return false;
+    }
+    task.stopReason = reason;
+    task.stopRequestedAt = Date.now();
+    task.status = TaskStatus.STOP_REQUESTED;
+    this.appendLogEntry({
+      taskId: task.taskId,
+      taskType: task.taskType,
+      capability: task.capability,
+      deviceState: this.requireStateController().getSnapshot(),
+      executionPlan: task.plan,
+      status: TaskStatus.STOP_REQUESTED,
+      queuedAt: task.queuedAt,
+      startedAt: task.startedAt,
+      finishedAt: null,
+      queueDurationMs: task.startedAt === null ? null : task.startedAt - task.queuedAt,
+      executionDurationMs: null,
+      totalDurationMs: null,
+      errorCode: reason,
+      stopRequestedAt: task.stopRequestedAt
+    });
+    task.cancellation.cancel();
+    return true;
+  }
+
+  private finishStoppedTask(task: InternalTask): void {
+    const timedOut: boolean = task.stopReason === SchedulerErrorCode.TASK_TIMEOUT;
+    this.finishTask(task, timedOut ? TaskStatus.TIMED_OUT : TaskStatus.CANCELLED,
+      null, timedOut ? SchedulerErrorCode.TASK_TIMEOUT : SchedulerErrorCode.TASK_CANCELLED);
+  }
+
   private scheduleDrain(): void {
     if (!this.initialized || this.schedulerPaused || this.processorPromise !== null) {
       return;
@@ -651,6 +739,8 @@ export class SchedulerService {
 
   private async drainQueue(): Promise<void> {
     while (this.initialized && !this.schedulerPaused && this.taskQueue !== null) {
+      // Ported admission-before-side-effects from Cixin 0f50f8c GuardedExecutionService.
+      this.refreshQueuedTasks();
       const task: InternalTask | null = this.taskQueue.dequeue();
       if (task === null) {
         return;
@@ -679,29 +769,29 @@ export class SchedulerService {
       executionDurationMs: null,
       totalDurationMs: null
     });
-    let timeoutId: number = -1;
-    const timeoutPromise: Promise<ExecutorResult<Object>> = new Promise<ExecutorResult<Object>>((_resolve, reject) => {
-      timeoutId = setTimeout(() => {
-        reject(new SchedulerError(SchedulerErrorCode.TASK_TIMEOUT, `Task ${task.taskId} timed out.`));
-      }, task.profile.timeoutMs);
-    });
+    const timeoutId: number = setTimeout(() => {
+      this.requestStop(task, SchedulerErrorCode.TASK_TIMEOUT);
+    }, task.profile.timeoutMs);
 
     try {
-      const executorResult: ExecutorResult<Object> = await Promise.race([
-        task.execute(task.cancellation.signal),
-        timeoutPromise
-      ]);
+      // Keep the slot until the executor settles, even when it cannot abort.
+      // Adapted from the collaborator's stop -> await Handler -> release protocol.
+      const executorResult: ExecutorResult<Object> = await task.execute(task.plan, task.cancellation.signal);
       clearTimeout(timeoutId);
-      if (task.cancellation.signal.isCancellationRequested) {
-        this.finishTask(task, TaskStatus.CANCELLED, null, SchedulerErrorCode.TASK_CANCELLED);
+      if (Date.now() - (task.startedAt as number) >= task.profile.timeoutMs && task.stopReason === null) {
+        this.requestStop(task, SchedulerErrorCode.TASK_TIMEOUT);
+      }
+      if (task.stopReason !== null) {
+        this.finishStoppedTask(task);
         return;
       }
       this.finishTask(task, TaskStatus.SUCCEEDED, executorResult.output);
     } catch (error) {
       clearTimeout(timeoutId);
       const schedulerError: SchedulerError | null = error instanceof SchedulerError ? error : null;
-      if (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_TIMEOUT) {
-        task.cancellation.cancel();
+      if (task.stopReason !== null) {
+        this.finishStoppedTask(task);
+      } else if (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_TIMEOUT) {
         this.finishTask(task, TaskStatus.TIMED_OUT, null, SchedulerErrorCode.TASK_TIMEOUT);
       } else if (task.cancellation.signal.isCancellationRequested ||
         (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_CANCELLED)) {
@@ -736,7 +826,8 @@ export class SchedulerService {
       queueDurationMs: queueDurationMs,
       executionDurationMs: executionDurationMs,
       totalDurationMs: finishedAt - task.queuedAt,
-      errorCode: errorCode
+      errorCode: errorCode,
+      stopRequestedAt: task.stopRequestedAt === null ? undefined : task.stopRequestedAt
     };
     this.tasks.delete(task.taskId);
     this.appendLogEntry({
@@ -752,7 +843,8 @@ export class SchedulerService {
       queueDurationMs: queueDurationMs,
       executionDurationMs: executionDurationMs,
       totalDurationMs: finishedAt - task.queuedAt,
-      errorCode: errorCode
+      errorCode: errorCode,
+      stopRequestedAt: task.stopRequestedAt === null ? undefined : task.stopRequestedAt
     });
     if (status === TaskStatus.SUCCEEDED &&
       this.initialized &&

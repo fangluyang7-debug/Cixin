@@ -1,0 +1,25 @@
+{
+  "failures": 0,
+  "tests": 35,
+  "stage": 2,
+  "errors": 0,
+  "testModule": "scheduler@default",
+  "targetSdk": "6.0.2(22)",
+  "artifacts": [
+    {
+      "bytes": 11506147,
+      "sha256": "1B243D71DE1D526C743FD5F03CB0C160C306C99D1E1B2A7861B5B9A4B0999256",
+      "path": "apps/harmony/entry/build/default/outputs/default/entry-default-unsigned.hap"
+    },
+    {
+      "bytes": 66584,
+      "sha256": "F3C3F513FBB04F854769BFBC3384F5AF8FE2ECAD8DAF76F4450D1D9D86A4A1AB",
+      "path": "apps/harmony/scheduler/build/default/outputs/default/scheduler.har"
+    }
+  ],
+  "toolchain": "DevEco Studio 6.1.1 / Hvigor 6.24.3",
+  "signingConfigured": false,
+  "ignored": 0,
+  "date": "2026-09-20",
+  "deviceValidation": false
+}
