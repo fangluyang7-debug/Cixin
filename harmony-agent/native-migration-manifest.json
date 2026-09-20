@@ -1,0 +1,488 @@
+{
+  "date": "2026-09-20",
+  "files": [
+    {
+      "sha256": "691A0E6DD91D3045AA4A5A052C82697D012F47BC7D5354488402E48C144D7295",
+      "bytes": 165,
+      "path": ".gitignore"
+    },
+    {
+      "sha256": "180CAFF275856D67474F734BF983CA0221BC08EA404D079479A7C916258CC682",
+      "bytes": 829,
+      "path": "build-profile.json5"
+    },
+    {
+      "sha256": "F3DC8039B56D6E2A773E8202584F22F9A1419C203F5F473CAF6F5FD1017502A7",
+      "bytes": 885,
+      "path": "code-linter.json5"
+    },
+    {
+      "sha256": "A8AE1CB6434D62FEBBC2DB6BEC341B789F23EAF57C94F09D5472D628A98BB99B",
+      "bytes": 232,
+      "path": "hvigorfile.ts"
+    },
+    {
+      "sha256": "738D44A280F1BEC5BBCAC8CF183D8D02C87C856D45768A02DADD2FEBA404BEEF",
+      "bytes": 1002,
+      "path": "oh-package-lock.json5"
+    },
+    {
+      "sha256": "ED8AAE4DB61AF1D758CC07F4F49D6DDAD067BDE4B31818B06AEB440D4ED388B7",
+      "bytes": 210,
+      "path": "oh-package.json5"
+    },
+    {
+      "sha256": "DCB01EA8CFE3AB89C660FBA12C38D9A9A70E98D78A4D81AB5D218A74D46A62EA",
+      "bytes": 222,
+      "path": "AppScope/app.json5"
+    },
+    {
+      "sha256": "177F93A50D4CEB2D8C2A44A546783FC98E36CC928AFACDC18CE5439A86B82273",
+      "bytes": 99,
+      "path": "AppScope/resources/base/element/string.json"
+    },
+    {
+      "sha256": "497EDEAFC51AF043C73E72EE8C4FBAC4663357EF1BA275C0289F31A366B26239",
+      "bytes": 91942,
+      "path": "AppScope/resources/base/media/background.png"
+    },
+    {
+      "sha256": "61A796D5A9FC5853E9CD0F1E3E730896A6BCB94A34A37765C4D1959BF64DFA43",
+      "bytes": 15325,
+      "path": "AppScope/resources/base/media/foreground.png"
+    },
+    {
+      "sha256": "5A65F1C7492D9A591140C9C921603F117D92E5799FDCB55988919AB4939B10ED",
+      "bytes": 115,
+      "path": "AppScope/resources/base/media/layered_image.json"
+    },
+    {
+      "sha256": "8952629C0D3BA41B6CB5DB4AFBFA2E672FBEB4677B8579C84F97E853D2064312",
+      "bytes": 60,
+      "path": "entry/.gitignore"
+    },
+    {
+      "sha256": "165C5E02E368CFAE38401DBFC371A106AB3F5A8A1ED05078625C0F1C573476DC",
+      "bytes": 540,
+      "path": "entry/build-profile.json5"
+    },
+    {
+      "sha256": "E447AC68AEE7BB0042621EEE1183984A888ED611F031009ED4B19B721645FECC",
+      "bytes": 232,
+      "path": "entry/hvigorfile.ts"
+    },
+    {
+      "sha256": "C7F48577FCD27A346883A1A527653EFF132CAB29666133A49E1EC4D372EC5A93",
+      "bytes": 1024,
+      "path": "entry/obfuscation-rules.txt"
+    },
+    {
+      "sha256": "F1F1903880AB4E89B91D87F307664005C2E64D30D4D210B3C79D8E0E898D60A6",
+      "bytes": 456,
+      "path": "entry/oh-package-lock.json5"
+    },
+    {
+      "sha256": "93B1C38FB7CF272616D557C24CC62BE8680698D961E01CE9EA752FB08E76CA55",
+      "bytes": 212,
+      "path": "entry/oh-package.json5"
+    },
+    {
+      "sha256": "4BEE8E563BFD147FE5CD1A5E474A414AF0D0B404F73F0A7178AAFD5559AD85EF",
+      "bytes": 1414,
+      "path": "entry/src/main/module.json5"
+    },
+    {
+      "sha256": "028AB959016532614C602F57B820D1AE66469B160073BB6A95FB6C0F6D2C30AE",
+      "bytes": 9108,
+      "path": "entry/src/main/ets/database/StoreManager.ets"
+    },
+    {
+      "sha256": "6696FF9ED27110413240DF4266184D8893D99D3153CCB0674CF545BE1EAAC200",
+      "bytes": 5531,
+      "path": "entry/src/main/ets/entryability/EntryAbility.ets"
+    },
+    {
+      "sha256": "AE94F286234D41AD5FA9F70BFD11F61E2F609994D6F16687D1CE4EC442115E5D",
+      "bytes": 522,
+      "path": "entry/src/main/ets/entrybackupability/EntryBackupAbility.ets"
+    },
+    {
+      "sha256": "4FC40A2BC94208B80D00075492257AC6C286BA853229FAF83F9CAC6F408A137D",
+      "bytes": 1053,
+      "path": "entry/src/main/ets/models/EmbeddingModel.ets"
+    },
+    {
+      "sha256": "9E38E8BF7B0FFADE7F55DC89A79627DD0C1CDCF0356CE9BF86DC78E50ECA1678",
+      "bytes": 677,
+      "path": "entry/src/main/ets/models/NeuralEmbeddingModel.ets"
+    },
+    {
+      "sha256": "237EB8A42A4D3E0351C57A8211656F51BF80DE282559FDA3A19DA13AE14B4A19",
+      "bytes": 1226,
+      "path": "entry/src/main/ets/models/Product.ets"
+    },
+    {
+      "sha256": "9D3E25D1082BF1869F62913ADB531E860026336DFD42B3D065687178335758E0",
+      "bytes": 66413,
+      "path": "entry/src/main/ets/pages/Index.ets"
+    },
+    {
+      "sha256": "B86E176F99C07BC3B3CF31471B068EA86A1520CD7E78A1EF767A0D124CBE8420",
+      "bytes": 48788,
+      "path": "entry/src/main/ets/pages/SchedulerPanelPage.ets"
+    },
+    {
+      "sha256": "91029BBD289131511AC72E0D0DCDED95A0ABFEEBB2B35A6405C87C28A31B2AA8",
+      "bytes": 4767,
+      "path": "entry/src/main/ets/services/DataInitService.ets"
+    },
+    {
+      "sha256": "6A6F35CA0C1A552DE72121945C137C7A27774A0D318A46DAE0AA5504031F5F16",
+      "bytes": 694,
+      "path": "entry/src/main/ets/services/IAiModelProvider.ets"
+    },
+    {
+      "sha256": "6D741E5B406E2B7B5DE5F72AE460459E03242ED8E8DC3AC8D0D78B018F306F3E",
+      "bytes": 7261,
+      "path": "entry/src/main/ets/services/LocalAiModelEngine.ets"
+    },
+    {
+      "sha256": "A9C1E7F28EDEBA98133382E0A4F464C373DDACBD98C2BB105B2FE5983F250E77",
+      "bytes": 8093,
+      "path": "entry/src/main/ets/services/MindSporeEmbeddingEngine.ets"
+    },
+    {
+      "sha256": "729BF241975E9140F86E1CF96FB73B8886A67D114C93E2D2102A1E5579CAE3E0",
+      "bytes": 9807,
+      "path": "entry/src/main/ets/services/ModelEngineRegistry.ets"
+    },
+    {
+      "sha256": "75B523F55B1E2E731F795E389E95C5104569F853E1640CF24436014957F14522",
+      "bytes": 5025,
+      "path": "entry/src/main/ets/services/ModelSearchService.ets"
+    },
+    {
+      "sha256": "1A614569BBD30305917086E77B92E0145B81277482117EF44F2D8DD2F11C2FA6",
+      "bytes": 13445,
+      "path": "entry/src/main/ets/services/NeuralEmbeddingIndex.ets"
+    },
+    {
+      "sha256": "72D166E4E31B09F290909E75D057370F9866F0DB57CE9C30845A44297373087D",
+      "bytes": 2642,
+      "path": "entry/src/main/ets/services/PrivacyGuard.ets"
+    },
+    {
+      "sha256": "4FCCA542A09F0FB56616412CA6B8BB00E958EAB7863D7567ECADBF5FAFCE480B",
+      "bytes": 3119,
+      "path": "entry/src/main/ets/services/VectorSearchWorker.ets"
+    },
+    {
+      "sha256": "40DCE2E2F49200E562EAAD66D43F3212F4371CAFD2C83C558C2CB6401434EF52",
+      "bytes": 105,
+      "path": "entry/src/main/resources/base/element/color.json"
+    },
+    {
+      "sha256": "3AD317AD8B46B69683FCE81F0E5B808DFDE752594EC0334691917AF7B5383A12",
+      "bytes": 100,
+      "path": "entry/src/main/resources/base/element/float.json"
+    },
+    {
+      "sha256": "6A42B94943CE0CC656E6ECD7C225DA94FB3BC5A1BC2FAF1E52C33476BEBD4C1D",
+      "bytes": 262,
+      "path": "entry/src/main/resources/base/element/string.json"
+    },
+    {
+      "sha256": "497EDEAFC51AF043C73E72EE8C4FBAC4663357EF1BA275C0289F31A366B26239",
+      "bytes": 91942,
+      "path": "entry/src/main/resources/base/media/background.png"
+    },
+    {
+      "sha256": "57E549283F255505A649042F36A1D6793C307A69A94C9FA7E27A38AF38DDBE8C",
+      "bytes": 8805,
+      "path": "entry/src/main/resources/base/media/foreground.png"
+    },
+    {
+      "sha256": "5A65F1C7492D9A591140C9C921603F117D92E5799FDCB55988919AB4939B10ED",
+      "bytes": 115,
+      "path": "entry/src/main/resources/base/media/layered_image.json"
+    },
+    {
+      "sha256": "567C7C0C7A321CA180E010AD880F0F7519F6D351AC2B9665E2EE710E7CFE7778",
+      "bytes": 20093,
+      "path": "entry/src/main/resources/base/media/startIcon.png"
+    },
+    {
+      "sha256": "9447811DE67729D65B6C0D76720CE53DAD97F70A4B0BBE1946A8DC1C7DE717F5",
+      "bytes": 36,
+      "path": "entry/src/main/resources/base/profile/backup_config.json"
+    },
+    {
+      "sha256": "5BFA36552118CA03AA03B1E83443FDA4358AC288393F3F750533B2E72774FAFA",
+      "bytes": 75,
+      "path": "entry/src/main/resources/base/profile/main_pages.json"
+    },
+    {
+      "sha256": "D6BE6BFA9CFCE320F6BB9B92DD09614DB27E16BC2C9C90EDF057BD682DC3ECBF",
+      "bytes": 105,
+      "path": "entry/src/main/resources/dark/element/color.json"
+    },
+    {
+      "sha256": "35E2E3A3BB487CEDD9E8D52720705B6234447318054BBEAF309A49E9B57651F7",
+      "bytes": 289789,
+      "path": "entry/src/main/resources/rawfile/collected_shoes_20260605-full-chunk0001.json"
+    },
+    {
+      "sha256": "62B37304F34023529CCB2ADA5071EA3FE6C5628258CFD31E18FFC4ECEFCA2051",
+      "bytes": 124247,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0001.json"
+    },
+    {
+      "sha256": "9E2084BB86665FA8CB2C78B3AFE7E2B612C956187288B58BB0AB72D808D0D1B0",
+      "bytes": 124006,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0002.json"
+    },
+    {
+      "sha256": "0921AFCE1B03598E3A5A856524D3A45E4D3D51B7A4532D0146B7EB58F5330203",
+      "bytes": 125771,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0003.json"
+    },
+    {
+      "sha256": "60D6282AD3DBF2F6186A433D5AC09FF3B748BA02AD7B5B412D0966AEE522E14E",
+      "bytes": 123087,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0004.json"
+    },
+    {
+      "sha256": "91514ED808BACEA99FCA672A296ED3AF4B1563C2BDA6D69CA5A81B0C7C9637A0",
+      "bytes": 124788,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0005.json"
+    },
+    {
+      "sha256": "B8D717C94327E2DE2F44127913F6DA449667879396865691CA244AFB52B8AFA2",
+      "bytes": 123868,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0006.json"
+    },
+    {
+      "sha256": "47085758247C3E14B02CAEE334D48D6E0EE84D1FFB76F1023EDF35069362D1FC",
+      "bytes": 124615,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0007.json"
+    },
+    {
+      "sha256": "3A9476245528566386A8CA47171CDEB6D6D97CB4D14D4704CEC6C2BC7AD70E3D",
+      "bytes": 121487,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0008.json"
+    },
+    {
+      "sha256": "14270C92D98A08F38C706C9E5C5E99CE58E65154C6168452624A2BF4A94DAB45",
+      "bytes": 126470,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0009.json"
+    },
+    {
+      "sha256": "B27FCCCDBC5F3028EE3FDDF996D3522D3392125D8B8CCEF41B844B0E15172EFD",
+      "bytes": 144650,
+      "path": "entry/src/main/resources/rawfile/seed_all_20260606_chunk0010.json"
+    },
+    {
+      "sha256": "4AB08C35E40C49846CF5CA6C9BE313F978CA88F4A0A52670C1A7D51F34D9A071",
+      "bytes": 1473613,
+      "path": "entry/src/main/resources/rawfile/seed_mixed_20260610_demo1000_combined.json"
+    },
+    {
+      "sha256": "A0F79BE30EEBA4E9DA515B4BE55E61955FE5873D8709D892AE02304AD4DC8683",
+      "bytes": 70552,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0001.json"
+    },
+    {
+      "sha256": "69DF8802558678D62A283C08E09E84CC5C0C1B435F0CBC0B2B017600F013D38E",
+      "bytes": 76329,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0002.json"
+    },
+    {
+      "sha256": "C00DB763A7B008FBF63C8A61E9C4694779FCB02E130A5A67D6945EEC333DABF8",
+      "bytes": 74574,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0003.json"
+    },
+    {
+      "sha256": "60E357506EE93B6D606DF392AC081BA8823371AEC557F6F0C8BDD342CF37B2CD",
+      "bytes": 68574,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0004.json"
+    },
+    {
+      "sha256": "613594D9AD1CFDA83BFEAB191EC1C783C49F3D17D827170B03207E2C0E360468",
+      "bytes": 67087,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0005.json"
+    },
+    {
+      "sha256": "BB661633DC69BEF385BC51DB9A9B4FF1239743DF2FDEF2FAAAD71E0A315A3182",
+      "bytes": 66885,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0006.json"
+    },
+    {
+      "sha256": "F9866A2D1A7A3D92F73F111BCDD36D777C17C3A5225A6267AD353DBFC125ACCF",
+      "bytes": 68866,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0007.json"
+    },
+    {
+      "sha256": "1DEBD51D35ADF5ED8EA6BA91130BE564ABC6623165F6D867A2A00C0F1F5054E2",
+      "bytes": 75631,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0008.json"
+    },
+    {
+      "sha256": "1718A59FAFBBE29DBAD1536E78DCED3FB99E0F73FAD881A62B686F9F9292A837",
+      "bytes": 75668,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0009.json"
+    },
+    {
+      "sha256": "55ED99C2FABFFD3FE370B4B89CD2A108C7889F11F1D6125B134FC5EE18EBD7B3",
+      "bytes": 75815,
+      "path": "entry/src/main/resources/rawfile/seed_shoes_20260605_chunk0010.json"
+    },
+    {
+      "sha256": "CAD83B1D7133D43AA799BCBE6176701D42FBE779EA20BA1DD34F7E4845F1F712",
+      "bytes": 1079254,
+      "path": "entry/src/main/resources/rawfile/soleai_neural_embedding_v1.json"
+    },
+    {
+      "sha256": "765BD8CDA7A0529D84B9B7C6CDB974F5BDCE7CC99B17B3474466C5BC5B2EB366",
+      "bytes": 5775704,
+      "path": "entry/src/main/resources/rawfile/soleai_neural_embedding_v1.ms"
+    },
+    {
+      "sha256": "BAC6A76645C48064F198E711301492ACE386110831D381F33BA68A3DB6847BD4",
+      "bytes": 4,
+      "path": "entry/src/mock/mock-config.json5"
+    },
+    {
+      "sha256": "A5B9E3DC7979F961A92AE014AD0F380212F6E83EA6090D512800250640B9BCC0",
+      "bytes": 187,
+      "path": "entry/src/ohosTest/module.json5"
+    },
+    {
+      "sha256": "30C15DC50846BC079D4D5B787DB3F3480E1C8B7B021454346BC63BC13BA42720",
+      "bytes": 1768,
+      "path": "entry/src/ohosTest/ets/test/Ability.test.ets"
+    },
+    {
+      "sha256": "58C6BABAF2BABD4A7C3E36C5E160F37E1A9A739401CA7F7981073E1B3AB5ACCC",
+      "bytes": 103,
+      "path": "entry/src/ohosTest/ets/test/List.test.ets"
+    },
+    {
+      "sha256": "741BAF724FE8512A593D67ACEDFEDD74EA1F93512E50B3E17EBC9C502F731940",
+      "bytes": 109,
+      "path": "entry/src/test/List.test.ets"
+    },
+    {
+      "sha256": "48A8A8362E453B3A2B529B29438A0460E2A362988CF4CDA45D8D604DF132DEDC",
+      "bytes": 1656,
+      "path": "entry/src/test/LocalUnit.test.ets"
+    },
+    {
+      "sha256": "630F4AB2253217051068B08BC5F34ABEA0A63A95E28805065DDCBF9DFD620039",
+      "bytes": 1481,
+      "path": "hvigor/hvigor-config.json5"
+    },
+    {
+      "sha256": "46D1B87A9913197745942B7AAD13D81BF029E71FD07436ED5CF5BFBBB15D01EB",
+      "bytes": 106,
+      "path": "scheduler/build-profile.json5"
+    },
+    {
+      "sha256": "7EC951258192E7CC9EED2296DA8AC7B927A0B90B2F6EDEF70358D515BFE71A1E",
+      "bytes": 107,
+      "path": "scheduler/hvigorfile.ts"
+    },
+    {
+      "sha256": "6D5D5427F07BB974D4C2258523F923E111D20A380B8A376936844F6D145F1FF8",
+      "bytes": 1756,
+      "path": "scheduler/Index.ets"
+    },
+    {
+      "sha256": "C0F7525C313777993A825ECA7548D3130228B6A14D55F8C7C98F5A032DC2776E",
+      "bytes": 239,
+      "path": "scheduler/oh-package.json5"
+    },
+    {
+      "sha256": "D1E32F6DF7C9A1F36327EB19B4049DED04FAA5757BEDCD8ADD5C5DA812732394",
+      "bytes": 107,
+      "path": "scheduler/src/main/module.json5"
+    },
+    {
+      "sha256": "8A3C4FCA8155556B74E553FF23D8E40BCD7B22A4EBAA4AB5D25A7A85388C6B77",
+      "bytes": 819,
+      "path": "scheduler/src/main/ets/api/SchedulerError.ets"
+    },
+    {
+      "sha256": "81E7C318948F49D5C7463D6FB57C262B736F29C6CAA128D1E9378BE75A7A74E2",
+      "bytes": 32820,
+      "path": "scheduler/src/main/ets/api/SchedulerService.ets"
+    },
+    {
+      "sha256": "A84839F831BBF3E55962F6C8539C334BD76AE80112BF063CA8905A1A257D80EC",
+      "bytes": 7318,
+      "path": "scheduler/src/main/ets/api/SchedulerTypes.ets"
+    },
+    {
+      "sha256": "AC2DDDE12A0EF7A3BBB80C0430FE13A98F6BCB97E5AB35493D95EFEAC72F597C",
+      "bytes": 1378,
+      "path": "scheduler/src/main/ets/executor/CancellationController.ets"
+    },
+    {
+      "sha256": "B859FF212A452CE0B0A4880A80D69F351CDCF71B03F08B5823F8DDAC12C08A17",
+      "bytes": 2183,
+      "path": "scheduler/src/main/ets/executor/ExecutorRegistry.ets"
+    },
+    {
+      "sha256": "C0FABB17609285BE800354A01C03F06CE955390F7CE0DA6EE59EB8DBAE5DEFDC",
+      "bytes": 2678,
+      "path": "scheduler/src/main/ets/executor/MockWorkloadExecutor.ets"
+    },
+    {
+      "sha256": "722C655C870A6C97F5063E9F0994DCFB27EB927A10E27188F28D6D5C62520720",
+      "bytes": 4873,
+      "path": "scheduler/src/main/ets/policy/HysteresisController.ets"
+    },
+    {
+      "sha256": "4577FBE7E231DB53482F30FBBEF6AB7F7C07713352B93DDDA3864FCE497311B3",
+      "bytes": 13041,
+      "path": "scheduler/src/main/ets/policy/SchedulerPolicy.ets"
+    },
+    {
+      "sha256": "00A859B9D01AB0FC6EE2BD489CFF022EC006C09AB3C6E91487EE03313F7ECC4F",
+      "bytes": 1490,
+      "path": "scheduler/src/main/ets/policy/SchedulerReasonCode.ets"
+    },
+    {
+      "sha256": "0A74D92A68A1E80ECA1B048A4F7A5282DE783906C627E934505C5EB062E76CE9",
+      "bytes": 3702,
+      "path": "scheduler/src/main/ets/queue/TaskQueue.ets"
+    },
+    {
+      "sha256": "CCBE53348CEF22561353CB252FB63A08916BDFD3DF54E0231017246C515716A4",
+      "bytes": 8435,
+      "path": "scheduler/src/main/ets/state/DeviceStateController.ets"
+    },
+    {
+      "sha256": "4065C07D1E7512E1CE9E1A86F88274A8367B35D02E4430A6BE0A3C08080969D6",
+      "bytes": 4505,
+      "path": "scheduler/src/main/ets/state/HarmonyDeviceStateAdapter.ets"
+    },
+    {
+      "sha256": "DEFE34E8824757FB5A9DC6387B27DD93AE753FF7A560A5F8ECE7F59ACFFB86C8",
+      "bytes": 213,
+      "path": "scheduler/src/test/List.test.ets"
+    },
+    {
+      "sha256": "442B1411FB89F161F991F9D4493B9B842A5D12A2D8DADDBD4E0E1C18C70BD293",
+      "bytes": 13859,
+      "path": "scheduler/src/test/SchedulerUnit.test.ets"
+    },
+    {
+      "sha256": "7259D2522EB04394C9DCDE4F629BB3328D9B971106632FE4367F85F081C34115",
+      "bytes": 10999,
+      "path": "scheduler/src/test/TaskExecutionUnit.test.ets"
+    }
+  ],
+  "sourcePath": "C:\\Users\\17321\\Desktop\\harmonyOS\\HarmonyOS--\\shopping-assistant\\apps",
+  "sourceCommit": "37418e7f2552f6ce9df249569f4784cd3b62ca7c",
+  "includesUncommittedChanges": true
+}

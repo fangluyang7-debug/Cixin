@@ -1,0 +1,1890 @@
+{
+  "copiedAt": "2026-09-18",
+  "sourceDirectory": "shopping-assistant",
+  "sourceCommit": "d9abe23e9c9c8c51ec2ac2d7e91a2b9dfe17e91a",
+  "sourceIncludesWorkingTreeDocuments": true,
+  "mode": "independent-files-no-symlinks",
+  "note": "Source hashes record the migration baseline; destination setup may intentionally differ.",
+  "files": [
+    {
+      "source": "shopping-assistant/.env.example",
+      "target": ".env.example",
+      "sourceSha256": "ac27a057ae02065cbf561334016c1cf9df3e9684f2eb074d0983b0d00cb2276e",
+      "targetSha256": "cb8b857c1c7cf1366bc7a9fc035840b14cda867a177f5fa01c762754aab9b0fb"
+    },
+    {
+      "source": "shopping-assistant/.gitignore",
+      "target": ".gitignore",
+      "sourceSha256": "c225985448676bf5cc4355e1206d067c12384c4644990e43ef1069bbc701c402",
+      "targetSha256": "d163f120ff5476a2037ce404c0d7e504cfd875dd237d9b21905c6b7de8969ff6"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/catalog.html",
+      "target": "apps/test-entry-web/catalog.html",
+      "sourceSha256": "602bb49f89395d7f70ea2ddabc2139044bd89f2da344e83616805df1ff0900c2",
+      "targetSha256": "602bb49f89395d7f70ea2ddabc2139044bd89f2da344e83616805df1ff0900c2"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/debug.html",
+      "target": "apps/test-entry-web/debug.html",
+      "sourceSha256": "b813eb3e508735e47bc10527b1fcc301c87e71fff448690697fab8e15051373e",
+      "targetSha256": "b813eb3e508735e47bc10527b1fcc301c87e71fff448690697fab8e15051373e"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/index.html",
+      "target": "apps/test-entry-web/index.html",
+      "sourceSha256": "362c84df5f194c10b7357ea1a0237c542b2c4da4a5027f6095afc85cb8aff687",
+      "targetSha256": "717227827ffffb813753cb45aea799c86f202275c7f7af2a33d89cae564cf407"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/package.json",
+      "target": "apps/test-entry-web/package.json",
+      "sourceSha256": "b47f69cd4141ceb6ac4458fd0095adc6e90ec0ce3a444680359bce1ef67fe32e",
+      "targetSha256": "2bed4b80d6698f815056d8dc32262e92ac74b2ba979fc0fe186b51af1e0d5825"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/product-pool.html",
+      "target": "apps/test-entry-web/product-pool.html",
+      "sourceSha256": "20cfd94b808086894b994b21445ea22fb6d831971ce46cab002edc5b6993ad3c",
+      "targetSha256": "20cfd94b808086894b994b21445ea22fb6d831971ce46cab002edc5b6993ad3c"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/runtime.html",
+      "target": "apps/test-entry-web/runtime.html",
+      "sourceSha256": "3748d4bf5f7377ea50300583b31dd54898dcedd146c44240fcd9735dd189c032",
+      "targetSha256": "3748d4bf5f7377ea50300583b31dd54898dcedd146c44240fcd9735dd189c032"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/adapt-debugger.css",
+      "target": "apps/test-entry-web/src/adapt-debugger.css",
+      "sourceSha256": "bacfa99bd0e6b3b00889a6a8e1224ea2f974929a3be1a9f1ccf7e5907a604adb",
+      "targetSha256": "bacfa99bd0e6b3b00889a6a8e1224ea2f974929a3be1a9f1ccf7e5907a604adb"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/adapt-debugger.ts",
+      "target": "apps/test-entry-web/src/adapt-debugger.ts",
+      "sourceSha256": "1dc9e6214fc2f9e1744bd33a664906f4e025bbc1de43fcb737a6424de4d38744",
+      "targetSha256": "54560013d158a8be9b131b2d6f18efffed0128951cfb0952e1399ac8ba666131"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/content/site.ts",
+      "target": "apps/test-entry-web/src/content/site.ts",
+      "sourceSha256": "f4f992bb59996d8e3d65ececc0b315b8a1e7de311d6df80926dc78cabdeefc78",
+      "targetSha256": "4c63905f7ed8b3c4228d80f18dc79bb91245978aaca33b88e8659561ece16e33"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/entry.css",
+      "target": "apps/test-entry-web/src/entry.css",
+      "sourceSha256": "0ea01e935a9f9ebd376e3dbdc13c5455ac4bbb120fa5f8911bb98c3a68017788",
+      "disposition": "omitted_after_copy",
+      "reason": "Replaced historical Android showcase styles with harmony-entry.css."
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/entry.ts",
+      "target": "apps/test-entry-web/src/entry.ts",
+      "sourceSha256": "c10868820325e51f8b4fa1a3213b4b9fdd332bf4283734b2d79cac7277bbf65e",
+      "disposition": "omitted_after_copy",
+      "reason": "Replaced Android showcase with src/harmony-entry.ts; no historical screenshots copied."
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/main.ts",
+      "target": "apps/test-entry-web/src/main.ts",
+      "sourceSha256": "eb9200eb7ac77ceac55cc623ae9288c6d9c58b3165aa7cf906b9f8ca9604a0bd",
+      "targetSha256": "2806d404dc6511ba62b0308430446d2b77ae0e5f8997bbb2aff1818c551889d2"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-catalog.css",
+      "target": "apps/test-entry-web/src/product-catalog.css",
+      "sourceSha256": "1b77d810383244a1c0fe0e6431fe0e2b160d04aee02ac118555a19f79565d9e5",
+      "targetSha256": "1b77d810383244a1c0fe0e6431fe0e2b160d04aee02ac118555a19f79565d9e5"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-catalog.ts",
+      "target": "apps/test-entry-web/src/product-catalog.ts",
+      "sourceSha256": "38cee72b38e245aa4aadf8333cba017250a6a67a715ce17284a58a26b94b66ea",
+      "targetSha256": "abfa0015687dacfaad4a2fa58c5dafcf06a349a5d84ef4229693a5c940d6e932"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-pool/admin.css",
+      "target": "apps/test-entry-web/src/product-pool/admin.css",
+      "sourceSha256": "16201bfe75efb26ef79c20bf3716ff0b41957be71bb9fa1dad39bbb73767b0fd",
+      "targetSha256": "16201bfe75efb26ef79c20bf3716ff0b41957be71bb9fa1dad39bbb73767b0fd"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-pool/admin.ts",
+      "target": "apps/test-entry-web/src/product-pool/admin.ts",
+      "sourceSha256": "598698c61ad064de3dbb5a811e416424309175d9d8266ea91eb128ec83a7d963",
+      "targetSha256": "4605265926f54beb104d226a6291045044b5933921a60e4b09b43ecf245ffdbe"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-pool/api.ts",
+      "target": "apps/test-entry-web/src/product-pool/api.ts",
+      "sourceSha256": "9090f343f103edb6bebfcadb8bd25ceac8fbf9bbb41ee4cc1657086fa4d0a4e1",
+      "targetSha256": "9090f343f103edb6bebfcadb8bd25ceac8fbf9bbb41ee4cc1657086fa4d0a4e1"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/product-pool/types.ts",
+      "target": "apps/test-entry-web/src/product-pool/types.ts",
+      "sourceSha256": "171e6618c735a9f7f193fbe8203ec2f0fc97df5b9e713180422367b39065f22c",
+      "targetSha256": "171e6618c735a9f7f193fbe8203ec2f0fc97df5b9e713180422367b39065f22c"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/runtime-monitor.css",
+      "target": "apps/test-entry-web/src/runtime-monitor.css",
+      "sourceSha256": "d5198f3829a8c45b9e3a8e314bfd6b7dda4555827e2216aab24d8f21f58bd042",
+      "targetSha256": "d5198f3829a8c45b9e3a8e314bfd6b7dda4555827e2216aab24d8f21f58bd042"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/runtime-monitor.ts",
+      "target": "apps/test-entry-web/src/runtime-monitor.ts",
+      "sourceSha256": "2939bc3978681738c36e616d382424431032a91e3308d72b08953f0840495fbb",
+      "targetSha256": "db36ae3561cd39879ff33234d8ae6d3235d140c04a9c3c2ee6b79055350c1972"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/runtime-plan.ts",
+      "target": "apps/test-entry-web/src/runtime-plan.ts",
+      "sourceSha256": "2023258ab872b4d8ab122364f85f02c6aed452a6712fb6e306b0fb9edcdb97ee",
+      "targetSha256": "2023258ab872b4d8ab122364f85f02c6aed452a6712fb6e306b0fb9edcdb97ee"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/styles.css",
+      "target": "apps/test-entry-web/src/styles.css",
+      "sourceSha256": "80b73be544d28da2649f372e9d0b9513442c53f1fa3b2c9fc028e6c8d119873f",
+      "targetSha256": "80b73be544d28da2649f372e9d0b9513442c53f1fa3b2c9fc028e6c8d119873f"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/src/vite-env.d.ts",
+      "target": "apps/test-entry-web/src/vite-env.d.ts",
+      "sourceSha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92",
+      "targetSha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/tsconfig.json",
+      "target": "apps/test-entry-web/tsconfig.json",
+      "sourceSha256": "037d06d7d4a8cb5bb0fadcc0198a98c5de61b862a28e45b2935db54573d4c61e",
+      "targetSha256": "037d06d7d4a8cb5bb0fadcc0198a98c5de61b862a28e45b2935db54573d4c61e"
+    },
+    {
+      "source": "shopping-assistant/apps/test-entry-web/vite.config.ts",
+      "target": "apps/test-entry-web/vite.config.ts",
+      "sourceSha256": "977935e2e1087eb05a5de1ee3cc7387f790e094eaa1ac879cfb0d4619879c5f6",
+      "targetSha256": "5abfcbb45ed4841827cfb404f2fd85cd53e1ee77f14c85ad4e1711cb56a8ba66"
+    },
+    {
+      "source": "shopping-assistant/package-lock.json",
+      "target": "package-lock.json",
+      "sourceSha256": "6c36af1362be41d5b2ae8448c5e8930a6d8d6ae856ad561e3e4bb3eeccb2449a",
+      "targetSha256": "33404538544db709cbc9ab9af6600f40c7ecb66f83b9015b9c595e4f350be7f3"
+    },
+    {
+      "source": "shopping-assistant/scripts/with-root-env.mjs",
+      "target": "scripts/with-root-env.mjs",
+      "sourceSha256": "82eae5f8d2da487f510739102d9ac90c56ccd39a140afa0c4d5ea0ebf7e356ac",
+      "targetSha256": "82eae5f8d2da487f510739102d9ac90c56ccd39a140afa0c4d5ea0ebf7e356ac"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/nest-cli.json",
+      "target": "services/api-server/nest-cli.json",
+      "sourceSha256": "c12c7e945fca8bd1f9d8b0012eded534ad7043c2d13c4d3612ed2fcc59d1e8a5",
+      "targetSha256": "c12c7e945fca8bd1f9d8b0012eded534ad7043c2d13c4d3612ed2fcc59d1e8a5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/package.json",
+      "target": "services/api-server/package.json",
+      "sourceSha256": "e2cbb9d43a5de6383ec659b5c527450cd86caead6afd2d89fef379d3c07d949a",
+      "targetSha256": "aaaac888948ffdb1429b0032a584bb2e0da1d6de34e47d66f334669d8417660e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000001_init/migration.sql",
+      "target": "services/api-server/prisma/migrations/000001_init/migration.sql",
+      "sourceSha256": "324c5739b9acae98a8dd634b2c4f880e2f4562d3c5a1d32a92d63c2aba1fe7d1",
+      "targetSha256": "324c5739b9acae98a8dd634b2c4f880e2f4562d3c5a1d32a92d63c2aba1fe7d1"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000002_product_image_embedding_metadata/migration.sql",
+      "target": "services/api-server/prisma/migrations/000002_product_image_embedding_metadata/migration.sql",
+      "sourceSha256": "b0c7722137dd989475a5a694175ea7b6d28d44861745a5f11a73a54861aa345f",
+      "targetSha256": "b0c7722137dd989475a5a694175ea7b6d28d44861745a5f11a73a54861aa345f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000003_product_embedding_preprocess_metadata/migration.sql",
+      "target": "services/api-server/prisma/migrations/000003_product_embedding_preprocess_metadata/migration.sql",
+      "sourceSha256": "9a025358edac016bf6685426d567a96b2dfee70233bccae87900d5af06a23c12",
+      "targetSha256": "9a025358edac016bf6685426d567a96b2dfee70233bccae87900d5af06a23c12"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000004_query_image_preprocess_snapshot/migration.sql",
+      "target": "services/api-server/prisma/migrations/000004_query_image_preprocess_snapshot/migration.sql",
+      "sourceSha256": "07f854badf17c6b71e40c3e9de4ebed2121fa911bd5a801dbfead1e6d62c3418",
+      "targetSha256": "07f854badf17c6b71e40c3e9de4ebed2121fa911bd5a801dbfead1e6d62c3418"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000005_candidate_pagination/migration.sql",
+      "target": "services/api-server/prisma/migrations/000005_candidate_pagination/migration.sql",
+      "sourceSha256": "c4733b2da49a6f64a0e1675d27567851df1af45dd63f92921e292f2227cdd325",
+      "targetSha256": "c4733b2da49a6f64a0e1675d27567851df1af45dd63f92921e292f2227cdd325"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000006_product_embedding_kind/migration.sql",
+      "target": "services/api-server/prisma/migrations/000006_product_embedding_kind/migration.sql",
+      "sourceSha256": "390a3e78c24f81fc093a986d3b7e1ce00b6f807209f7f9ce08e434a064388dcc",
+      "targetSha256": "390a3e78c24f81fc093a986d3b7e1ce00b6f807209f7f9ce08e434a064388dcc"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000007_product_category_scope/migration.sql",
+      "target": "services/api-server/prisma/migrations/000007_product_category_scope/migration.sql",
+      "sourceSha256": "b73170aa0f7c67e59d1eff16269f74ab8aaa58c5be5299b61b28b50f5d6090bd",
+      "targetSha256": "b73170aa0f7c67e59d1eff16269f74ab8aaa58c5be5299b61b28b50f5d6090bd"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000008_product_import_rollback/migration.sql",
+      "target": "services/api-server/prisma/migrations/000008_product_import_rollback/migration.sql",
+      "sourceSha256": "3f09c00db070878bf96e2c5b6f4d848f3a8a9207ce6afb46465542de432b9e9e",
+      "targetSha256": "3f09c00db070878bf96e2c5b6f4d848f3a8a9207ce6afb46465542de432b9e9e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000009_session_cart/migration.sql",
+      "target": "services/api-server/prisma/migrations/000009_session_cart/migration.sql",
+      "sourceSha256": "7f154881fc14070fa848a6dc7672a1b432c4f1647770274951123296816fa818",
+      "targetSha256": "7f154881fc14070fa848a6dc7672a1b432c4f1647770274951123296816fa818"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000010_search_speed_indexes/migration.sql",
+      "target": "services/api-server/prisma/migrations/000010_search_speed_indexes/migration.sql",
+      "sourceSha256": "d3d8221d352d6d4afca36ebed7571d12aa3adae59c74987da0d9cf3785d7cb29",
+      "targetSha256": "d3d8221d352d6d4afca36ebed7571d12aa3adae59c74987da0d9cf3785d7cb29"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/migrations/000011_product_pool_stats_snapshot/migration.sql",
+      "target": "services/api-server/prisma/migrations/000011_product_pool_stats_snapshot/migration.sql",
+      "sourceSha256": "07b86fdd44d02010e9064f898d6c6061b1bc98893c6bb01a9ceac810756a5481",
+      "targetSha256": "07b86fdd44d02010e9064f898d6c6061b1bc98893c6bb01a9ceac810756a5481"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/patch-sqlite-schema.mjs",
+      "target": "services/api-server/prisma/patch-sqlite-schema.mjs",
+      "sourceSha256": "3d802838fb51e4eaf61484b1a7ddd81f4fda82bd2e412a08518db7cd32d6ca1a",
+      "targetSha256": "3d802838fb51e4eaf61484b1a7ddd81f4fda82bd2e412a08518db7cd32d6ca1a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/prisma/schema.prisma",
+      "target": "services/api-server/prisma/schema.prisma",
+      "sourceSha256": "e379acffb4e6716a91475934664310d1fccf4dd62939b9d1a577e995051335c2",
+      "targetSha256": "e379acffb4e6716a91475934664310d1fccf4dd62939b9d1a577e995051335c2"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/scripts/cache-smoke.ts",
+      "target": "services/api-server/scripts/cache-smoke.ts",
+      "sourceSha256": "fec4e4d50409d1fd3a9e25a8d471ac596c56f6f9d415776ba541652c6b6520bd",
+      "targetSha256": "fec4e4d50409d1fd3a9e25a8d471ac596c56f6f9d415776ba541652c6b6520bd"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/scripts/conversation-routing-smoke.ts",
+      "target": "services/api-server/scripts/conversation-routing-smoke.ts",
+      "sourceSha256": "74c15ffc3b2f0e00a8c6dda6d4a266ccadd5928e4eff1bb015296ee23727892e",
+      "targetSha256": "74c15ffc3b2f0e00a8c6dda6d4a266ccadd5928e4eff1bb015296ee23727892e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/chained-content-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/content-search/chained-content-search-provider.service.ts",
+      "sourceSha256": "42a1f255feb8fd79696c43e417fd3ecd6956a8c3f84907a9af6f11e057cb1e61",
+      "targetSha256": "42a1f255feb8fd79696c43e417fd3ecd6956a8c3f84907a9af6f11e057cb1e61"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/content-search-debug.controller.ts",
+      "target": "services/api-server/src/adapters/content-search/content-search-debug.controller.ts",
+      "sourceSha256": "a82d9b059be7d50956a586e3b5aaa36bc5bb2322fa3a5000f90caa58ed6a7beb",
+      "targetSha256": "a82d9b059be7d50956a586e3b5aaa36bc5bb2322fa3a5000f90caa58ed6a7beb"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/content-search-provider.interface.ts",
+      "target": "services/api-server/src/adapters/content-search/content-search-provider.interface.ts",
+      "sourceSha256": "938b891c5432633eae0583625ccb2cfbbeb2e93b8dac884fb1cf5045ca8497e8",
+      "targetSha256": "938b891c5432633eae0583625ccb2cfbbeb2e93b8dac884fb1cf5045ca8497e8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/content-search-source.util.ts",
+      "target": "services/api-server/src/adapters/content-search/content-search-source.util.ts",
+      "sourceSha256": "fe2535b5a777c0eb8ec237aed92a199b7c92957d97cf73a7cf64a0773ed3fc29",
+      "targetSha256": "fe2535b5a777c0eb8ec237aed92a199b7c92957d97cf73a7cf64a0773ed3fc29"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/content-search.constants.ts",
+      "target": "services/api-server/src/adapters/content-search/content-search.constants.ts",
+      "sourceSha256": "a94850e4cf86f696bbc13d1b629ef97a21e2d2de510c35cf1a7f63ac4273194b",
+      "targetSha256": "a94850e4cf86f696bbc13d1b629ef97a21e2d2de510c35cf1a7f63ac4273194b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/content-search.module.ts",
+      "target": "services/api-server/src/adapters/content-search/content-search.module.ts",
+      "sourceSha256": "b64cca71983d6b54b81f2474aad16cfe8f7f29d7e5dcb276bbfb61c3c98e5132",
+      "targetSha256": "b64cca71983d6b54b81f2474aad16cfe8f7f29d7e5dcb276bbfb61c3c98e5132"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/noop-content-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/content-search/noop-content-search-provider.service.ts",
+      "sourceSha256": "26d2a2d3764f43bf04547108e96f96163e446c7fa45627fe7e16253977d5f037",
+      "targetSha256": "26d2a2d3764f43bf04547108e96f96163e446c7fa45627fe7e16253977d5f037"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/selectable-content-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/content-search/selectable-content-search-provider.service.ts",
+      "sourceSha256": "5c1a1bb6f3aaa6447b305a61792263c8391fc8db818f28ba076976235d510b5c",
+      "targetSha256": "5c1a1bb6f3aaa6447b305a61792263c8391fc8db818f28ba076976235d510b5c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/serpapi-content-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/content-search/serpapi-content-search-provider.service.ts",
+      "sourceSha256": "987111009074bb437903cf2d96eca3bc1b45057664e89260e4ac82253dac0e14",
+      "targetSha256": "987111009074bb437903cf2d96eca3bc1b45057664e89260e4ac82253dac0e14"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/content-search/serper-content-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/content-search/serper-content-search-provider.service.ts",
+      "sourceSha256": "ce1876952ffb80ef2113384b9f4729722d03893818ae7483a4e3b88891b8af2b",
+      "targetSha256": "ce1876952ffb80ef2113384b9f4729722d03893818ae7483a4e3b88891b8af2b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/marketplace/marketplace-aggregate-search-provider.service.ts",
+      "target": "services/api-server/src/adapters/marketplace/marketplace-aggregate-search-provider.service.ts",
+      "sourceSha256": "ada0213e49e789ef7a18c207260787aa510befd0d1ad81e4ba2f9af72746aa06",
+      "targetSha256": "ada0213e49e789ef7a18c207260787aa510befd0d1ad81e4ba2f9af72746aa06"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/marketplace/marketplace-platform.types.ts",
+      "target": "services/api-server/src/adapters/marketplace/marketplace-platform.types.ts",
+      "sourceSha256": "19ad5aebb05ba14f5e106237267c552934399b6903a8185296b6e9e794fdaaeb",
+      "targetSha256": "19ad5aebb05ba14f5e106237267c552934399b6903a8185296b6e9e794fdaaeb"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/marketplace/official-api-marketplace-adapter.service.ts",
+      "target": "services/api-server/src/adapters/marketplace/official-api-marketplace-adapter.service.ts",
+      "sourceSha256": "122e9633ff04b9cff045a5aae5b550042acbce2241b2602b1e308c84041093f9",
+      "targetSha256": "122e9633ff04b9cff045a5aae5b550042acbce2241b2602b1e308c84041093f9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/model/model-adapter.interface.ts",
+      "target": "services/api-server/src/adapters/model/model-adapter.interface.ts",
+      "sourceSha256": "7b2947f7e892c1a7fdbddfe62485bad5361f3f699fcc1247bd3920e79381a0ed",
+      "targetSha256": "7b2947f7e892c1a7fdbddfe62485bad5361f3f699fcc1247bd3920e79381a0ed"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/model/openai-compatible-model-adapter.service.ts",
+      "target": "services/api-server/src/adapters/model/openai-compatible-model-adapter.service.ts",
+      "sourceSha256": "ec50c467628085592ff2e223bd756a6e6f758d0c196be1baa4c6b1732420969e",
+      "targetSha256": "ec50c467628085592ff2e223bd756a6e6f758d0c196be1baa4c6b1732420969e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/search-provider/search-provider.interface.ts",
+      "target": "services/api-server/src/adapters/search-provider/search-provider.interface.ts",
+      "sourceSha256": "04aa306748de68477671576be3328309e7d7b86c3bc2cb61b0173b901aaedbb1",
+      "targetSha256": "04aa306748de68477671576be3328309e7d7b86c3bc2cb61b0173b901aaedbb1"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/storage/storage-adapter.interface.ts",
+      "target": "services/api-server/src/adapters/storage/storage-adapter.interface.ts",
+      "sourceSha256": "8f1105ebc27eb381ee1c479d0dbe5ff5a066791e6f63278ccb2fc17296c0b4db",
+      "targetSha256": "8f1105ebc27eb381ee1c479d0dbe5ff5a066791e6f63278ccb2fc17296c0b4db"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/storage/storage.constants.ts",
+      "target": "services/api-server/src/adapters/storage/storage.constants.ts",
+      "sourceSha256": "d456f4f7003931731bbc2c48273a8fe218c13aa7e92cd88a9b4f94c3b4333fc6",
+      "targetSha256": "d456f4f7003931731bbc2c48273a8fe218c13aa7e92cd88a9b4f94c3b4333fc6"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/adapters/storage/tencent-cos-storage-adapter.service.ts",
+      "target": "services/api-server/src/adapters/storage/tencent-cos-storage-adapter.service.ts",
+      "sourceSha256": "5e125f608ca22895d639892530c16717ddad6aa0ccd607990971e4833a8b94ad",
+      "targetSha256": "5e125f608ca22895d639892530c16717ddad6aa0ccd607990971e4833a8b94ad"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/app.module.ts",
+      "target": "services/api-server/src/app.module.ts",
+      "sourceSha256": "d8b88c3b4829f90f49744cdc788cbed160a42253bf5c497a9a65bfb99a481936",
+      "targetSha256": "d8b88c3b4829f90f49744cdc788cbed160a42253bf5c497a9a65bfb99a481936"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/bootstrap/configure-app.ts",
+      "target": "services/api-server/src/bootstrap/configure-app.ts",
+      "sourceSha256": "6f22d56773dc1b647e6c72aef2553d45272ac68e80510e2555319210f5fc1b11",
+      "targetSha256": "6f22d56773dc1b647e6c72aef2553d45272ac68e80510e2555319210f5fc1b11"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/cache-key.util.ts",
+      "target": "services/api-server/src/cache/cache-key.util.ts",
+      "sourceSha256": "35e3abf91521087f0359bc427ed7a7c41a054d2df7a4414e4f66abdef24f922d",
+      "targetSha256": "35e3abf91521087f0359bc427ed7a7c41a054d2df7a4414e4f66abdef24f922d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/cache-namespaces.ts",
+      "target": "services/api-server/src/cache/cache-namespaces.ts",
+      "sourceSha256": "0323c3edfe54e0d523b3287bb6b6cd0cb240394962802feb1ed9c59260c42e71",
+      "targetSha256": "0323c3edfe54e0d523b3287bb6b6cd0cb240394962802feb1ed9c59260c42e71"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/cache.constants.ts",
+      "target": "services/api-server/src/cache/cache.constants.ts",
+      "sourceSha256": "4c1eba5f331f1b2a25eaee8ae0c775e6ace8468140cecea498b7a0f82d228475",
+      "targetSha256": "4c1eba5f331f1b2a25eaee8ae0c775e6ace8468140cecea498b7a0f82d228475"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/cache.module.ts",
+      "target": "services/api-server/src/cache/cache.module.ts",
+      "sourceSha256": "b85525d9076fcfbffbabae777d5bd3dab58dbf13e02debfc1df8f41a937049d4",
+      "targetSha256": "b85525d9076fcfbffbabae777d5bd3dab58dbf13e02debfc1df8f41a937049d4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/implementations/in-memory-cache.store.ts",
+      "target": "services/api-server/src/cache/implementations/in-memory-cache.store.ts",
+      "sourceSha256": "5efb67594117e9dad134d696716492e56fa7871390e3bd658aa6f69fcd7503e0",
+      "targetSha256": "5efb67594117e9dad134d696716492e56fa7871390e3bd658aa6f69fcd7503e0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/cache/interfaces/cache-store.interface.ts",
+      "target": "services/api-server/src/cache/interfaces/cache-store.interface.ts",
+      "sourceSha256": "19a25f6fafebef23b15303d1b47163c8968d58edc7c999381e9981c2026dfeed",
+      "targetSha256": "19a25f6fafebef23b15303d1b47163c8968d58edc7c999381e9981c2026dfeed"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/catalog/product-categories.ts",
+      "target": "services/api-server/src/common/catalog/product-categories.ts",
+      "sourceSha256": "106971096157dcb689fa93b99077631dbe455514bfb5b8af351c0ae3ff577f4a",
+      "targetSha256": "106971096157dcb689fa93b99077631dbe455514bfb5b8af351c0ae3ff577f4a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/config/configuration.ts",
+      "target": "services/api-server/src/common/config/configuration.ts",
+      "sourceSha256": "3e0c62c8669ab9793f8b203472ffc60d2a3e0a6c84d5a501ea8af00637522139",
+      "targetSha256": "25358ba5bcf8de8b337b339eb49f6a0680518352a6039418bc96642c129f7f50"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/dto/api-response.dto.ts",
+      "target": "services/api-server/src/common/dto/api-response.dto.ts",
+      "sourceSha256": "92a457b905599244cb39aaecb5666b01d20eb4050bead717e65db4dcba2b3fe5",
+      "targetSha256": "92a457b905599244cb39aaecb5666b01d20eb4050bead717e65db4dcba2b3fe5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/filters/api-exception.filter.ts",
+      "target": "services/api-server/src/common/filters/api-exception.filter.ts",
+      "sourceSha256": "58213a63b3ddf578417cc608b2dbff03be50ebc5a6dd441c83758af7116725da",
+      "targetSha256": "58213a63b3ddf578417cc608b2dbff03be50ebc5a6dd441c83758af7116725da"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/platforms/platform-normalization.ts",
+      "target": "services/api-server/src/common/platforms/platform-normalization.ts",
+      "sourceSha256": "1bf8e57a86fa3c4d9f137f31160f91ab8f637f1f7a423caf1a7dc7695a0ba5f3",
+      "targetSha256": "1bf8e57a86fa3c4d9f137f31160f91ab8f637f1f7a423caf1a7dc7695a0ba5f3"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/shopping/conversation-filter-definition.ts",
+      "target": "services/api-server/src/common/shopping/conversation-filter-definition.ts",
+      "sourceSha256": "23d61705c6b9f810dd670da9e87812dc8e27818012f49c7c2cd5b59c63549f59",
+      "targetSha256": "23d61705c6b9f810dd670da9e87812dc8e27818012f49c7c2cd5b59c63549f59"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/shopping/shopping-filter-heuristics.ts",
+      "target": "services/api-server/src/common/shopping/shopping-filter-heuristics.ts",
+      "sourceSha256": "6a1e5543085a014bd763fb68d95db00656a81d756026f71c3f492cb5d7813850",
+      "targetSha256": "6a1e5543085a014bd763fb68d95db00656a81d756026f71c3f492cb5d7813850"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/shopping/shopping-language-analyzer.ts",
+      "target": "services/api-server/src/common/shopping/shopping-language-analyzer.ts",
+      "sourceSha256": "f3fb787050e823aea7b07bcba55309572e4509e4b108c96fa2f3a75a5d2664f7",
+      "targetSha256": "f3fb787050e823aea7b07bcba55309572e4509e4b108c96fa2f3a75a5d2664f7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/shopping/shopping-message-validation.ts",
+      "target": "services/api-server/src/common/shopping/shopping-message-validation.ts",
+      "sourceSha256": "f1f221c097859bb98f6a1e48ad44738d9690dfdb54881aadb1a97f89d802f636",
+      "targetSha256": "f1f221c097859bb98f6a1e48ad44738d9690dfdb54881aadb1a97f89d802f636"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/utils/id.ts",
+      "target": "services/api-server/src/common/utils/id.ts",
+      "sourceSha256": "34a7f264190ddae473b54a928611a941fd6f6de0b20c35677b16195c0bc9f14a",
+      "targetSha256": "34a7f264190ddae473b54a928611a941fd6f6de0b20c35677b16195c0bc9f14a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/common/utils/json.ts",
+      "target": "services/api-server/src/common/utils/json.ts",
+      "sourceSha256": "45bb05c9b142fb637f54c530f5f1faabdc93201929b932055df420f7ac95391a",
+      "targetSha256": "45bb05c9b142fb637f54c530f5f1faabdc93201929b932055df420f7ac95391a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/conversation.contracts.ts",
+      "target": "services/api-server/src/core/contracts/conversation.contracts.ts",
+      "sourceSha256": "3108b8cfb66217864bf338c19f215e33c405fb13c162b364e583c74c06d22f30",
+      "targetSha256": "3108b8cfb66217864bf338c19f215e33c405fb13c162b364e583c74c06d22f30"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/image.contracts.ts",
+      "target": "services/api-server/src/core/contracts/image.contracts.ts",
+      "sourceSha256": "7f1be33d934c3d07753c3a079c925c4f20f685f6e1c48823ca4f2aace4e7dffd",
+      "targetSha256": "7f1be33d934c3d07753c3a079c925c4f20f685f6e1c48823ca4f2aace4e7dffd"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/index.ts",
+      "target": "services/api-server/src/core/contracts/index.ts",
+      "sourceSha256": "2f70fdfa8dcee9ba64b5ec67e3ae545f62b0ed842238f53e0e6ef871c7c3f352",
+      "targetSha256": "2f70fdfa8dcee9ba64b5ec67e3ae545f62b0ed842238f53e0e6ef871c7c3f352"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/product.contracts.ts",
+      "target": "services/api-server/src/core/contracts/product.contracts.ts",
+      "sourceSha256": "d77e1a943034a5c3d48dd3c9b3766b239f3a3f9ff639768df8133a0178102777",
+      "targetSha256": "d77e1a943034a5c3d48dd3c9b3766b239f3a3f9ff639768df8133a0178102777"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/search.contracts.ts",
+      "target": "services/api-server/src/core/contracts/search.contracts.ts",
+      "sourceSha256": "d93433bc72753172bb896c1d96ed177bd1056182e829d9779acdff722f3df3f7",
+      "targetSha256": "d93433bc72753172bb896c1d96ed177bd1056182e829d9779acdff722f3df3f7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/contracts/user-memory.contracts.ts",
+      "target": "services/api-server/src/core/contracts/user-memory.contracts.ts",
+      "sourceSha256": "48aa21579078e2a1610381643a9fbcb67f535470aa4f40b793c89305e5012faf",
+      "targetSha256": "48aa21579078e2a1610381643a9fbcb67f535470aa4f40b793c89305e5012faf"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/agent-runtime.service.ts",
+      "target": "services/api-server/src/core/runtime/agent-runtime.service.ts",
+      "sourceSha256": "2f7c46c670420cec9f6653f350ee105ea417f4bb3ac4a87344061c34f2aa5733",
+      "targetSha256": "2f7c46c670420cec9f6653f350ee105ea417f4bb3ac4a87344061c34f2aa5733"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/cloud-platform-adapter.service.ts",
+      "target": "services/api-server/src/core/runtime/cloud-platform-adapter.service.ts",
+      "sourceSha256": "201718a1723bff6b0a7b1d52ed03da6336d6bcfa65db21b4d5d85e8cc3cea10d",
+      "targetSha256": "201718a1723bff6b0a7b1d52ed03da6336d6bcfa65db21b4d5d85e8cc3cea10d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/host-platform-adapter.service.ts",
+      "target": "services/api-server/src/core/runtime/host-platform-adapter.service.ts",
+      "sourceSha256": "6ef1989a779c56a65ec91422da80f16c41d1626e5482bba3372871dbdb9166bd",
+      "targetSha256": "6ef1989a779c56a65ec91422da80f16c41d1626e5482bba3372871dbdb9166bd"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/image-search-task-graph.ts",
+      "target": "services/api-server/src/core/runtime/image-search-task-graph.ts",
+      "sourceSha256": "e06dabbc1e600b8258faf000d8e8878ce30edd374ad7106533ee27bd12bd8e11",
+      "targetSha256": "e06dabbc1e600b8258faf000d8e8878ce30edd374ad7106533ee27bd12bd8e11"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/performance-registry.service.ts",
+      "target": "services/api-server/src/core/runtime/performance-registry.service.ts",
+      "sourceSha256": "e50aca8b6e24b78c5b8aebfecb346dd8b0e80e770b58ff6eb3cad2bc4915bfbc",
+      "targetSha256": "e50aca8b6e24b78c5b8aebfecb346dd8b0e80e770b58ff6eb3cad2bc4915bfbc"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/platform-adapter.interface.ts",
+      "target": "services/api-server/src/core/runtime/platform-adapter.interface.ts",
+      "sourceSha256": "dedd2ecf867beb5ba1d2f17e28649ad68ebb591f0b01d98164011acbc764d292",
+      "targetSha256": "dedd2ecf867beb5ba1d2f17e28649ad68ebb591f0b01d98164011acbc764d292"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/platform-discovery.service.ts",
+      "target": "services/api-server/src/core/runtime/platform-discovery.service.ts",
+      "sourceSha256": "67d579af47c90649951dda7d39a1d2956d5f7666b9fc040e98a28e12065b5d40",
+      "targetSha256": "67d579af47c90649951dda7d39a1d2956d5f7666b9fc040e98a28e12065b5d40"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/runtime-event-bus.service.ts",
+      "target": "services/api-server/src/core/runtime/runtime-event-bus.service.ts",
+      "sourceSha256": "0c95e2807fa4a19123b366bff589f575ba5d742721f3b68f2318cfcd347ce8e8",
+      "targetSha256": "0c95e2807fa4a19123b366bff589f575ba5d742721f3b68f2318cfcd347ce8e8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/runtime-run.service.ts",
+      "target": "services/api-server/src/core/runtime/runtime-run.service.ts",
+      "sourceSha256": "4c4aaa06a45b6276c076162bf4e4dde0bced4e47c8abbdb0d0f7075bf8b863b0",
+      "targetSha256": "4c4aaa06a45b6276c076162bf4e4dde0bced4e47c8abbdb0d0f7075bf8b863b0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/runtime-snapshot.service.ts",
+      "target": "services/api-server/src/core/runtime/runtime-snapshot.service.ts",
+      "sourceSha256": "e7def3e9d35f805f7d2b5bd5cb7951c39b65f73f9776e420da7e5c9a9f1dce72",
+      "targetSha256": "e7def3e9d35f805f7d2b5bd5cb7951c39b65f73f9776e420da7e5c9a9f1dce72"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/runtime.contracts.ts",
+      "target": "services/api-server/src/core/runtime/runtime.contracts.ts",
+      "sourceSha256": "748b0b49ffee4446fdc6a950d9da29133d010df00d7ba7017a3ced7bf1bf3acc",
+      "targetSha256": "748b0b49ffee4446fdc6a950d9da29133d010df00d7ba7017a3ced7bf1bf3acc"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/scheduler.service.ts",
+      "target": "services/api-server/src/core/runtime/scheduler.service.ts",
+      "sourceSha256": "35701cd576da91d07f1f3f01371515752713244c1c05aa7539503be0c40850f0",
+      "targetSha256": "35701cd576da91d07f1f3f01371515752713244c1c05aa7539503be0c40850f0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/shopping-plugin.ts",
+      "target": "services/api-server/src/core/runtime/shopping-plugin.ts",
+      "sourceSha256": "696e2cae8f0df929f268d7c1dd51e558c3a036d8c8df171e3852969c0932d750",
+      "targetSha256": "696e2cae8f0df929f268d7c1dd51e558c3a036d8c8df171e3852969c0932d750"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/telemetry.service.ts",
+      "target": "services/api-server/src/core/runtime/telemetry.service.ts",
+      "sourceSha256": "6006b05ff769a31a93fc26d2cd43b944fa5328cee1af957a0cfb5eab4ccd3882",
+      "targetSha256": "6006b05ff769a31a93fc26d2cd43b944fa5328cee1af957a0cfb5eab4ccd3882"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/tool-registry.service.ts",
+      "target": "services/api-server/src/core/runtime/tool-registry.service.ts",
+      "sourceSha256": "05fd033a9ce23b0848a44c2dc41997689dac68dff2c6fe6e453a2136fdb09e0d",
+      "targetSha256": "05fd033a9ce23b0848a44c2dc41997689dac68dff2c6fe6e453a2136fdb09e0d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/core/runtime/unavailable-platform-adapters.service.ts",
+      "target": "services/api-server/src/core/runtime/unavailable-platform-adapters.service.ts",
+      "sourceSha256": "180b5f13d2d7b5f3989f6aa3d451c96ec29a2b79ea3c51ab05cda074ad36e6c7",
+      "targetSha256": "180b5f13d2d7b5f3989f6aa3d451c96ec29a2b79ea3c51ab05cda074ad36e6c7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/main.ts",
+      "target": "services/api-server/src/main.ts",
+      "sourceSha256": "81f1a156f0b0e47e3a70ff65bd00ab62b310abf2f978f88b332c49142475324c",
+      "targetSha256": "4ba0e94cd0fee3e8614b56dc4218ca72e3ffd1806ff769f252e76d93938efae5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/application/assets.service.ts",
+      "target": "services/api-server/src/modules/assets/application/assets.service.ts",
+      "sourceSha256": "c0a6095dbe9399778380406391129522cb096e4d274e3b4f9f23e08fae51312d",
+      "targetSha256": "c0a6095dbe9399778380406391129522cb096e4d274e3b4f9f23e08fae51312d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/application/image-asset-adapter.interface.ts",
+      "target": "services/api-server/src/modules/assets/application/image-asset-adapter.interface.ts",
+      "sourceSha256": "b1250315d611eae0b7991a54de8b6b4414a33a04271dd5dcbe811b0153bf5091",
+      "targetSha256": "b1250315d611eae0b7991a54de8b6b4414a33a04271dd5dcbe811b0153bf5091"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/application/standard-image-asset-adapter.service.ts",
+      "target": "services/api-server/src/modules/assets/application/standard-image-asset-adapter.service.ts",
+      "sourceSha256": "b977335e7dc369e0389206c888a2d96af056c44cd4314953c44d099fa537db96",
+      "targetSha256": "b977335e7dc369e0389206c888a2d96af056c44cd4314953c44d099fa537db96"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/assets.module.ts",
+      "target": "services/api-server/src/modules/assets/assets.module.ts",
+      "sourceSha256": "2f6f942332689285bbccae5ddc3c33f7b27aa5072dae96b1400f7a12574132f0",
+      "targetSha256": "2f6f942332689285bbccae5ddc3c33f7b27aa5072dae96b1400f7a12574132f0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/controllers/assets.controller.ts",
+      "target": "services/api-server/src/modules/assets/controllers/assets.controller.ts",
+      "sourceSha256": "b2fb6c877ac330eb44d3018f79c8d64b9cbdbbb0c231c9dfa0816626698e6f84",
+      "targetSha256": "b2fb6c877ac330eb44d3018f79c8d64b9cbdbbb0c231c9dfa0816626698e6f84"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/dto/create-image-asset.dto.ts",
+      "target": "services/api-server/src/modules/assets/dto/create-image-asset.dto.ts",
+      "sourceSha256": "429b77cf2b8f0c63c4dc185b681891320f84c10c5ab7168c327980fd34a4f763",
+      "targetSha256": "429b77cf2b8f0c63c4dc185b681891320f84c10c5ab7168c327980fd34a4f763"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/assets/dto/uploaded-image-file.ts",
+      "target": "services/api-server/src/modules/assets/dto/uploaded-image-file.ts",
+      "sourceSha256": "6c9267727b8beaab53770646d1f95888d648e7bd5f7d97fee3f78bdcf36d72de",
+      "targetSha256": "6c9267727b8beaab53770646d1f95888d648e7bd5f7d97fee3f78bdcf36d72de"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/application/auth.service.ts",
+      "target": "services/api-server/src/modules/auth/application/auth.service.ts",
+      "sourceSha256": "e0235ba5b2f9d867a479326854f0978cc8a10aab3813ca1692029a01f051fd3f",
+      "targetSha256": "e0235ba5b2f9d867a479326854f0978cc8a10aab3813ca1692029a01f051fd3f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/application/jwt-token.service.ts",
+      "target": "services/api-server/src/modules/auth/application/jwt-token.service.ts",
+      "sourceSha256": "f2f49e05954e229497b6a73400e8035f8b0d9eac34815cca011d75f660a9506a",
+      "targetSha256": "f2f49e05954e229497b6a73400e8035f8b0d9eac34815cca011d75f660a9506a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/auth.module.ts",
+      "target": "services/api-server/src/modules/auth/auth.module.ts",
+      "sourceSha256": "eda95c5a43066d53b4a058e845a20bf53e4e6f1fcca651ba15e68703e2261881",
+      "targetSha256": "eda95c5a43066d53b4a058e845a20bf53e4e6f1fcca651ba15e68703e2261881"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/auth.types.ts",
+      "target": "services/api-server/src/modules/auth/auth.types.ts",
+      "sourceSha256": "d1009c7fce9912a2f9d48910d8be9e47fa14396ae23365826e608318f7e5f90e",
+      "targetSha256": "d1009c7fce9912a2f9d48910d8be9e47fa14396ae23365826e608318f7e5f90e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/controllers/auth.controller.ts",
+      "target": "services/api-server/src/modules/auth/controllers/auth.controller.ts",
+      "sourceSha256": "89d934ef0a2b66024924f94cd86f7c442a26c73cb40558901d2f15c30a1e6ade",
+      "targetSha256": "89d934ef0a2b66024924f94cd86f7c442a26c73cb40558901d2f15c30a1e6ade"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/controllers/users.controller.ts",
+      "target": "services/api-server/src/modules/auth/controllers/users.controller.ts",
+      "sourceSha256": "8f1cfbd2e1dfdb4d1e8d9a64b4c2dbf4f93e5c36d3660c6527f9616cbc71f64f",
+      "targetSha256": "8f1cfbd2e1dfdb4d1e8d9a64b4c2dbf4f93e5c36d3660c6527f9616cbc71f64f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/dto/auth.dto.ts",
+      "target": "services/api-server/src/modules/auth/dto/auth.dto.ts",
+      "sourceSha256": "9da66431ed598bf5a1683a439993b3c498e6b767ed270d824593dbe54698762c",
+      "targetSha256": "9da66431ed598bf5a1683a439993b3c498e6b767ed270d824593dbe54698762c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/auth/guards/jwt-auth.guard.ts",
+      "target": "services/api-server/src/modules/auth/guards/jwt-auth.guard.ts",
+      "sourceSha256": "0bff17367926a21b4ca15adb79e4c1b00d3cd2bb696b787f65f52c5e51be0718",
+      "targetSha256": "0bff17367926a21b4ca15adb79e4c1b00d3cd2bb696b787f65f52c5e51be0718"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/candidate-cursor-adapter.interface.ts",
+      "target": "services/api-server/src/modules/candidates/application/candidate-cursor-adapter.interface.ts",
+      "sourceSha256": "bf30586bc8cec8899e40ca6083fa465590d9e31ca2a16574776aea0b846a005a",
+      "targetSha256": "bf30586bc8cec8899e40ca6083fa465590d9e31ca2a16574776aea0b846a005a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/candidate-item-adapter.interface.ts",
+      "target": "services/api-server/src/modules/candidates/application/candidate-item-adapter.interface.ts",
+      "sourceSha256": "eaf7c4b351782141b389775e8c159275ce0a68304c00f9b2c8279b301c30bc12",
+      "targetSha256": "eaf7c4b351782141b389775e8c159275ce0a68304c00f9b2c8279b301c30bc12"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/candidate-search-context-adapter.interface.ts",
+      "target": "services/api-server/src/modules/candidates/application/candidate-search-context-adapter.interface.ts",
+      "sourceSha256": "01f15c160becb81fcc03479d85d8d75a62cb7abdf0b240dc4b9556d08e121fef",
+      "targetSha256": "01f15c160becb81fcc03479d85d8d75a62cb7abdf0b240dc4b9556d08e121fef"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/candidate-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/candidates/application/candidate-view-adapter.interface.ts",
+      "sourceSha256": "d307fa8e5ed6f030d24fd04d6c23b062f19adca5133dd919a457c42354f9d63d",
+      "targetSha256": "d307fa8e5ed6f030d24fd04d6c23b062f19adca5133dd919a457c42354f9d63d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/candidates.service.ts",
+      "target": "services/api-server/src/modules/candidates/application/candidates.service.ts",
+      "sourceSha256": "abd3e5a11fd30fc70bc3af6ffc68ce2c6d25ec557afeb1143f3602b1ae7e3b2d",
+      "targetSha256": "abd3e5a11fd30fc70bc3af6ffc68ce2c6d25ec557afeb1143f3602b1ae7e3b2d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/standard-candidate-cursor-adapter.service.ts",
+      "target": "services/api-server/src/modules/candidates/application/standard-candidate-cursor-adapter.service.ts",
+      "sourceSha256": "fced2427c48334457a8e624b0fe925a2e60204b368a5da8cb232a3767bc2ea71",
+      "targetSha256": "fced2427c48334457a8e624b0fe925a2e60204b368a5da8cb232a3767bc2ea71"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/standard-candidate-item-adapter.service.ts",
+      "target": "services/api-server/src/modules/candidates/application/standard-candidate-item-adapter.service.ts",
+      "sourceSha256": "b9fee04b3496b31e540a53bf7557e25dc507e43726a8388425b46073c9cf3d3e",
+      "targetSha256": "b9fee04b3496b31e540a53bf7557e25dc507e43726a8388425b46073c9cf3d3e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/standard-candidate-search-context-adapter.service.ts",
+      "target": "services/api-server/src/modules/candidates/application/standard-candidate-search-context-adapter.service.ts",
+      "sourceSha256": "4bb39fdcf907aee45d9eda5419f36d53f5f8bbdf9f86732ff0523fa910113088",
+      "targetSha256": "4bb39fdcf907aee45d9eda5419f36d53f5f8bbdf9f86732ff0523fa910113088"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/application/standard-candidate-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/candidates/application/standard-candidate-view-adapter.service.ts",
+      "sourceSha256": "f454f8766c288664a8f58ebbdeb21a4e9a532d05b936acf60e75817f818a2860",
+      "targetSha256": "f454f8766c288664a8f58ebbdeb21a4e9a532d05b936acf60e75817f818a2860"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/candidates.module.ts",
+      "target": "services/api-server/src/modules/candidates/candidates.module.ts",
+      "sourceSha256": "f212cf78140640759fa2e2cfd533f90da630764ff1d4f43ee047221ea203ae96",
+      "targetSha256": "f212cf78140640759fa2e2cfd533f90da630764ff1d4f43ee047221ea203ae96"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/controllers/candidates.controller.ts",
+      "target": "services/api-server/src/modules/candidates/controllers/candidates.controller.ts",
+      "sourceSha256": "947b993ab9cb6a93858cb43682a6ea4ca8726c55b5a105a7c0517c4cbd116c8d",
+      "targetSha256": "947b993ab9cb6a93858cb43682a6ea4ca8726c55b5a105a7c0517c4cbd116c8d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/dto/more-candidates.dto.ts",
+      "target": "services/api-server/src/modules/candidates/dto/more-candidates.dto.ts",
+      "sourceSha256": "ab614c94168e72bd4cf0875611e1d3691a53d906597dfaa0cc5a30544e845d0c",
+      "targetSha256": "ab614c94168e72bd4cf0875611e1d3691a53d906597dfaa0cc5a30544e845d0c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/candidates/dto/shortlist-candidate.dto.ts",
+      "target": "services/api-server/src/modules/candidates/dto/shortlist-candidate.dto.ts",
+      "sourceSha256": "72795d445528f150e00172c4d237342e58faa047eac3996fd79bf59265b9866c",
+      "targetSha256": "72795d445528f150e00172c4d237342e58faa047eac3996fd79bf59265b9866c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/application/conversation-context-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/conversation/application/conversation-context-view-adapter.interface.ts",
+      "sourceSha256": "cc1807e108f4f4d864f1749f7301067c80ea733694d820036408f87867428932",
+      "targetSha256": "cc1807e108f4f4d864f1749f7301067c80ea733694d820036408f87867428932"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/application/conversation-context.service.ts",
+      "target": "services/api-server/src/modules/conversation/application/conversation-context.service.ts",
+      "sourceSha256": "cf803769b3d8c4a54d1899bcccbcd2ced7095c387796ffab075518f7382056be",
+      "targetSha256": "cf803769b3d8c4a54d1899bcccbcd2ced7095c387796ffab075518f7382056be"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/application/filter-state.service.ts",
+      "target": "services/api-server/src/modules/conversation/application/filter-state.service.ts",
+      "sourceSha256": "93b817d0e41de8ce4c93de51daad4bae9709aacf0e6b465201ec180680761059",
+      "targetSha256": "93b817d0e41de8ce4c93de51daad4bae9709aacf0e6b465201ec180680761059"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/application/standard-conversation-context-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/conversation/application/standard-conversation-context-view-adapter.service.ts",
+      "sourceSha256": "719512aaf033d7227648707b7c757de90b0fd24f0a4324e67aabb1d11f7e3772",
+      "targetSha256": "719512aaf033d7227648707b7c757de90b0fd24f0a4324e67aabb1d11f7e3772"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/controllers/conversation.controller.ts",
+      "target": "services/api-server/src/modules/conversation/controllers/conversation.controller.ts",
+      "sourceSha256": "7889ec71c293deb717af0aace00aae13e0e4b37c8e21daacabb3861e02eeee86",
+      "targetSha256": "7889ec71c293deb717af0aace00aae13e0e4b37c8e21daacabb3861e02eeee86"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/conversation/conversation.module.ts",
+      "target": "services/api-server/src/modules/conversation/conversation.module.ts",
+      "sourceSha256": "86058fc560ed69a191d5a938861e61564f8c1ab34e886a2a63dcaa2be8f6488c",
+      "targetSha256": "86058fc560ed69a191d5a938861e61564f8c1ab34e886a2a63dcaa2be8f6488c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/details/controllers/details.controller.ts",
+      "target": "services/api-server/src/modules/details/controllers/details.controller.ts",
+      "sourceSha256": "be1f96c51bde53598868025149414b19e79e6808c2013a96025bf8138ee4f9d9",
+      "targetSha256": "be1f96c51bde53598868025149414b19e79e6808c2013a96025bf8138ee4f9d9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/details/details.module.ts",
+      "target": "services/api-server/src/modules/details/details.module.ts",
+      "sourceSha256": "6bbb53522bb26a8b593b4ad215362a8195d0dc0a296743e96255ebec034ab115",
+      "targetSha256": "6bbb53522bb26a8b593b4ad215362a8195d0dc0a296743e96255ebec034ab115"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/fallback/application/fallback-candidate-adapter.interface.ts",
+      "target": "services/api-server/src/modules/fallback/application/fallback-candidate-adapter.interface.ts",
+      "sourceSha256": "26fdddc087e3eb0b4898ac3d3f8f582d75cd57e7cbc412b083c7f8ae7a0b27c6",
+      "targetSha256": "26fdddc087e3eb0b4898ac3d3f8f582d75cd57e7cbc412b083c7f8ae7a0b27c6"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/fallback/application/fallback.service.ts",
+      "target": "services/api-server/src/modules/fallback/application/fallback.service.ts",
+      "sourceSha256": "21f9bb6466b4ede8e09240b3732be81be90ea2a03914aa41e5ee3e4a7686cb87",
+      "targetSha256": "21f9bb6466b4ede8e09240b3732be81be90ea2a03914aa41e5ee3e4a7686cb87"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/fallback/application/standard-fallback-candidate-adapter.service.ts",
+      "target": "services/api-server/src/modules/fallback/application/standard-fallback-candidate-adapter.service.ts",
+      "sourceSha256": "e1e907871e282927f38108cf952894e4c9f83c5ad8f66fb1d911d401244d8013",
+      "targetSha256": "e1e907871e282927f38108cf952894e4c9f83c5ad8f66fb1d911d401244d8013"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/fallback/fallback.module.ts",
+      "target": "services/api-server/src/modules/fallback/fallback.module.ts",
+      "sourceSha256": "a858d784563ebe62356bad0e4b7ccc8cb18203d8c05e5ba1f26456756aa1d138",
+      "targetSha256": "a858d784563ebe62356bad0e4b7ccc8cb18203d8c05e5ba1f26456756aa1d138"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/health/controllers/health.controller.ts",
+      "target": "services/api-server/src/modules/health/controllers/health.controller.ts",
+      "sourceSha256": "14666d4b1345c5e70e70e5e697afff6413dab3b98658b9234647d37320fdb213",
+      "targetSha256": "14666d4b1345c5e70e70e5e697afff6413dab3b98658b9234647d37320fdb213"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/health/health.module.ts",
+      "target": "services/api-server/src/modules/health/health.module.ts",
+      "sourceSha256": "b57cb4476acc52a31201f4325503daa7e8d9a371de984b7249b366deeb88e669",
+      "targetSha256": "b57cb4476acc52a31201f4325503daa7e8d9a371de984b7249b366deeb88e669"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/ann-search-port.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/ann-search-port.interface.ts",
+      "sourceSha256": "218a3b6aeca7bbf2f3ec5e8ad4f3f6d99d1a4c66362573ae9f03e4a265676fad",
+      "targetSha256": "218a3b6aeca7bbf2f3ec5e8ad4f3f6d99d1a4c66362573ae9f03e4a265676fad"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/ann-search.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/ann-search.service.ts",
+      "sourceSha256": "6e9118227f894d9156322f71a459108ede8490c6a797dab834b940d456dfccfc",
+      "targetSha256": "6e9118227f894d9156322f71a459108ede8490c6a797dab834b940d456dfccfc"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/candidate-visual-verification-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/candidate-visual-verification-adapter.interface.ts",
+      "sourceSha256": "89f9bb7f477b3ff5769e37a43851487116769e353d4827b4f7e53e4be2456465",
+      "targetSha256": "89f9bb7f477b3ff5769e37a43851487116769e353d4827b4f7e53e4be2456465"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/embedding-provider.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/embedding-provider.interface.ts",
+      "sourceSha256": "9a7265f49ea12d8efb7152082fcc402143d01c103a71f305af3c70c57c084376",
+      "targetSha256": "9a7265f49ea12d8efb7152082fcc402143d01c103a71f305af3c70c57c084376"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/embedding.constants.ts",
+      "target": "services/api-server/src/modules/product-pool/application/embedding.constants.ts",
+      "sourceSha256": "1d65931a4a590813a4d1a6ef8f2182d40ebf04ffd41c96e26a647ac4fbb1fcc5",
+      "targetSha256": "1d65931a4a590813a4d1a6ef8f2182d40ebf04ffd41c96e26a647ac4fbb1fcc5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/hash-embedding-provider.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/hash-embedding-provider.service.ts",
+      "sourceSha256": "9fc54f5362c398f4ae5d0585ee038451498c8e9831083bd53e7e78f94910eda9",
+      "targetSha256": "9fc54f5362c398f4ae5d0585ee038451498c8e9831083bd53e7e78f94910eda9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/image-embedding-preprocessor.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/image-embedding-preprocessor.interface.ts",
+      "sourceSha256": "f2207270c3817f017cc1d469220186fec5c1732a8a0aebe2f390cff407a27f1b",
+      "targetSha256": "f2207270c3817f017cc1d469220186fec5c1732a8a0aebe2f390cff407a27f1b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/local-gpu-embedding-provider.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/local-gpu-embedding-provider.service.ts",
+      "sourceSha256": "71a6c5951980f5bd2933f5391eb10807345dac93efbb669d1a5515371b8dea6c",
+      "targetSha256": "71a6c5951980f5bd2933f5391eb10807345dac93efbb669d1a5515371b8dea6c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/local-gpu-image-preprocessor.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/local-gpu-image-preprocessor.service.ts",
+      "sourceSha256": "5ba0cd31ac7dbbe7757e99a9578eeb4d003d7b8384997350f38483a1b0645c68",
+      "targetSha256": "5ba0cd31ac7dbbe7757e99a9578eeb4d003d7b8384997350f38483a1b0645c68"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/local-image-worker-client.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/local-image-worker-client.service.ts",
+      "sourceSha256": "0435167a224233eb1a1f4fc9223c19e42f0512fee50c98710bc74f3fc86e7830",
+      "targetSha256": "0435167a224233eb1a1f4fc9223c19e42f0512fee50c98710bc74f3fc86e7830"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/local-image-worker-health.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/local-image-worker-health.service.ts",
+      "sourceSha256": "cfe543ff312b5a5a3b05ca14e9738e7574045df27a1de3826b43ad8ee4f72ad0",
+      "targetSha256": "cfe543ff312b5a5a3b05ca14e9738e7574045df27a1de3826b43ad8ee4f72ad0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/local-product-search-provider.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/local-product-search-provider.service.ts",
+      "sourceSha256": "2ad1f5b40d292bc702c03d1ee89a97a420acd868f129ce3df2ed530c6e713194",
+      "targetSha256": "2ad1f5b40d292bc702c03d1ee89a97a420acd868f129ce3df2ed530c6e713194"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/noop-image-embedding-preprocessor.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/noop-image-embedding-preprocessor.service.ts",
+      "sourceSha256": "63a8fa59bcaef0e2134424ffc24d3dd9f1a5810e3206788dfa9cf8a3e7f8edbe",
+      "targetSha256": "63a8fa59bcaef0e2134424ffc24d3dd9f1a5810e3206788dfa9cf8a3e7f8edbe"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/platform-product-reference.ts",
+      "target": "services/api-server/src/modules/product-pool/application/platform-product-reference.ts",
+      "sourceSha256": "039343070b7fbf306aba52113e4c1b8be6bbf2de819a2373ded93447437e4af4",
+      "targetSha256": "039343070b7fbf306aba52113e4c1b8be6bbf2de819a2373ded93447437e4af4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-batch-quality-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-batch-quality-adapter.interface.ts",
+      "sourceSha256": "df1d7a82f37a302edafea72d51e2a4b1f28a63626f93c9f644dc91d4df7b2adc",
+      "targetSha256": "df1d7a82f37a302edafea72d51e2a4b1f28a63626f93c9f644dc91d4df7b2adc"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-batch-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-batch-view-adapter.interface.ts",
+      "sourceSha256": "ab6e49fcecd09a3ef3f71dc3cb406817944899768328875d967ab2b008de5743",
+      "targetSha256": "ab6e49fcecd09a3ef3f71dc3cb406817944899768328875d967ab2b008de5743"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-image-content-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-image-content-adapter.interface.ts",
+      "sourceSha256": "5884d358f007e62dc303f6ada1dca44040d7c3f191dbe9e191b268f2e383fe5f",
+      "targetSha256": "5884d358f007e62dc303f6ada1dca44040d7c3f191dbe9e191b268f2e383fe5f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-image-embedding-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-image-embedding-adapter.interface.ts",
+      "sourceSha256": "ae1b7620360386b438e619f827dca65beb4465d4ff4fcfb7ddfe771b52fb2973",
+      "targetSha256": "ae1b7620360386b438e619f827dca65beb4465d4ff4fcfb7ddfe771b52fb2973"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-import-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-import-adapter.interface.ts",
+      "sourceSha256": "765d534c6fa0e08ab0b4def728f258d5714d7fc58cbba0bf6470207671f34c26",
+      "targetSha256": "765d534c6fa0e08ab0b4def728f258d5714d7fc58cbba0bf6470207671f34c26"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-import-batch-state-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-import-batch-state-adapter.interface.ts",
+      "sourceSha256": "909869b4a52a4842912f20bd9d87400c74cabd1ab23bff754b09eff5a1ada15b",
+      "targetSha256": "909869b4a52a4842912f20bd9d87400c74cabd1ab23bff754b09eff5a1ada15b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-import-change-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-import-change-adapter.interface.ts",
+      "sourceSha256": "90f8edd0d561d2019f96fd46fcbc8afa8782feeaa9b8a6913cc988783656792d",
+      "targetSha256": "90f8edd0d561d2019f96fd46fcbc8afa8782feeaa9b8a6913cc988783656792d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-model-tagging-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-model-tagging-adapter.interface.ts",
+      "sourceSha256": "b5219abbd3dcc1299eb1d0e3c3aea179c1dd63482fd6f4fb3fceb2c3ebbaef00",
+      "targetSha256": "b5219abbd3dcc1299eb1d0e3c3aea179c1dd63482fd6f4fb3fceb2c3ebbaef00"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-persistence-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-persistence-adapter.interface.ts",
+      "sourceSha256": "c29c8be4174a9b90f04f7abd989b5e52de9cb586d5ad62a1e38600260fea5bfe",
+      "targetSha256": "c29c8be4174a9b90f04f7abd989b5e52de9cb586d5ad62a1e38600260fea5bfe"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-pool.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-pool.service.ts",
+      "sourceSha256": "2790683a87d0bef20c6dd698c5e76b9b4e997c28b18f4551b864f2767e24d1d9",
+      "targetSha256": "2790683a87d0bef20c6dd698c5e76b9b4e997c28b18f4551b864f2767e24d1d9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-raw-payload-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-raw-payload-adapter.interface.ts",
+      "sourceSha256": "b9abbd9eda495d295eefe3d9b1511b106cca24ba8c5684801f21ead678bbc24d",
+      "targetSha256": "b9abbd9eda495d295eefe3d9b1511b106cca24ba8c5684801f21ead678bbc24d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-search-result-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-search-result-adapter.interface.ts",
+      "sourceSha256": "8ab02d219bf567e994f28d88e3b0d9515cee89e8174dcb52cef4d603022073e9",
+      "targetSha256": "8ab02d219bf567e994f28d88e3b0d9515cee89e8174dcb52cef4d603022073e9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-search-signals-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-search-signals-adapter.interface.ts",
+      "sourceSha256": "dae3e4ba6b44a9cd35f8b45cdfaaf5fb8f7bd53db2138d4ed07dba9008d914a8",
+      "targetSha256": "dae3e4ba6b44a9cd35f8b45cdfaaf5fb8f7bd53db2138d4ed07dba9008d914a8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-source-tag-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-source-tag-adapter.interface.ts",
+      "sourceSha256": "5e6c940c1e6032126aadad1db5b82e58b4e0d1201be343c9700bf22a09053de8",
+      "targetSha256": "5e6c940c1e6032126aadad1db5b82e58b4e0d1201be343c9700bf22a09053de8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-update-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-update-adapter.interface.ts",
+      "sourceSha256": "50b5be0ea01156c1970a947cf955b25e4c262138391fa7cf68dba6997eae805a",
+      "targetSha256": "50b5be0ea01156c1970a947cf955b25e4c262138391fa7cf68dba6997eae805a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/product-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/product-view-adapter.interface.ts",
+      "sourceSha256": "eda980d08728b8350ec847c5fe3adf70d76fd91fa433bbfc989b4db753495214",
+      "targetSha256": "eda980d08728b8350ec847c5fe3adf70d76fd91fa433bbfc989b4db753495214"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/search-query-embedding-adapter.interface.ts",
+      "target": "services/api-server/src/modules/product-pool/application/search-query-embedding-adapter.interface.ts",
+      "sourceSha256": "42ec84ddf2b2f51900465fc50dccb3b45a0941f792dc91492063421157471493",
+      "targetSha256": "42ec84ddf2b2f51900465fc50dccb3b45a0941f792dc91492063421157471493"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-candidate-visual-verification-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-candidate-visual-verification-adapter.service.ts",
+      "sourceSha256": "3096db8ab24ff424a95a8679b6f92e0a8d3cb5981e05df4837f96fda71145c04",
+      "targetSha256": "3096db8ab24ff424a95a8679b6f92e0a8d3cb5981e05df4837f96fda71145c04"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-batch-quality-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-batch-quality-adapter.service.ts",
+      "sourceSha256": "015b798375b9c03e62f728622beaf4eef21d332a31de0e8dab58312a4a81de67",
+      "targetSha256": "015b798375b9c03e62f728622beaf4eef21d332a31de0e8dab58312a4a81de67"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-batch-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-batch-view-adapter.service.ts",
+      "sourceSha256": "70cd64033462ae4606f2d6b0a5f12ea8abe264b00e08dfc6252851b25496bf6b",
+      "targetSha256": "70cd64033462ae4606f2d6b0a5f12ea8abe264b00e08dfc6252851b25496bf6b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-image-content-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-image-content-adapter.service.ts",
+      "sourceSha256": "29b9db78dcd03587fef7a8573a9f0d9b4f8e49ca1c3586a7bdd4112ebbc94071",
+      "targetSha256": "29b9db78dcd03587fef7a8573a9f0d9b4f8e49ca1c3586a7bdd4112ebbc94071"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-image-embedding-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-image-embedding-adapter.service.ts",
+      "sourceSha256": "d6e994268ddb0a0b6e3edf6e76888bd623c0a5a3720bfa6bf90a44c26279c6b5",
+      "targetSha256": "d6e994268ddb0a0b6e3edf6e76888bd623c0a5a3720bfa6bf90a44c26279c6b5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-import-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-import-adapter.service.ts",
+      "sourceSha256": "da0b184c95b3785fa23af6c755f936fbbcdafdedcb64296def17ca303a5fabef",
+      "targetSha256": "da0b184c95b3785fa23af6c755f936fbbcdafdedcb64296def17ca303a5fabef"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-import-batch-state-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-import-batch-state-adapter.service.ts",
+      "sourceSha256": "ea0638e2b353da045602cf9110423c1be01e5ce4101f99effefbda4973b7fbd8",
+      "targetSha256": "ea0638e2b353da045602cf9110423c1be01e5ce4101f99effefbda4973b7fbd8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-import-change-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-import-change-adapter.service.ts",
+      "sourceSha256": "0530fe3fdc615e7da30cb6a26fe75e7d414c548f05fb8e692a5bc37e73c6dd22",
+      "targetSha256": "0530fe3fdc615e7da30cb6a26fe75e7d414c548f05fb8e692a5bc37e73c6dd22"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-model-tagging-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-model-tagging-adapter.service.ts",
+      "sourceSha256": "d7ef2491fa1af31ea85370b14fbf4357929f22335afd3af775551106f42bef49",
+      "targetSha256": "d7ef2491fa1af31ea85370b14fbf4357929f22335afd3af775551106f42bef49"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-persistence-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-persistence-adapter.service.ts",
+      "sourceSha256": "9abb1a7deeb65fca75bbf8e4703315e2443ea04140cff4ecf0146897004e1c15",
+      "targetSha256": "9abb1a7deeb65fca75bbf8e4703315e2443ea04140cff4ecf0146897004e1c15"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-raw-payload-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-raw-payload-adapter.service.ts",
+      "sourceSha256": "fb3d1ea96b714e607bb4f0323e5b65d1f0006fde24ebbde6a378e89ae2487159",
+      "targetSha256": "fb3d1ea96b714e607bb4f0323e5b65d1f0006fde24ebbde6a378e89ae2487159"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-search-result-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-search-result-adapter.service.ts",
+      "sourceSha256": "0c6ae3bbdf2847e060b671ed3050a64c6308da8df21a8891caa098f97ffcc06a",
+      "targetSha256": "0c6ae3bbdf2847e060b671ed3050a64c6308da8df21a8891caa098f97ffcc06a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-search-signals-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-search-signals-adapter.service.ts",
+      "sourceSha256": "ba655be9794e0be04a98b28f346613034e2aff8670a5ce6795ca4b7a9d89bef0",
+      "targetSha256": "ba655be9794e0be04a98b28f346613034e2aff8670a5ce6795ca4b7a9d89bef0"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-source-tag-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-source-tag-adapter.service.ts",
+      "sourceSha256": "e85096076b6508be3d5e63ac20022cc5b24bee0827d9703eb5f9d68624377174",
+      "targetSha256": "e85096076b6508be3d5e63ac20022cc5b24bee0827d9703eb5f9d68624377174"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-update-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-update-adapter.service.ts",
+      "sourceSha256": "36dc809a25fcd798bbd980e18dfb10d2fa6a4811ef88794cb950554d73cba912",
+      "targetSha256": "36dc809a25fcd798bbd980e18dfb10d2fa6a4811ef88794cb950554d73cba912"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-product-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-product-view-adapter.service.ts",
+      "sourceSha256": "aab105f7dc92bf395ed3268bc4d221a6be13e6bbdf68f65000826500e0614354",
+      "targetSha256": "aab105f7dc92bf395ed3268bc4d221a6be13e6bbdf68f65000826500e0614354"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/standard-search-query-embedding-adapter.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/standard-search-query-embedding-adapter.service.ts",
+      "sourceSha256": "6e69bfe00a7fb58e7d4526becc434eeadef351b12a46ac63957c603cd72c36fa",
+      "targetSha256": "6e69bfe00a7fb58e7d4526becc434eeadef351b12a46ac63957c603cd72c36fa"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/application/volcengine-doubao-embedding-provider.service.ts",
+      "target": "services/api-server/src/modules/product-pool/application/volcengine-doubao-embedding-provider.service.ts",
+      "sourceSha256": "074010bacefc60b3108f21bf97df453f2645a7d283ca2475a90b3d623d12c6e7",
+      "targetSha256": "074010bacefc60b3108f21bf97df453f2645a7d283ca2475a90b3d623d12c6e7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/controllers/product-pool.controller.ts",
+      "target": "services/api-server/src/modules/product-pool/controllers/product-pool.controller.ts",
+      "sourceSha256": "7dddbbff4b23a61f74c06c4df4f2c1d62f7269093778d34eadee9d414473986a",
+      "targetSha256": "7dddbbff4b23a61f74c06c4df4f2c1d62f7269093778d34eadee9d414473986a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/dto/import-products.dto.ts",
+      "target": "services/api-server/src/modules/product-pool/dto/import-products.dto.ts",
+      "sourceSha256": "c1160f37bec14de0dbec61998b2f137888f655170650a1f18a7e0ad7bf0b4641",
+      "targetSha256": "c1160f37bec14de0dbec61998b2f137888f655170650a1f18a7e0ad7bf0b4641"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-pool/product-pool.module.ts",
+      "target": "services/api-server/src/modules/product-pool/product-pool.module.ts",
+      "sourceSha256": "32d6a34431780b224bc30df5dbb80c9fa78a7cd259dfe08d67795f1f36fcc2af",
+      "targetSha256": "32d6a34431780b224bc30df5dbb80c9fa78a7cd259dfe08d67795f1f36fcc2af"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/product-profile/product-profile.module.ts",
+      "target": "services/api-server/src/modules/product-profile/product-profile.module.ts",
+      "sourceSha256": "5cff5309feb785a70c3fc9b6760027aaef413d98ec16c5130bea54ed2d0a0a3e",
+      "targetSha256": "5cff5309feb785a70c3fc9b6760027aaef413d98ec16c5130bea54ed2d0a0a3e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/prompt-assets/application/profile-schema-registry.service.ts",
+      "target": "services/api-server/src/modules/prompt-assets/application/profile-schema-registry.service.ts",
+      "sourceSha256": "9358daedc9f7581fbbf4869bade00313c6e1b7ab2a91534105565cd9ba52c82e",
+      "targetSha256": "9358daedc9f7581fbbf4869bade00313c6e1b7ab2a91534105565cd9ba52c82e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/prompt-assets/application/prompt-registry.service.ts",
+      "target": "services/api-server/src/modules/prompt-assets/application/prompt-registry.service.ts",
+      "sourceSha256": "7b4bb5357aa752e97eedf2c54b3b06a4146b72bfe2f1e264fabdd0d92e03fbfe",
+      "targetSha256": "7b4bb5357aa752e97eedf2c54b3b06a4146b72bfe2f1e264fabdd0d92e03fbfe"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/prompt-assets/prompt-assets.module.ts",
+      "target": "services/api-server/src/modules/prompt-assets/prompt-assets.module.ts",
+      "sourceSha256": "5a6dbbd601078558e650a640c2d1eab592362e13bfbbe49bca3cc6fc18af5620",
+      "targetSha256": "5a6dbbd601078558e650a640c2d1eab592362e13bfbbe49bca3cc6fc18af5620"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/runtime/controllers/runtime.controller.ts",
+      "target": "services/api-server/src/modules/runtime/controllers/runtime.controller.ts",
+      "sourceSha256": "4cd4585886dc0f58a56e43a44a74afcf379d5e41f583100563da292c94c3ccad",
+      "targetSha256": "4cd4585886dc0f58a56e43a44a74afcf379d5e41f583100563da292c94c3ccad"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/runtime/runtime.module.ts",
+      "target": "services/api-server/src/modules/runtime/runtime.module.ts",
+      "sourceSha256": "fe1a5e6afbcf68babdeaa1d1acb23c4356d619316414e8d717e65d8e21273b74",
+      "targetSha256": "fe1a5e6afbcf68babdeaa1d1acb23c4356d619316414e8d717e65d8e21273b74"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/search/controllers/search.controller.ts",
+      "target": "services/api-server/src/modules/search/controllers/search.controller.ts",
+      "sourceSha256": "eb7e9558064eef2cc2d5259f157539eec94584db08c7a66220d2671f5a230c89",
+      "targetSha256": "eb7e9558064eef2cc2d5259f157539eec94584db08c7a66220d2671f5a230c89"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/search/dto/search-shoes.dto.ts",
+      "target": "services/api-server/src/modules/search/dto/search-shoes.dto.ts",
+      "sourceSha256": "0fdd08ff2d4c3989efddefcf0854d8b45748a73e4033432d1091f6374a188fca",
+      "targetSha256": "0fdd08ff2d4c3989efddefcf0854d8b45748a73e4033432d1091f6374a188fca"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/search/search.module.ts",
+      "target": "services/api-server/src/modules/search/search.module.ts",
+      "sourceSha256": "932e864b841c59941e7ae0b364b67f8dffa4e3d37ce044179e68dcddc841d031",
+      "targetSha256": "932e864b841c59941e7ae0b364b67f8dffa4e3d37ce044179e68dcddc841d031"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/query-image-content-adapter.interface.ts",
+      "target": "services/api-server/src/modules/sessions/application/query-image-content-adapter.interface.ts",
+      "sourceSha256": "8fe757ab14eee3e3ad33f47454bfb3a0895e07d111922182d49cc7fc2729df44",
+      "targetSha256": "8fe757ab14eee3e3ad33f47454bfb3a0895e07d111922182d49cc7fc2729df44"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/query-image-preprocess-adapter.interface.ts",
+      "target": "services/api-server/src/modules/sessions/application/query-image-preprocess-adapter.interface.ts",
+      "sourceSha256": "b63ee71e4131fc20e9cb58c92496b2a845801706c54d9a5b9a69615a06671cec",
+      "targetSha256": "b63ee71e4131fc20e9cb58c92496b2a845801706c54d9a5b9a69615a06671cec"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/query-image-preprocess.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/query-image-preprocess.service.ts",
+      "sourceSha256": "42a48d8c42ce71e956a65cb58805929b6225adf23ebbf1113555b5971a3a14b7",
+      "targetSha256": "42a48d8c42ce71e956a65cb58805929b6225adf23ebbf1113555b5971a3a14b7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/search-debug.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/search-debug.service.ts",
+      "sourceSha256": "df7a260b69e5294f77c11184aad0d8f3e68b88fc0580062094e558d68b732a5f",
+      "targetSha256": "df7a260b69e5294f77c11184aad0d8f3e68b88fc0580062094e558d68b732a5f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/search-event-adapter.interface.ts",
+      "target": "services/api-server/src/modules/sessions/application/search-event-adapter.interface.ts",
+      "sourceSha256": "a79d51907b3ee47cd98732dd9de86512802fe3b9980e7c72501e2b9427ce1cee",
+      "targetSha256": "a79d51907b3ee47cd98732dd9de86512802fe3b9980e7c72501e2b9427ce1cee"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/search-events.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/search-events.service.ts",
+      "sourceSha256": "e2032fc04ab7692420f12b0253fa05e8348e8c3c619d4fabcad89d87436d1fa2",
+      "targetSha256": "e2032fc04ab7692420f12b0253fa05e8348e8c3c619d4fabcad89d87436d1fa2"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/session-product-profile-adapter.interface.ts",
+      "target": "services/api-server/src/modules/sessions/application/session-product-profile-adapter.interface.ts",
+      "sourceSha256": "935bd4c80f710f615febaa204cf9795a0f7720a97ab7aca550af1e91fe6d1349",
+      "targetSha256": "935bd4c80f710f615febaa204cf9795a0f7720a97ab7aca550af1e91fe6d1349"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/session-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/sessions/application/session-view-adapter.interface.ts",
+      "sourceSha256": "8f421a5455b1677c0c8866d9d51e419f30180e916c3a4459c551308d2a4e9cfb",
+      "targetSha256": "8f421a5455b1677c0c8866d9d51e419f30180e916c3a4459c551308d2a4e9cfb"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/sessions.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/sessions.service.ts",
+      "sourceSha256": "bf2dfa4468af7bee1299c30299c9607e9bb3dc0875b77e9048b476302aa8479f",
+      "targetSha256": "bf2dfa4468af7bee1299c30299c9607e9bb3dc0875b77e9048b476302aa8479f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/standard-query-image-content-adapter.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/standard-query-image-content-adapter.service.ts",
+      "sourceSha256": "c8f7e5261c9d046912349d4d3360a443c0ad0c9c4d80b2aa85b0c20d85e3fd80",
+      "targetSha256": "c8f7e5261c9d046912349d4d3360a443c0ad0c9c4d80b2aa85b0c20d85e3fd80"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/standard-query-image-preprocess-adapter.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/standard-query-image-preprocess-adapter.service.ts",
+      "sourceSha256": "7fd7063be136b6b3181f947fd3010767f62965d0ae8bb742e0f98a02cc7e8a74",
+      "targetSha256": "7fd7063be136b6b3181f947fd3010767f62965d0ae8bb742e0f98a02cc7e8a74"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/standard-search-event-adapter.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/standard-search-event-adapter.service.ts",
+      "sourceSha256": "42f334eadbb0455e4ac14eadcdb43c68dea8b8f707e1715fbb9d12e637c61f15",
+      "targetSha256": "42f334eadbb0455e4ac14eadcdb43c68dea8b8f707e1715fbb9d12e637c61f15"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/standard-session-product-profile-adapter.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/standard-session-product-profile-adapter.service.ts",
+      "sourceSha256": "5c43860854e84168ae78940ccb84f01e10a7e9f7a470a1b67e2151603692e19d",
+      "targetSha256": "5c43860854e84168ae78940ccb84f01e10a7e9f7a470a1b67e2151603692e19d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/application/standard-session-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/sessions/application/standard-session-view-adapter.service.ts",
+      "sourceSha256": "b310f79dabcae7a2e78968ddb19127baa3d7c1bfb52e3e6367c8f60648e2fb8d",
+      "targetSha256": "b310f79dabcae7a2e78968ddb19127baa3d7c1bfb52e3e6367c8f60648e2fb8d"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/controllers/search-debug.controller.ts",
+      "target": "services/api-server/src/modules/sessions/controllers/search-debug.controller.ts",
+      "sourceSha256": "6dca3e6d81935ae6a35670479518b29b518ff3392b7c0793c6ff6801cb654d25",
+      "targetSha256": "6dca3e6d81935ae6a35670479518b29b518ff3392b7c0793c6ff6801cb654d25"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/controllers/sessions.controller.ts",
+      "target": "services/api-server/src/modules/sessions/controllers/sessions.controller.ts",
+      "sourceSha256": "39c4c5757b259b506cf039827c9110fd6447a120251ce723afbc839ec96eb873",
+      "targetSha256": "39c4c5757b259b506cf039827c9110fd6447a120251ce723afbc839ec96eb873"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/dto/create-session.dto.ts",
+      "target": "services/api-server/src/modules/sessions/dto/create-session.dto.ts",
+      "sourceSha256": "2102495afcdeab8b8f905e9690214ca07527587bf9f723a64ed075950dbfe4e9",
+      "targetSha256": "2102495afcdeab8b8f905e9690214ca07527587bf9f723a64ed075950dbfe4e9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/dto/create-text-session.dto.ts",
+      "target": "services/api-server/src/modules/sessions/dto/create-text-session.dto.ts",
+      "sourceSha256": "765432f49ac02d34eaebb5ca18acc0ef1a2737aa18d4d7b1d757ae0aadfa4203",
+      "targetSha256": "765432f49ac02d34eaebb5ca18acc0ef1a2737aa18d4d7b1d757ae0aadfa4203"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/dto/subject-selection.dto.ts",
+      "target": "services/api-server/src/modules/sessions/dto/subject-selection.dto.ts",
+      "sourceSha256": "b74085e9964b1bc269a70b20084ff66ec9e3e94c9d939d3d3e6dfe7e5936d607",
+      "targetSha256": "b74085e9964b1bc269a70b20084ff66ec9e3e94c9d939d3d3e6dfe7e5936d607"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/dto/update-product-profile.dto.ts",
+      "target": "services/api-server/src/modules/sessions/dto/update-product-profile.dto.ts",
+      "sourceSha256": "4b02ae3419adeabf0ffe71bacefc008dd29d97fbe621d33c85c7cf4c04c6feb1",
+      "targetSha256": "4b02ae3419adeabf0ffe71bacefc008dd29d97fbe621d33c85c7cf4c04c6feb1"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/sessions/sessions.module.ts",
+      "target": "services/api-server/src/modules/sessions/sessions.module.ts",
+      "sourceSha256": "7acfb190acaaa8ac0e88f4dd89786830cb3f6bc7939c4e761957a23b04474782",
+      "targetSha256": "7acfb190acaaa8ac0e88f4dd89786830cb3f6bc7939c4e761957a23b04474782"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/suggestions/application/standard-suggestion-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/suggestions/application/standard-suggestion-view-adapter.service.ts",
+      "sourceSha256": "b43b1286695a4bca51f4c1c78dfd66ed5dba3e34d08c4d543bc046b2b10825c8",
+      "targetSha256": "b43b1286695a4bca51f4c1c78dfd66ed5dba3e34d08c4d543bc046b2b10825c8"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/suggestions/application/suggestion-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/suggestions/application/suggestion-view-adapter.interface.ts",
+      "sourceSha256": "435fdf7dde3118969bdf7a96f7272c0395c5e00c3e81de1a043701a1dcaff42b",
+      "targetSha256": "435fdf7dde3118969bdf7a96f7272c0395c5e00c3e81de1a043701a1dcaff42b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/suggestions/application/suggestions.service.ts",
+      "target": "services/api-server/src/modules/suggestions/application/suggestions.service.ts",
+      "sourceSha256": "130fa827466413a9d31f7bb0e4d381e99befc30ff9d28f22fed684b889c13f44",
+      "targetSha256": "130fa827466413a9d31f7bb0e4d381e99befc30ff9d28f22fed684b889c13f44"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/suggestions/controllers/suggestions.controller.ts",
+      "target": "services/api-server/src/modules/suggestions/controllers/suggestions.controller.ts",
+      "sourceSha256": "6e49019d2272c156d836812e5a74ac5ddafa9d822b0677521076b6cf9feec599",
+      "targetSha256": "6e49019d2272c156d836812e5a74ac5ddafa9d822b0677521076b6cf9feec599"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/suggestions/suggestions.module.ts",
+      "target": "services/api-server/src/modules/suggestions/suggestions.module.ts",
+      "sourceSha256": "d582123ebe5bf762566efce644efb7ffe4911218cb743d5662916b807048be3c",
+      "targetSha256": "d582123ebe5bf762566efce644efb7ffe4911218cb743d5662916b807048be3c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/application/trend-outfit-product-matcher.service.ts",
+      "target": "services/api-server/src/modules/trend-outfit/application/trend-outfit-product-matcher.service.ts",
+      "sourceSha256": "72500b5cee15fd0c7d98c9928b8bffe0e97f71394e5c8a542a6f57de9295edfb",
+      "targetSha256": "72500b5cee15fd0c7d98c9928b8bffe0e97f71394e5c8a542a6f57de9295edfb"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/application/trend-outfit.service.ts",
+      "target": "services/api-server/src/modules/trend-outfit/application/trend-outfit.service.ts",
+      "sourceSha256": "c4a404545422c0f06f78b20878146c687ea0febd833d2ad3e1ce75b4fb0d79cb",
+      "targetSha256": "c4a404545422c0f06f78b20878146c687ea0febd833d2ad3e1ce75b4fb0d79cb"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/application/trend-outfit.types.ts",
+      "target": "services/api-server/src/modules/trend-outfit/application/trend-outfit.types.ts",
+      "sourceSha256": "10e59517e4cb7da2f1415a35455ca5ea3f4764f777ce0af2084b77f0fc8616c2",
+      "targetSha256": "10e59517e4cb7da2f1415a35455ca5ea3f4764f777ce0af2084b77f0fc8616c2"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/controllers/trend-outfit.controller.ts",
+      "target": "services/api-server/src/modules/trend-outfit/controllers/trend-outfit.controller.ts",
+      "sourceSha256": "98c4d94d9a990ce5da1612e77dae9d981115cb40e37302737a1a998494fdb70e",
+      "targetSha256": "98c4d94d9a990ce5da1612e77dae9d981115cb40e37302737a1a998494fdb70e"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/dto/trend-outfit-request.dto.ts",
+      "target": "services/api-server/src/modules/trend-outfit/dto/trend-outfit-request.dto.ts",
+      "sourceSha256": "48b6bb7d350080cf0cb41977e48a2b2a872708002df1596491ccf323b4dad70b",
+      "targetSha256": "48b6bb7d350080cf0cb41977e48a2b2a872708002df1596491ccf323b4dad70b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/trend-outfit/trend-outfit.module.ts",
+      "target": "services/api-server/src/modules/trend-outfit/trend-outfit.module.ts",
+      "sourceSha256": "204c47b7e0076bea3ed6dbd9fb6256bdd4ff24cacc88e906be3f95761129f778",
+      "targetSha256": "204c47b7e0076bea3ed6dbd9fb6256bdd4ff24cacc88e906be3f95761129f778"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/application/conversation-intent-adapter.interface.ts",
+      "target": "services/api-server/src/modules/turns/application/conversation-intent-adapter.interface.ts",
+      "sourceSha256": "b4aa9c8741ebc77a93c6e8a5e1e026a8c886a4f999a4be472b0dd7d0af8d6802",
+      "targetSha256": "b4aa9c8741ebc77a93c6e8a5e1e026a8c886a4f999a4be472b0dd7d0af8d6802"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/application/standard-conversation-intent-adapter.service.ts",
+      "target": "services/api-server/src/modules/turns/application/standard-conversation-intent-adapter.service.ts",
+      "sourceSha256": "07030fb4f4a28aa9962159e8be880bf8c60d22ac46fc5bc734b0c73aed578f91",
+      "targetSha256": "07030fb4f4a28aa9962159e8be880bf8c60d22ac46fc5bc734b0c73aed578f91"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/application/turns.service.ts",
+      "target": "services/api-server/src/modules/turns/application/turns.service.ts",
+      "sourceSha256": "2a4bed476fd632498015ba1f2c76c3b01591d3b0901ad0ee4e154988efc085f9",
+      "targetSha256": "2a4bed476fd632498015ba1f2c76c3b01591d3b0901ad0ee4e154988efc085f9"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/controllers/turns.controller.ts",
+      "target": "services/api-server/src/modules/turns/controllers/turns.controller.ts",
+      "sourceSha256": "1f6e34d64fe7a78b7a14ca96079795162d6c53827ddd6a959b3ae23368f5dca2",
+      "targetSha256": "1f6e34d64fe7a78b7a14ca96079795162d6c53827ddd6a959b3ae23368f5dca2"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/dto/create-turn.dto.ts",
+      "target": "services/api-server/src/modules/turns/dto/create-turn.dto.ts",
+      "sourceSha256": "bec9bdbd360cbd5756fa87d4b502836d736755b9191f339fdf903cfc5b241489",
+      "targetSha256": "bec9bdbd360cbd5756fa87d4b502836d736755b9191f339fdf903cfc5b241489"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/turns/turns.module.ts",
+      "target": "services/api-server/src/modules/turns/turns.module.ts",
+      "sourceSha256": "7b88bbf1376f9ab355687025d801e3a1fddac5d9f6ee8120bd1dcaa20b3ea8ce",
+      "targetSha256": "7b88bbf1376f9ab355687025d801e3a1fddac5d9f6ee8120bd1dcaa20b3ea8ce"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/standard-user-memory-context-adapter.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/standard-user-memory-context-adapter.service.ts",
+      "sourceSha256": "633dbe00d3f75d3a09721fc4b1623eefb97312c97e218c7438b1b6d794569efa",
+      "targetSha256": "633dbe00d3f75d3a09721fc4b1623eefb97312c97e218c7438b1b6d794569efa"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/standard-user-memory-payload-adapter.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/standard-user-memory-payload-adapter.service.ts",
+      "sourceSha256": "81946e40ac4c824f7112c20837dbfb68e8da5ba4cce905b95778c2867f3a0b80",
+      "targetSha256": "81946e40ac4c824f7112c20837dbfb68e8da5ba4cce905b95778c2867f3a0b80"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/standard-user-memory-view-adapter.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/standard-user-memory-view-adapter.service.ts",
+      "sourceSha256": "62f7d2a05d6c64c8bff121241123b32b027058ef9b39d89311ecd6dc0008f1e5",
+      "targetSha256": "62f7d2a05d6c64c8bff121241123b32b027058ef9b39d89311ecd6dc0008f1e5"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory-context-adapter.interface.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory-context-adapter.interface.ts",
+      "sourceSha256": "606f0eb8e4a317d2be52c07fd91cc78c321c5a3869bc74238756a999c80c3621",
+      "targetSha256": "606f0eb8e4a317d2be52c07fd91cc78c321c5a3869bc74238756a999c80c3621"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory-context.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory-context.service.ts",
+      "sourceSha256": "58d6cff6870a6136070ab45593f519428b6d7c5497afad49c5ef4df9695cd2de",
+      "targetSha256": "58d6cff6870a6136070ab45593f519428b6d7c5497afad49c5ef4df9695cd2de"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory-extraction.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory-extraction.service.ts",
+      "sourceSha256": "ed58185cad6be0a72ee2f36fc250bd6e2e83b83cc1d5cec61b82b89d8d39840a",
+      "targetSha256": "ed58185cad6be0a72ee2f36fc250bd6e2e83b83cc1d5cec61b82b89d8d39840a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory-payload-adapter.interface.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory-payload-adapter.interface.ts",
+      "sourceSha256": "2962194119bc00ceb4184f489a8b1847b1ddf2414900937801f71e36c81e2f55",
+      "targetSha256": "2962194119bc00ceb4184f489a8b1847b1ddf2414900937801f71e36c81e2f55"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory-view-adapter.interface.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory-view-adapter.interface.ts",
+      "sourceSha256": "b4d28549bc155af3d493f96ea3cbe7bfe61d347a160dfd092b415874e328bcca",
+      "targetSha256": "b4d28549bc155af3d493f96ea3cbe7bfe61d347a160dfd092b415874e328bcca"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-memory.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-memory.service.ts",
+      "sourceSha256": "2673d27131e2c6651a8495e1013b49b61dec7fcb9b0a697b3a86036c74724dbf",
+      "targetSha256": "2673d27131e2c6651a8495e1013b49b61dec7fcb9b0a697b3a86036c74724dbf"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/application/user-profile-schema-registry.service.ts",
+      "target": "services/api-server/src/modules/user-memory/application/user-profile-schema-registry.service.ts",
+      "sourceSha256": "49f4f1c1502cc81b4518cdfd3e1165827216ae2e13327d90ddd6a1bda0bd0b71",
+      "targetSha256": "49f4f1c1502cc81b4518cdfd3e1165827216ae2e13327d90ddd6a1bda0bd0b71"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/controllers/user-memory.controller.ts",
+      "target": "services/api-server/src/modules/user-memory/controllers/user-memory.controller.ts",
+      "sourceSha256": "9b24ed7cdd2c8632259867f0e02420433b523bb6ffce1c9aba1bc5bae6582631",
+      "targetSha256": "9b24ed7cdd2c8632259867f0e02420433b523bb6ffce1c9aba1bc5bae6582631"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/dto/user-memory.dto.ts",
+      "target": "services/api-server/src/modules/user-memory/dto/user-memory.dto.ts",
+      "sourceSha256": "c896251d561cf4dc6a5fe4f25385b9fc26cf79457e9a233d96996a74ccff3553",
+      "targetSha256": "c896251d561cf4dc6a5fe4f25385b9fc26cf79457e9a233d96996a74ccff3553"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/modules/user-memory/user-memory.module.ts",
+      "target": "services/api-server/src/modules/user-memory/user-memory.module.ts",
+      "sourceSha256": "ac85aa369645bd11847adc0d57e6d1dd303183e57f076731eaee866979189cd4",
+      "targetSha256": "ac85aa369645bd11847adc0d57e6d1dd303183e57f076731eaee866979189cd4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/persistence/prisma/persistence.module.ts",
+      "target": "services/api-server/src/persistence/prisma/persistence.module.ts",
+      "sourceSha256": "70bf499f919227e12cb4a0bf44ae58af7bb8113f2cd5c97fd2218ea20ccea684",
+      "targetSha256": "70bf499f919227e12cb4a0bf44ae58af7bb8113f2cd5c97fd2218ea20ccea684"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/persistence/prisma/prisma.service.ts",
+      "target": "services/api-server/src/persistence/prisma/prisma.service.ts",
+      "sourceSha256": "bd1025f5e6857cf1ea83ce1a847fb98693de8c37dc13640459366305c458494f",
+      "targetSha256": "bd1025f5e6857cf1ea83ce1a847fb98693de8c37dc13640459366305c458494f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/conversation/filter-output.schema.json",
+      "target": "services/api-server/src/prompts/conversation/filter-output.schema.json",
+      "sourceSha256": "a5987af9f2bb642a916e3a091a11e001014107575b417008276e6cd87ad4ea84",
+      "targetSha256": "a5987af9f2bb642a916e3a091a11e001014107575b417008276e6cd87ad4ea84"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/conversation/general.system.md",
+      "target": "services/api-server/src/prompts/conversation/general.system.md",
+      "sourceSha256": "95ab77597df0717d000a972f13b4179a7b849ab430ec1fba837056b4e08a4a01",
+      "targetSha256": "95ab77597df0717d000a972f13b4179a7b849ab430ec1fba837056b4e08a4a01"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/conversation/shoe.system.md",
+      "target": "services/api-server/src/prompts/conversation/shoe.system.md",
+      "sourceSha256": "023a1f3c51e50d028db1af3d99ccb90dcdacd04e082d4f5a753950b4d959394c",
+      "targetSha256": "023a1f3c51e50d028db1af3d99ccb90dcdacd04e082d4f5a753950b4d959394c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/product-profile/general.profile.schema.json",
+      "target": "services/api-server/src/prompts/product-profile/general.profile.schema.json",
+      "sourceSha256": "6d87d98cf1e32b9d47a3b207b604c3a88867b74d171c9f27a9ad5ee78e43c7c7",
+      "targetSha256": "6d87d98cf1e32b9d47a3b207b604c3a88867b74d171c9f27a9ad5ee78e43c7c7"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/product-profile/shoe.profile.schema.json",
+      "target": "services/api-server/src/prompts/product-profile/shoe.profile.schema.json",
+      "sourceSha256": "d942ef3ede6d4d4a09011a4058adbcd29aa03b12d3d915997f5cf864a0019bf3",
+      "targetSha256": "d942ef3ede6d4d4a09011a4058adbcd29aa03b12d3d915997f5cf864a0019bf3"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/shoe/profile/README.md",
+      "target": "services/api-server/src/prompts/shoe/profile/README.md",
+      "sourceSha256": "2137c8dbfe62e108ce94c3de607cdf30575fffad27859462c598859c1365e51c",
+      "targetSha256": "2137c8dbfe62e108ce94c3de607cdf30575fffad27859462c598859c1365e51c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/shoe/refine/README.md",
+      "target": "services/api-server/src/prompts/shoe/refine/README.md",
+      "sourceSha256": "0f484dd907c7807514b4047fe1f9e5e93afe01e2eb06cc99ddd378abe77ce8d4",
+      "targetSha256": "0f484dd907c7807514b4047fe1f9e5e93afe01e2eb06cc99ddd378abe77ce8d4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/shoe/suggestion/README.md",
+      "target": "services/api-server/src/prompts/shoe/suggestion/README.md",
+      "sourceSha256": "346e4c7aae693d2fe9eca095d1c7bfa64f881775489c1757ba44b357b3510a0c",
+      "targetSha256": "346e4c7aae693d2fe9eca095d1c7bfa64f881775489c1757ba44b357b3510a0c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/user-memory/global.profile.schema.json",
+      "target": "services/api-server/src/prompts/user-memory/global.profile.schema.json",
+      "sourceSha256": "477063aac66d7f5931463d8e5c7ab106a41ad6b222142cd37456e0c27af428ce",
+      "targetSha256": "477063aac66d7f5931463d8e5c7ab106a41ad6b222142cd37456e0c27af428ce"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/user-memory/measurement.schema.json",
+      "target": "services/api-server/src/prompts/user-memory/measurement.schema.json",
+      "sourceSha256": "b55f5ce6b2377af17e0645aa190870ffc184b8d94783236e493c529558822cc3",
+      "targetSha256": "b55f5ce6b2377af17e0645aa190870ffc184b8d94783236e493c529558822cc3"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/user-memory/memory-extraction.system.md",
+      "target": "services/api-server/src/prompts/user-memory/memory-extraction.system.md",
+      "sourceSha256": "61455fbd5854914ef294dc7e4dbce647566a25730a5257c826c21ba974f32460",
+      "targetSha256": "61455fbd5854914ef294dc7e4dbce647566a25730a5257c826c21ba974f32460"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/user-memory/memory-proposal-output.schema.json",
+      "target": "services/api-server/src/prompts/user-memory/memory-proposal-output.schema.json",
+      "sourceSha256": "5383c22ddc175f4e047d0755b22f2034e79e23a002abdb1094cd6f83e0a10377",
+      "targetSha256": "5383c22ddc175f4e047d0755b22f2034e79e23a002abdb1094cd6f83e0a10377"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/prompts/user-memory/shoe.preference.schema.json",
+      "target": "services/api-server/src/prompts/user-memory/shoe.preference.schema.json",
+      "sourceSha256": "50db562734d00b398b74ebbd536a5cdd062d2101347cfa9cee1e8ccb6ce3b9d3",
+      "targetSha256": "50db562734d00b398b74ebbd536a5cdd062d2101347cfa9cee1e8ccb6ce3b9d3"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/rules/shoe/filters/README.md",
+      "target": "services/api-server/src/rules/shoe/filters/README.md",
+      "sourceSha256": "85697df884a0ff02557462447ebcf204d9792bb7e003325c852681d85a417465",
+      "targetSha256": "85697df884a0ff02557462447ebcf204d9792bb7e003325c852681d85a417465"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/rules/shoe/mappings/README.md",
+      "target": "services/api-server/src/rules/shoe/mappings/README.md",
+      "sourceSha256": "65ea2a3f883f8250ba6997201d36f55bc78f4e59df92cd9d53254d28e68e6437",
+      "targetSha256": "65ea2a3f883f8250ba6997201d36f55bc78f4e59df92cd9d53254d28e68e6437"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/src/rules/shoe/ranking/README.md",
+      "target": "services/api-server/src/rules/shoe/ranking/README.md",
+      "sourceSha256": "af88743a03420b0a870df415454839bf7fa8080f494195c9b30a2e4028e55c46",
+      "targetSha256": "af88743a03420b0a870df415454839bf7fa8080f494195c9b30a2e4028e55c46"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/README.md",
+      "target": "services/api-server/test/README.md",
+      "sourceSha256": "9458d573de400aebd317775e6b57b963fd7765cd2500e8bee5d546b25dc76433",
+      "targetSha256": "9458d573de400aebd317775e6b57b963fd7765cd2500e8bee5d546b25dc76433"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/e2e/api.e2e-spec.ts",
+      "target": "services/api-server/test/e2e/api.e2e-spec.ts",
+      "sourceSha256": "1ad5f831de71ee4c0554710a3478795eca4f1b34ab7363c8c81b45839e4f4f7f",
+      "targetSha256": "1ad5f831de71ee4c0554710a3478795eca4f1b34ab7363c8c81b45839e4f4f7f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/global-setup.cjs",
+      "target": "services/api-server/test/global-setup.cjs",
+      "sourceSha256": "54ec768769fbd51e76aaa3da3043b0c21896fa62846f726d79684e077e5716d4",
+      "targetSha256": "54ec768769fbd51e76aaa3da3043b0c21896fa62846f726d79684e077e5716d4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/global-teardown.cjs",
+      "target": "services/api-server/test/global-teardown.cjs",
+      "sourceSha256": "72ffa1dfa981981de68ac0f1c79571c21b4dca19e4e7c22b5bcbc5ae3d3ea801",
+      "targetSha256": "72ffa1dfa981981de68ac0f1c79571c21b4dca19e4e7c22b5bcbc5ae3d3ea801"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/helpers/create-test-app.ts",
+      "target": "services/api-server/test/helpers/create-test-app.ts",
+      "sourceSha256": "d7da1825035e1d2781608362c139f06182e066f55ef12a71c3bec1dd3c215f8f",
+      "targetSha256": "d7da1825035e1d2781608362c139f06182e066f55ef12a71c3bec1dd3c215f8f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/jest-e2e.json",
+      "target": "services/api-server/test/jest-e2e.json",
+      "sourceSha256": "51580d6aedac845e7b1bbdcecb67f7209a785905af00c5bdd3ea1e8aab1bc1c4",
+      "targetSha256": "51580d6aedac845e7b1bbdcecb67f7209a785905af00c5bdd3ea1e8aab1bc1c4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/jest-unit.json",
+      "target": "services/api-server/test/jest-unit.json",
+      "sourceSha256": "d1a29106106465b3d9ca111a39a99d024e7a8a04f74b497e5aaf98f83321043f",
+      "targetSha256": "d1a29106106465b3d9ca111a39a99d024e7a8a04f74b497e5aaf98f83321043f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/setup-env.ts",
+      "target": "services/api-server/test/setup-env.ts",
+      "sourceSha256": "d2e3c3badc11802fe48c205b0144504d62848c63bdec59b2b08e4ea17d846327",
+      "targetSha256": "d2e3c3badc11802fe48c205b0144504d62848c63bdec59b2b08e4ea17d846327"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/cache.spec.ts",
+      "target": "services/api-server/test/unit/cache.spec.ts",
+      "sourceSha256": "f4138266ab573a134c4c14c0b49a479d73f3cb3904bbedef50c5f02446887120",
+      "targetSha256": "f4138266ab573a134c4c14c0b49a479d73f3cb3904bbedef50c5f02446887120"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/candidate-cursor.spec.ts",
+      "target": "services/api-server/test/unit/candidate-cursor.spec.ts",
+      "sourceSha256": "3c7cb6543f4e73935ce4ee4585f7e0c2f0ac5bcaebd46e77a75395c039588817",
+      "targetSha256": "3c7cb6543f4e73935ce4ee4585f7e0c2f0ac5bcaebd46e77a75395c039588817"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/category-switch.spec.ts",
+      "target": "services/api-server/test/unit/category-switch.spec.ts",
+      "sourceSha256": "83fd2931d55077e50e22dd8a5c915b60fb75f1af1581d49327f93ac061fdd81f",
+      "targetSha256": "83fd2931d55077e50e22dd8a5c915b60fb75f1af1581d49327f93ac061fdd81f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/conversation-filter-definition.spec.ts",
+      "target": "services/api-server/test/unit/conversation-filter-definition.spec.ts",
+      "sourceSha256": "012190002e2f1fded75250c5d2de6b42ae35dc3b91ebb6b2b2adb73fe503037c",
+      "targetSha256": "012190002e2f1fded75250c5d2de6b42ae35dc3b91ebb6b2b2adb73fe503037c"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/filter-state.service.spec.ts",
+      "target": "services/api-server/test/unit/filter-state.service.spec.ts",
+      "sourceSha256": "87b3b06e00fbc06430d20422ba2178fdf693efacc20ce0fb90577bb989c867e4",
+      "targetSha256": "87b3b06e00fbc06430d20422ba2178fdf693efacc20ce0fb90577bb989c867e4"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/product-search-verification.spec.ts",
+      "target": "services/api-server/test/unit/product-search-verification.spec.ts",
+      "sourceSha256": "8c2a47919ed02e20546100f72efa63adf90fd9d85e6ac6c51e0a896ee756f24b",
+      "targetSha256": "8c2a47919ed02e20546100f72efa63adf90fd9d85e6ac6c51e0a896ee756f24b"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/runtime-cloud-adapter.spec.ts",
+      "target": "services/api-server/test/unit/runtime-cloud-adapter.spec.ts",
+      "sourceSha256": "75c18ed5cb7be180ee8b7bc7a9a680ea6610f4ee97bc0538bce09c681011b75a",
+      "targetSha256": "75c18ed5cb7be180ee8b7bc7a9a680ea6610f4ee97bc0538bce09c681011b75a"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/runtime-event-bus.spec.ts",
+      "target": "services/api-server/test/unit/runtime-event-bus.spec.ts",
+      "sourceSha256": "7333e15108defc0997c337280df41f6c6d54bb12c9339ff62e8e645252febb49",
+      "targetSha256": "7333e15108defc0997c337280df41f6c6d54bb12c9339ff62e8e645252febb49"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/runtime-run.spec.ts",
+      "target": "services/api-server/test/unit/runtime-run.spec.ts",
+      "sourceSha256": "d55b19373cc6d9480d38beab18e104aab965511917cd58acbfccb99bfcb0627f",
+      "targetSha256": "d55b19373cc6d9480d38beab18e104aab965511917cd58acbfccb99bfcb0627f"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/runtime-scheduler.spec.ts",
+      "target": "services/api-server/test/unit/runtime-scheduler.spec.ts",
+      "sourceSha256": "ce87e4df3a2432dba0f29d0c5547cadda15e471145de4ccd0c9875633753f9db",
+      "targetSha256": "ce87e4df3a2432dba0f29d0c5547cadda15e471145de4ccd0c9875633753f9db"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/runtime-tool-registry.spec.ts",
+      "target": "services/api-server/test/unit/runtime-tool-registry.spec.ts",
+      "sourceSha256": "052ea320a7e1b4d149b83c05593d4e7215ae5e7dd70d3be8466229103d251087",
+      "targetSha256": "052ea320a7e1b4d149b83c05593d4e7215ae5e7dd70d3be8466229103d251087"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/search-event-adapter.spec.ts",
+      "target": "services/api-server/test/unit/search-event-adapter.spec.ts",
+      "sourceSha256": "277e3c4e532c9f4696487ae59e0a5477c14146ba23db5c648443b664d84624df",
+      "targetSha256": "277e3c4e532c9f4696487ae59e0a5477c14146ba23db5c648443b664d84624df"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/search-pipeline-fallback.spec.ts",
+      "target": "services/api-server/test/unit/search-pipeline-fallback.spec.ts",
+      "sourceSha256": "091ec6530af89aa8586625f7609222f41ee824fc463ad17a86e996679f6f3dbd",
+      "targetSha256": "091ec6530af89aa8586625f7609222f41ee824fc463ad17a86e996679f6f3dbd"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/shopping-language-analyzer.spec.ts",
+      "target": "services/api-server/test/unit/shopping-language-analyzer.spec.ts",
+      "sourceSha256": "c1429b6213a26899e2b801eb639773c9891a59db40c966ceede9c1dd31e610fe",
+      "targetSha256": "c1429b6213a26899e2b801eb639773c9891a59db40c966ceede9c1dd31e610fe"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/test/unit/shopping-message-validation.spec.ts",
+      "target": "services/api-server/test/unit/shopping-message-validation.spec.ts",
+      "sourceSha256": "94ac600accb91a5db255faf79e2eeec45db9a71d97402103ac0c101d9e9f80c3",
+      "targetSha256": "94ac600accb91a5db255faf79e2eeec45db9a71d97402103ac0c101d9e9f80c3"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/tsconfig.build.json",
+      "target": "services/api-server/tsconfig.build.json",
+      "sourceSha256": "ef5be6c06c3ac6c3eca6c81885a12d03e33059086b4b275cf39f6e9359965378",
+      "targetSha256": "ef5be6c06c3ac6c3eca6c81885a12d03e33059086b4b275cf39f6e9359965378"
+    },
+    {
+      "source": "shopping-assistant/services/api-server/tsconfig.json",
+      "target": "services/api-server/tsconfig.json",
+      "sourceSha256": "699feaada4b2de98e428512f6c6354ecab29ef0052b505dfc620bdfbb0cb31b4",
+      "targetSha256": "699feaada4b2de98e428512f6c6354ecab29ef0052b505dfc620bdfbb0cb31b4"
+    },
+    {
+      "source": "shopping-assistant/services/image-worker/app/__init__.py",
+      "target": "services/image-worker/app/__init__.py",
+      "sourceSha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "targetSha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "source": "shopping-assistant/services/image-worker/app/main.py",
+      "target": "services/image-worker/app/main.py",
+      "sourceSha256": "00f9bead50d74de0522218705ff8a43c57f1eea6d68fd130b9f33d76419cb8e7",
+      "targetSha256": "8e55da1c551ca67edd78618a35880230a438596826f8a83cc46ae243015fa094"
+    },
+    {
+      "source": "shopping-assistant/services/image-worker/requirements.txt",
+      "target": "services/image-worker/requirements.txt",
+      "sourceSha256": "1a8f65d9ae75cf88e7ebff8b0b41e9080311c2de55d7855f60830719c31318ee",
+      "targetSha256": "1a8f65d9ae75cf88e7ebff8b0b41e9080311c2de55d7855f60830719c31318ee"
+    },
+    {
+      "source": "shopping-assistant/docs/26-参赛作品设计-通用端云协同Runtime.md",
+      "target": "docs/reference/cix/26-参赛作品设计-通用端云协同Runtime.md",
+      "sourceSha256": "31f845e3f152f3003270f62fa3f91bd5c2b9f6edbbf2271ceb8ba7acc9879a58",
+      "targetSha256": "31f845e3f152f3003270f62fa3f91bd5c2b9f6edbbf2271ceb8ba7acc9879a58"
+    },
+    {
+      "source": "shopping-assistant/docs/27-端云模型分工与项目架构图.md",
+      "target": "docs/reference/cix/27-端云模型分工与项目架构图.md",
+      "sourceSha256": "82dcfd826773cfd1d311090067faf2b3e9fd91e3921f247999d827884e923af8",
+      "targetSha256": "82dcfd826773cfd1d311090067faf2b3e9fd91e3921f247999d827884e923af8"
+    },
+    {
+      "source": "shopping-assistant/docs/28-参赛亮点取舍与落地验证.md",
+      "target": "docs/reference/cix/28-参赛亮点取舍与落地验证.md",
+      "sourceSha256": "e680730a653e92565e19cd4b2244261e407bf66b4c249cbf1bae7d36cea12e00",
+      "targetSha256": "e680730a653e92565e19cd4b2244261e407bf66b4c249cbf1bae7d36cea12e00"
+    },
+    {
+      "source": "shopping-assistant/docs/29-创新点建议-面向P1的端云技能编译.md",
+      "target": "docs/reference/cix/29-创新点建议-面向P1的端云技能编译.md",
+      "sourceSha256": "78ffa95a5ebd04a86fd9f638467404e0ae81d032119a183a781d9dda59f8b7b5",
+      "targetSha256": "78ffa95a5ebd04a86fd9f638467404e0ae81d032119a183a781d9dda59f8b7b5"
+    },
+    {
+      "source": "shopping-assistant/docs/runtime-api-contract.md",
+      "target": "docs/reference/cix/runtime-api-contract.md",
+      "sourceSha256": "c20aeff7f9ba19d4613ce66bb6455b0c14eb880481a9ca16023e3b414145afae",
+      "targetSha256": "c20aeff7f9ba19d4613ce66bb6455b0c14eb880481a9ca16023e3b414145afae"
+    },
+    {
+      "source": "shopping-assistant/docs/runtime-resource-gaps.md",
+      "target": "docs/reference/cix/runtime-resource-gaps.md",
+      "sourceSha256": "e9d126244848cec49378375c7ba445de1bb947cd072d77559f392aa8c91738d9",
+      "targetSha256": "e9d126244848cec49378375c7ba445de1bb947cd072d77559f392aa8c91738d9"
+    }
+  ]
+}

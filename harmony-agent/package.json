@@ -1,0 +1,23 @@
+{
+  "name": "harmony-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Independent HarmonyOS competition workspace: reusable backend and web debugger; native adaptation pending.",
+  "packageManager": "npm@11.12.0",
+  "engines": { "node": ">=22" },
+  "workspaces": ["services/api-server", "apps/test-entry-web"],
+  "scripts": {
+    "api:dev": "npm --workspace services/api-server run start:dev",
+    "api:build": "npm --workspace services/api-server run build",
+    "api:test": "npm --workspace services/api-server run test",
+    "api:test:unit": "npm --workspace services/api-server run test:unit --",
+    "api:test:e2e": "npm --workspace services/api-server run test:e2e",
+    "api:test:ci": "npm --workspace services/api-server run test:ci",
+    "api:smoke:cache": "npm --workspace services/api-server run smoke:cache",
+    "api:smoke:conversation": "npm --workspace services/api-server run smoke:conversation",
+    "web:dev": "npm --workspace apps/test-entry-web run dev",
+    "web:build": "npm --workspace apps/test-entry-web run build",
+    "image-worker:dev": "cd services/image-worker && node ../../scripts/with-root-env.mjs python -m app.main",
+    "migration:verify": "node scripts/verify-migration.mjs"
+  }
+}

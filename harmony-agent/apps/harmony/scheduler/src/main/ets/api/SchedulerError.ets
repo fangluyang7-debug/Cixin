@@ -1,0 +1,25 @@
+export enum SchedulerErrorCode {
+  NOT_INITIALIZED = 'NOT_INITIALIZED',
+  ALREADY_INITIALIZED = 'ALREADY_INITIALIZED',
+  INVALID_CONFIG = 'INVALID_CONFIG',
+  INVALID_STATE = 'INVALID_STATE',
+  DEBUG_INJECTION_DISABLED = 'DEBUG_INJECTION_DISABLED',
+  INVALID_TASK = 'INVALID_TASK',
+  CAPABILITY_UNAVAILABLE = 'CAPABILITY_UNAVAILABLE',
+  PRIVACY_POLICY_VIOLATION = 'PRIVACY_POLICY_VIOLATION',
+  TASK_TIMEOUT = 'TASK_TIMEOUT',
+  TASK_CANCELLED = 'TASK_CANCELLED',
+  MODEL_LOAD_FAILED = 'MODEL_LOAD_FAILED',
+  THERMAL_PROTECTION = 'THERMAL_PROTECTION',
+  INTERNAL_ERROR = 'INTERNAL_ERROR'
+}
+
+export class SchedulerError extends Error {
+  public readonly code: SchedulerErrorCode;
+
+  constructor(code: SchedulerErrorCode, message: string) {
+    super(message);
+    this.name = 'SchedulerError';
+    this.code = code;
+  }
+}

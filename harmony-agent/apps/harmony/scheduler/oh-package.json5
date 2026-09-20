@@ -1,0 +1,9 @@
+{
+  "name": "scheduler",
+  "version": "1.0.0",
+  "description": "Reusable on-device AI scheduling middleware for HarmonyOS applications.",
+  "main": "Index.ets",
+  "author": "SoleAI Team",
+  "license": "Apache-2.0",
+  "dependencies": {}
+}

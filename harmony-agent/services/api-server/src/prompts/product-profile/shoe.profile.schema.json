@@ -1,0 +1,73 @@
+{
+  "version": "shoe-profile-v1",
+  "category": "shoe",
+  "description": "Shared shoe product profile schema for user image recognition, catalog tagging, candidate verification, and conversation context.",
+  "confidencePolicy": {
+    "minUsableConfidence": 0.55,
+    "unknownValue": null,
+    "rule": "Use null when a field cannot be identified reliably. Do not invent brand, model line, or colorway."
+  },
+  "fields": {
+    "category": {
+      "type": "string",
+      "required": true,
+      "default": "running_shoes",
+      "description": "Shoe subcategory.",
+      "enum": ["running_shoes", "basketball_shoes", "lifestyle_shoes", "training_shoes", "skate_shoes", "football_shoes", "unknown_shoes"]
+    },
+    "brand": {
+      "type": ["string", "null"],
+      "description": "Normalized brand name, for example Nike, Adidas, Puma, Anta, Li-Ning."
+    },
+    "modelLine": {
+      "type": ["string", "null"],
+      "description": "Stable model line without marketing noise, for example Air Zoom Pegasus."
+    },
+    "colorFamily": {
+      "type": ["string", "null"],
+      "description": "Controlled color family joined by underscore.",
+      "enum": ["black", "white", "black_white", "gray", "blue", "red", "green", "yellow", "brown", "multi", null]
+    },
+    "colorway": {
+      "type": ["string", "null"],
+      "description": "Commercial colorway when visible, for example Black White."
+    },
+    "shoeType": {
+      "type": ["string", "null"],
+      "description": "Functional shoe type.",
+      "enum": ["running", "basketball", "lifestyle", "training", "skate", "football", "unknown", null]
+    },
+    "size": {
+      "type": ["string", "null"],
+      "description": "Visible or user-provided shoe size. Usually null from image only."
+    },
+    "color": {
+      "type": ["string", "null"],
+      "description": "Human readable primary color."
+    },
+    "styleTags": {
+      "type": "array",
+      "items": "string",
+      "default": [],
+      "description": "Visual style tags such as low_top, knit_upper, chunky_sole."
+    },
+    "sceneTags": {
+      "type": "array",
+      "items": "string",
+      "default": [],
+      "description": "Use scenes such as running, casual, commute, training."
+    },
+    "keywords": {
+      "type": "array",
+      "items": "string",
+      "default": [],
+      "description": "Search keywords derived from stable fields."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Overall profile confidence."
+    }
+  }
+}

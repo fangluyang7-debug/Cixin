@@ -1,0 +1,65 @@
+{
+  "version": "general-product-profile-v1",
+  "category": "general",
+  "description": "Generic product profile schema for image recognition, catalog tagging, candidate verification, and conversation context.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["category", "keywords", "confidence"],
+  "properties": {
+    "category": {
+      "type": "string",
+      "description": "Canonical product category key, such as camera, headphones, smartwatch, phone, computer, tablet, keyboard, mouse, digital_other, or shoe."
+    },
+    "brand": {
+      "type": ["string", "null"],
+      "description": "Visible or inferred brand."
+    },
+    "modelLine": {
+      "type": ["string", "null"],
+      "description": "Stable model, series, or product line when visible or strongly inferred."
+    },
+    "colorFamily": {
+      "type": ["string", "null"],
+      "description": "Primary visible color family."
+    },
+    "colorway": {
+      "type": ["string", "null"],
+      "description": "More specific colorway or color combination."
+    },
+    "shoeType": {
+      "type": ["string", "null"],
+      "description": "Only set for shoe products; otherwise null."
+    },
+    "size": {
+      "type": ["string", "null"],
+      "description": "Visible product size or capacity when present; otherwise null."
+    },
+    "color": {
+      "type": ["string", "null"],
+      "description": "Visible color description."
+    },
+    "styleTags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "sceneTags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Short searchable product words, including category, brand, model, and visible attributes."
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "subjectDetection": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Optional product subject detection metadata in normalized 0-1 coordinates."
+    }
+  }
+}
