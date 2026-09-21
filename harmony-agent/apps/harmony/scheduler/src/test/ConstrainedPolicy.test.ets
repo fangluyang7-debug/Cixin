@@ -4,11 +4,13 @@ import {
   DuplicatePolicy, ExecutionPlan, ExecutorResult, ExecutorTelemetry, FeedbackOption,
   InferenceLocation, Interruptibility, MemoryPressure, ModelTier, PolicyMode, PrivacyPolicy,
   SchedulerClient, SchedulerService, TaskContext, TaskSignalType, TaskStatus, TaskTemplate,
-  TaskType, ThermalLevel, WorkloadExecutor, PolicyStateStore, QualityLevel, WorkflowResult, TaskCheckpoint
+  TaskType, ThermalLevel, WorkloadExecutor, PolicyStateStore, QualityLevel, WorkflowResult, TaskCheckpoint, ActiveTaskSnapshot,
+  SchedulerLogEntry, AppExperienceObservation
 } from '../../Index';
 import { stablePolicyBucket } from '../main/ets/policy/ProfileContract';
 import { ConstrainedPolicy } from '../main/ets/policy/ConstrainedPolicy';
 import { SemanticPolicy } from '../main/ets/policy/SemanticPolicy';
+import { FeedbackController } from '../main/ets/policy/FeedbackController';
 
 function declaration(background: boolean = false): TaskTemplate {
   return { capability: 'generic-profiled', taskType: background ? TaskType.BACKGROUND_BATCH : TaskType.USER_INITIATED,
@@ -102,6 +104,157 @@ export default function constrainedPolicyTest(): void {
     const run = async (ctx: TaskContext = context()): Promise<WorkflowResult<string>> => {
       return await client.submit<string, string>('generic-profiled', 'private-search-text', ctx).result;
     };
+
+    it('activeSnapshotsAreDetachedReadOnlyAndExcludeRawInput', 0, async () => {
+      register(); let observed: ActiveTaskSnapshot[] = [];
+      executor.onStart = () => {
+        observed = service.getActiveTasks();
+        expect(observed.length).assertEqual(1);
+        expect(observed[0].status).assertEqual(TaskStatus.RUNNING);
+        expect(observed[0].targetLatencyMs).assertEqual(100);
+        expect(observed[0].deadlineMs).assertEqual(3000);
+        observed[0].executionPlan.executionProfile!.id = 'UI_MUTATION';
+        expect(service.getActiveTasks()[0].executionPlan.executionProfile!.id).assertEqual('DEFAULT');
+      };
+      expect((await run()).status).assertEqual(TaskStatus.SUCCEEDED);
+      expect(observed.length).assertEqual(1);
+      expect(JSON.stringify(observed).indexOf('private-search-text') < 0).assertTrue();
+      expect(service.getActiveTasks().length).assertEqual(0);
+      expect(service.getRecentLogs(20).some((log) => log.status === TaskStatus.RUNNING)).assertTrue();
+      expect(executor.calls).assertEqual(1);
+    });
+
+    it('pausedQueueIsVisibleWithoutDispatchingOrCancellingIt', 0, async () => {
+      register(); await service.pause();
+      const handle = client.submit<string, string>('generic-profiled', 'private-search-text', context());
+      await new Promise<void>((resolve) => setTimeout(resolve, 10));
+      expect(service.getActiveTasks().length).assertEqual(1);
+      expect(service.getActiveTasks()[0].startedAt === null).assertTrue();
+      expect(executor.calls).assertEqual(0);
+      await service.resume(); expect((await handle.result).status).assertEqual(TaskStatus.SUCCEEDED);
+    });
+
+    it('availabilityExplainsConsentDisplayAnswerAndOwnershipWithoutConsumingQuota', 0, async () => {
+      register();
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('CONSENT_REQUIRED');
+      service.setFeedbackEnabled(true);
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('RESULT_NOT_DISPLAYED');
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
+      for (let i = 0; i < 10; i++) { expect(client.getFeedbackAvailability(handle.workflowId).eligible).assertTrue(); }
+      const other = new SchedulerClient(service);
+      expect(other.getFeedbackAvailability(handle.workflowId).reason).assertEqual('WORKFLOW_NOT_READY');
+      await other.dispose();
+      const question = client.getFeedbackRequest(handle.workflowId)!;
+      expect(question !== null).assertTrue();
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: question.taskRunId,
+        kind: question.kind, option: question.options[0] }).accepted).assertTrue();
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('ALREADY_ANSWERED');
+      const next = client.submit<string, string>('generic-profiled', 'input', context()); await next.result;
+      await next.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
+      expect(client.getFeedbackAvailability(next.workflowId).reason).assertEqual('CAPABILITY_DAILY_LIMIT');
+    });
+
+    it('availabilityDistinguishesRunningFailedAndBackgroundTasks', 0, async () => {
+      register(); service.setFeedbackEnabled(true); executor.fail = true;
+      const handle = client.submit<string, string>('generic-profiled', 'input', context());
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('WORKFLOW_NOT_READY');
+      await handle.result;
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('TASK_NOT_SUCCESSFUL');
+      service.updateRealDeviceState({ appVisibility: AppVisibility.BACKGROUND });
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('APP_BACKGROUND');
+    });
+
+    it('asksAboutToleranceBeforeUncertainQualityAndNeverAboutDeviceMetrics', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
+      const base: SchedulerLogEntry = service.getRecentLogs(1)[0];
+      const questionKind = (log: SchedulerLogEntry): FeedbackKind => {
+        const controller = new FeedbackController(); controller.setEnabled(true);
+        return controller.request(log)!.kind;
+      };
+      const copy = (capability: string, thermal: ThermalLevel, missed: boolean): SchedulerLogEntry => {
+        const log: SchedulerLogEntry = JSON.parse(JSON.stringify(base)) as SchedulerLogEntry;
+        log.taskId = capability; log.capability = capability; log.deviceState.thermalLevel = thermal;
+        log.telemetry!.feedbackRequest = undefined; log.telemetry!.softDeadlineMissed = missed;
+        return log;
+      };
+      expect(questionKind(copy('thermal-profiled', ThermalLevel.HOT, true)))
+        .assertEqual(FeedbackKind.RESPONSE_TIME);
+      expect(questionKind(copy('slow-profiled', ThermalLevel.UNKNOWN, true)))
+        .assertEqual(FeedbackKind.RESPONSE_TIME);
+      expect(questionKind(copy('smoothness-profiled', ThermalLevel.NORMAL, false)))
+        .assertEqual(FeedbackKind.RESULT_UTILITY);
+      const unknown = copy('unknown-metrics', ThermalLevel.UNKNOWN, false);
+      unknown.telemetry!.appExperience = undefined;
+      const controller = new FeedbackController(); controller.setEnabled(true);
+      expect(controller.request(unknown) === null).assertTrue();
+      unknown.deviceState.thermalLevel = ThermalLevel.HOT;
+      expect(controller.request(unknown) === null).assertTrue();
+    });
+
+    it('hostResponseObservationRaisesPriorityWithoutOverwritingExecutorTiming', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      const observation: AppExperienceObservation = { responseReadyMs: 1800 };
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: observation });
+      observation.responseReadyMs = 0;
+      const log = service.getRecentLogs(1)[0];
+      expect(log.telemetry!.appExperience!.responseReadyMs).assertEqual(1800);
+      expect(log.telemetry!.softDeadlineMissed).assertFalse();
+      const question = client.getFeedbackRequest(handle.workflowId)!;
+      expect(question.kind).assertEqual(FeedbackKind.RESPONSE_TIME);
+      expect(question.selectionReason).assertEqual('SLOW_RESPONSE_ACCEPTABILITY_UNKNOWN');
+      expect(question.priority).assertEqual(80);
+    });
+
+    it('knownHostObservationsSkipQuestionsWithoutUsingQuotaOrCreatingTrainingLabels', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const first = client.submit<string, string>('generic-profiled', 'input', context()); await first.result;
+      await first.signal({ type: TaskSignalType.RESULT_DISPLAYED,
+        experience: { responseReadyMs: 10, resultQualityUncertain: true, resultUseful: true } });
+      expect(client.getFeedbackAvailability(first.workflowId).reason).assertEqual('NO_QUESTION_NEEDED');
+      expect(client.getFeedbackRequest(first.workflowId) === null).assertTrue();
+      expect(service.getRecentLogs(1)[0].telemetry!.userFeedback === undefined).assertTrue();
+      const next = client.submit<string, string>('generic-profiled', 'input', context()); await next.result;
+      await next.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
+      expect(client.getFeedbackRequest(next.workflowId)!.kind).assertEqual(FeedbackKind.RESULT_UTILITY);
+    });
+
+    it('invalidHostMeasurementsStayUnknownAndConsumptionIsNotAQualityLabel', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { responseReadyMs: -1 } });
+      expect(service.getRecentLogs(1)[0].telemetry!.appExperience!.responseReadyMs === undefined).assertTrue();
+      await handle.signal({ type: TaskSignalType.RESULT_CONSUMED,
+        experience: { responseReadyMs: NaN, resultQualityUncertain: true } });
+      const log = service.getRecentLogs(1)[0];
+      expect(log.telemetry!.appExperience!.responseReadyMs === undefined).assertTrue();
+      expect(log.telemetry!.appExperience!.resultQualityUncertain).assertTrue();
+      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('NO_QUESTION_NEEDED');
+      expect(log.telemetry!.userFeedback === undefined).assertTrue();
+    });
+
+    it('feedbackDiagnosticsKeepIntervalDailyAndExpiryLimits', 0, async () => {
+      register(); const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
+      const log = service.getRecentLogs(1)[0]; const controller = new FeedbackController();
+      controller.setEnabled(true); const now = 20000 * 86400000 + 3600000;
+      for (let i = 0; i < 10; i++) { expect(controller.inspect(log, now).reason).assertEqual('READY'); }
+      expect(controller.request(log, now) !== null).assertTrue();
+      expect(controller.inspect(log, now + 120001).reason).assertEqual('INVITATION_EXPIRED');
+      log.telemetry!.feedbackRequest = undefined;
+      expect(controller.inspect(log, now + 120001).reason).assertEqual('CAPABILITY_DAILY_LIMIT');
+      log.capability = 'different-capability'; log.taskId = 'second';
+      expect(controller.inspect(log, now + 120001).reason).assertEqual('INTERVAL_LIMIT');
+      expect(controller.inspect(log, now + 120001).nextAllowedAtMs).assertEqual(now + 1800000);
+      expect(controller.request(log, now + 1800000) !== null).assertTrue();
+      log.telemetry!.feedbackRequest = undefined; log.capability = 'third-capability';
+      log.telemetry!.softDeadlineMissed = true;
+      expect(controller.inspect(log, now + 3600000).reason).assertEqual('DAILY_LIMIT');
+      expect(controller.inspect(log, now + 86400000).reason).assertEqual('READY');
+    });
 
     it('observeExecutesDefaultAndOmitsRawInput', 0, async () => {
       register(); const result = await run();
@@ -373,7 +526,7 @@ export default function constrainedPolicyTest(): void {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'private-input', context());
       const result = await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       const receipt = client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
         kind: request.kind, option: request.options[0] });
@@ -391,7 +544,7 @@ export default function constrainedPolicyTest(): void {
     it('feedbackReceiptCannotCrossWorkflowOwnership', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       const other = new SchedulerClient(service);
       const denied = other.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
@@ -402,7 +555,7 @@ export default function constrainedPolicyTest(): void {
     it('feedbackReceiptRejectsRevokedConsentAndPageExit', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       service.setFeedbackEnabled(false);
       expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
@@ -414,7 +567,7 @@ export default function constrainedPolicyTest(): void {
     it('reenablingConsentCannotResurrectAnOldInvitation', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       service.setFeedbackEnabled(false); service.setFeedbackEnabled(true);
       expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
@@ -423,7 +576,7 @@ export default function constrainedPolicyTest(): void {
     it('ignoredResultInvalidatesOutstandingFeedback', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
       expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
@@ -432,7 +585,7 @@ export default function constrainedPolicyTest(): void {
     it('oldVersionFeedbackIsRecordedWithoutTrainingNewVersion', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       service.configureConstrainedPolicy(config());
       const receipt = client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
@@ -445,7 +598,7 @@ export default function constrainedPolicyTest(): void {
       expect(client.getFeedbackRequest(handle.workflowId) === null).assertTrue();
       service.setFeedbackEnabled(true);
       expect(client.getFeedbackRequest(handle.workflowId) === null).assertTrue();
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       const request = client.getFeedbackRequest(handle.workflowId)!;
       expect(request !== null).assertTrue();
       await handle.signal({ type: TaskSignalType.USER_FEEDBACK, feedback: {
@@ -461,18 +614,18 @@ export default function constrainedPolicyTest(): void {
     it('feedbackIsRateLimitedAndPageExitInvalidatesRequest', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const first = client.submit<string, string>('generic-profiled', 'input', context()); await first.result;
-      await first.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await first.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       expect(client.getFeedbackRequest(first.workflowId) !== null).assertTrue();
       await first.signal({ type: TaskSignalType.PAGE_LEFT }); expect(client.getFeedbackRequest(first.workflowId) === null).assertTrue();
       const second = client.submit<string, string>('generic-profiled', 'input', context()); await second.result;
-      await second.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await second.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       expect(client.getFeedbackRequest(second.workflowId) === null).assertTrue();
     });
 
     it('backgroundAndPreviewNeverAskForFeedback', 0, async () => {
       register(declaration(true)); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       expect(client.getFeedbackRequest(handle.workflowId) === null).assertTrue();
     });
 
@@ -521,7 +674,7 @@ export default function constrainedPolicyTest(): void {
     it('qualityFeedbackCannotOverwriteAnAnswer', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED }); const request = client.getFeedbackRequest(handle.workflowId)!;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } }); const request = client.getFeedbackRequest(handle.workflowId)!;
       await handle.signal({ type: TaskSignalType.USER_FEEDBACK, feedback: {
         taskRunId: request.taskRunId, kind: request.kind, option: request.options[0] } });
       await handle.signal({ type: TaskSignalType.USER_FEEDBACK, feedback: {
@@ -532,7 +685,7 @@ export default function constrainedPolicyTest(): void {
     it('backgroundVisibilityPreventsFeedback', 0, async () => {
       register(); service.setFeedbackEnabled(true);
       const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED, experience: { resultQualityUncertain: true } });
       service.updateRealDeviceState({ appVisibility: AppVisibility.BACKGROUND });
       expect(client.getFeedbackRequest(handle.workflowId) === null).assertTrue();
     });

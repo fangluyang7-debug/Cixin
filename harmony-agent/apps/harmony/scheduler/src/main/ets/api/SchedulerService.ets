@@ -27,10 +27,10 @@ import {
   WorkloadExecutor
 } from './SchedulerTypes';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
-import { ExecutorTelemetry, Interruptibility, MemoryPressure, TaskCheckpoint, TaskSignal, TaskSignalType, TaskTelemetry, ThermalLevel } from './SchedulerTypes';
+import { AppExperienceObservation, ExecutorTelemetry, Interruptibility, MemoryPressure, TaskCheckpoint, TaskSignal, TaskSignalType, TaskTelemetry, ThermalLevel } from './SchedulerTypes';
 import { qualityRank, SemanticPolicy } from '../policy/SemanticPolicy';
 import { SchedulerRuntime } from './SchedulerClient';
-import { ConstrainedPolicyConfig, FeedbackRequest, FeedbackReceipt, UserFeedback, PolicyMetricsGroup, TaskContext, TaskTemplate } from './SchedulerTypes';
+import { ConstrainedPolicyConfig, FeedbackRequest, FeedbackReceipt, UserFeedback, PolicyMetricsGroup, TaskContext, TaskTemplate, FeedbackAvailability, ActiveTaskSnapshot } from './SchedulerTypes';
 import { ConstrainedPolicy } from '../policy/ConstrainedPolicy';
 import { FeedbackController } from '../policy/FeedbackController';
 import { policyMetrics } from '../policy/PolicyMetrics';
@@ -626,6 +626,10 @@ export class SchedulerService implements SchedulerRuntime {
         if (signal.type === TaskSignalType.RESULT_DISPLAYED && log.status === TaskStatus.SUCCEEDED) {
           log.telemetry.resultDisplayed = true;
         }
+        if (log.status === TaskStatus.SUCCEEDED && signal.experience !== undefined &&
+          (signal.type === TaskSignalType.RESULT_DISPLAYED || signal.type === TaskSignalType.RESULT_CONSUMED)) {
+          log.telemetry.appExperience = this.sanitizeExperience(signal.experience, log.telemetry.appExperience);
+        }
         if (signal.type === TaskSignalType.PAGE_LEFT || signal.type === TaskSignalType.INPUT_REPLACED ||
           signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.RESULT_IGNORED) {
           log.telemetry.feedbackRequest = undefined;
@@ -678,6 +682,12 @@ export class SchedulerService implements SchedulerRuntime {
     return JSON.parse(JSON.stringify(receipt)) as FeedbackReceipt;
   }
   public getPolicyStorageStatus(): string { return this.storageStatus; }
+  public getFeedbackAvailability(taskId: string): FeedbackAvailability {
+    this.requireInitialized();
+    if (this.getDeviceState().appVisibility !== 'FOREGROUND') { return { eligible: false, reason: 'APP_BACKGROUND' }; }
+    const log = this.logHistory.slice().reverse().find((entry: SchedulerLogEntry) => entry.taskId === taskId && entry.finishedAt !== null);
+    return log === undefined ? { eligible: false, reason: 'WORKFLOW_NOT_READY' } : this.feedbackController.inspect(log);
+  }
   public getFeedbackRequest(taskId: string): FeedbackRequest | null {
     this.requireInitialized();
     if (this.getDeviceState().appVisibility !== 'FOREGROUND') { return null; }
@@ -868,6 +878,17 @@ export class SchedulerService implements SchedulerRuntime {
 
   public getRuntimeMetrics(): MetricsSnapshot {
     return this.getMetricsSnapshot();
+  }
+
+  public getActiveTasks(): ActiveTaskSnapshot[] {
+    this.requireInitialized();
+    const snapshots = Array.from(this.tasks.values()).map((task: InternalTask): ActiveTaskSnapshot => ({
+      taskId: task.taskId, capability: task.capability, taskType: task.taskType, status: task.status,
+      executionPlan: task.plan, queuedAt: task.queuedAt, startedAt: task.startedAt, stopRequestedAt: task.stopRequestedAt,
+      targetLatencyMs: task.profile.context?.targetLatencyMs, softDeadlineMs: task.profile.context?.softDeadlineMs,
+      deadlineMs: task.profile.context?.deadlineMs, highQuality: task.profile.context?.highQuality
+    }));
+    return JSON.parse(JSON.stringify(snapshots)) as ActiveTaskSnapshot[];
   }
 
   public getRecentLogs(limit: number = 20): SchedulerLogEntry[] {
@@ -1093,6 +1114,16 @@ export class SchedulerService implements SchedulerRuntime {
     }, 2000);
   }
 
+  private sanitizeExperience(input: AppExperienceObservation, previous?: AppExperienceObservation): AppExperienceObservation {
+    const clean: AppExperienceObservation = { responseReadyMs: previous?.responseReadyMs,
+      resultQualityUncertain: previous?.resultQualityUncertain, resultUseful: previous?.resultUseful };
+    if (typeof input.responseReadyMs === 'number' && Number.isFinite(input.responseReadyMs) &&
+      input.responseReadyMs >= 0 && input.responseReadyMs <= 86400000) { clean.responseReadyMs = input.responseReadyMs; }
+    if (typeof input.resultQualityUncertain === 'boolean') { clean.resultQualityUncertain = input.resultQualityUncertain; }
+    if (typeof input.resultUseful === 'boolean') { clean.resultUseful = input.resultUseful; }
+    return clean;
+  }
+
   private sanitizeTelemetry(actual: ExecutorTelemetry): ExecutorTelemetry {
     return { profileId: actual.profileId, actualModelTier: actual.actualModelTier,
       executionPath: actual.executionPath,
@@ -1183,6 +1214,7 @@ export class SchedulerService implements SchedulerRuntime {
       mixedExecution: task.mixedExecution, executedProfileIds: task.executedProfileIds.slice(),
       taskRunId: task.taskId,
       endToEndDurationMs: finishedAt - (task.profile.submittedAt ?? task.queuedAt),
+      softDeadlineMs: task.profile.context?.softDeadlineMs,
       softDeadlineMissed: task.profile.context?.softDeadlineMs === undefined ? undefined :
         finishedAt - (task.profile.submittedAt ?? task.queuedAt) > task.profile.context.softDeadlineMs,
       prediction: task.plan.prediction, actual: task.actual, checkpointCount: task.checkpointCount,

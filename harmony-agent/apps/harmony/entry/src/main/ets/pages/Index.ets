@@ -10,6 +10,8 @@ import { SearchResults } from '../components/SearchResults';
 import { ProductDetail } from '../components/ProductDetail';
 import { ExperienceFeedback } from '../components/ExperienceFeedback';
 import { CommerceIconButton, ProductTile } from '../components/CommerceControls';
+import { SchedulerDashboard } from '../components/SchedulerDashboard';
+import { feedbackAvailabilityText } from '../services/FeedbackPresentation';
 import { feedbackReceiptText, numericPrice, platformLabel, productKey, safeProductUrl } from '../services/CommercePresentation';
 
 enum CommerceTab { HOME, CATALOG, RADAR, SAVED, PROFILE }
@@ -25,6 +27,9 @@ struct Index {
   private readyTimer: number = -1;
   private photoGeneration: number = 0;
   private warming: boolean = false;
+  private contentScroller: Scroller = new Scroller();
+  @State showDashboard: boolean = false;
+  @State feedbackStatus: string = '等待本次任务完成';
   @State tab: CommerceTab = CommerceTab.HOME;
   @State ready: boolean = false;
   @State query: string = '';
@@ -51,9 +56,10 @@ struct Index {
 
   aboutToAppear(): void { this.loadCatalog(); this.watchReady(); }
   onPageShow(): void { this.watchReady(); }
-  onPageHide(): void { this.invalidate(TaskSignalType.PAGE_LEFT); clearInterval(this.readyTimer); }
+  onPageHide(): void { this.invalidate(TaskSignalType.PAGE_LEFT); this.showDashboard = false; clearInterval(this.readyTimer); }
   aboutToDisappear(): void { this.invalidate(TaskSignalType.PAGE_LEFT); clearInterval(this.readyTimer); this.photoGeneration++; }
   onBackPress(): boolean {
+    if (this.showDashboard) { this.showDashboard = false; return true; }
     if (this.selected !== null) { this.selected = null; return true; }
     if (this.showHistory) { this.showHistory = false; return true; }
     if (this.tab !== CommerceTab.HOME) { this.navigate(CommerceTab.HOME); return true; }
@@ -68,6 +74,7 @@ struct Index {
     if (!this.ready) { return; }
     this.feedbackEnabled = this.scheduler.isFeedbackEnabled();
     if (!this.feedbackEnabled && this.feedback !== null) { this.clearFeedback(); }
+    this.refreshFeedbackStatus();
     if (!this.warming) {
       try { const handle = this.tasks.warmup(); this.warming = true; handle.result.catch(() => {}); }
       catch (_) { /* The host may still be registering its client. */ }
@@ -99,12 +106,15 @@ struct Index {
   private async search(value: string): Promise<void> {
     const query = value.trim();
     if (query === '') { return; }
+    if (!this.ready) { this.notify('调度器仍在初始化，请稍后搜索'); return; }
+    this.getUIContext().getFocusController().clearFocus();
     this.photoGeneration++;
     this.invalidate();
     const generation = this.generation;
     this.tab = CommerceTab.RADAR; this.selected = null; this.showHistory = false;
     this.query = ''; this.lastQuery = query; this.products = []; this.plan = ''; this.receiptText = '';
     this.summary = '正在检索本地商品'; this.loading = true;
+    this.contentScroller.scrollTo({ xOffset: 0, yOffset: 0 });
     const started = Date.now();
     try {
       const handle = this.tasks.search(query, this.highQuality);
@@ -122,7 +132,8 @@ struct Index {
       this.products = result.output;
       this.summary = `找到 ${result.output.length} 件本地商品 · ${Date.now() - started} ms`;
       this.histories = [query].concat(this.histories.filter((item: string) => item !== query)).slice(0, 20);
-      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED,
+        experience: { responseReadyMs: Date.now() - started } });
       if (generation === this.generation) { this.requestFeedback(); }
     } catch (_) {
       if (generation === this.generation) { this.summary = '搜索暂不可用，请稍后重试'; }
@@ -130,10 +141,18 @@ struct Index {
   }
   private requestFeedback(): void {
     if (this.activeSearch === null) { return; }
+    clearTimeout(this.expiryTimer);
     this.feedback = this.tasks.feedbackRequest(this.activeSearch.workflowId);
+    this.refreshFeedbackStatus();
     if (this.feedback !== null) {
-      this.expiryTimer = setTimeout(() => this.clearFeedback(), Math.max(1, this.feedback.expiresAtMs - Date.now()));
+      this.expiryTimer = setTimeout(() => { this.clearFeedback(); this.refreshFeedbackStatus(); }, Math.max(1, this.feedback.expiresAtMs - Date.now()));
     }
+  }
+  private refreshFeedbackStatus(): void {
+    if (!this.ready) { this.feedbackStatus = '调度器尚未就绪'; return; }
+    if (this.activeSearch === null) { this.feedbackStatus = this.feedbackEnabled ? '等待本次任务完成' : '体验题未开启：需要你的授权'; return; }
+    try { this.feedbackStatus = feedbackAvailabilityText(this.tasks.feedbackAvailability(this.activeSearch.workflowId)); }
+    catch (_) { this.feedbackStatus = '无法读取反馈状态'; }
   }
   private answer(option: FeedbackOption): void {
     if (this.answering || this.feedback === null || this.activeSearch === null) { return; }
@@ -143,6 +162,7 @@ struct Index {
       const receipt = this.tasks.submitFeedback(this.activeSearch.workflowId,
         { taskRunId: request.taskRunId, kind: request.kind, option: option });
       this.receiptText = feedbackReceiptText(receipt); this.clearFeedback();
+      this.refreshFeedbackStatus();
     } catch (_) { this.receiptText = '反馈提交失败，请稍后重试'; }
     finally { this.answering = false; }
   }
@@ -150,6 +170,8 @@ struct Index {
     if (!this.ready) { return; }
     this.scheduler.setFeedbackEnabled(enabled); this.feedbackEnabled = enabled;
     if (!enabled) { this.clearFeedback(); }
+    this.refreshFeedbackStatus();
+    if (enabled && this.activeSearch !== null && !this.loading) { this.requestFeedback(); }
   }
   private openProduct(product: Product): void {
     this.selected = product;
@@ -192,6 +214,9 @@ struct Index {
     catch (_) { this.receiptText = message; }
   }
   private openScheduler(): void {
+    this.showDashboard = !this.showDashboard;
+  }
+  private openSchedulerSettings(): void {
     this.getUIContext().getRouter().pushUrl({ url: 'pages/SchedulerPanelPage' }).catch(() => this.notify('控制台打开失败'));
   }
 
@@ -210,7 +235,13 @@ struct Index {
         Text(this.selected !== null ? '商品详情' : 'SoleAI').fontSize(19).fontWeight(FontWeight.Bold).maxLines(1)
         Text(this.ready ? '端侧商品助手' : '正在初始化').fontSize(10).fontColor('#747878')
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-      CommerceIconButton({ icon: $r('sys.media.ohos_ic_public_scan'), label: '调度控制台', action: () => this.openScheduler() })
+      Button({ type: ButtonType.Normal }) {
+        Row({ space: 4 }) {
+          Image($r('sys.media.ohos_ic_public_more')).width(16).height(16).fillColor('#00513F')
+          Text('调度盘').fontSize(13).fontColor('#00513F')
+        }
+      }.width(88).height(42).backgroundColor('#D7F8ED').borderRadius(6)
+        .accessibilityText(this.showDashboard ? '收起调度盘' : '打开实时调度盘').onClick(() => this.openScheduler())
     }.width('100%').padding(8).backgroundColor('#FFFFFF').borderRadius(32)
   }
   @Builder
@@ -220,6 +251,8 @@ struct Index {
       TextInput({ text: this.query, placeholder: '商品、品牌或预算...' }).layoutWeight(1).height(44).fontSize(14)
         .backgroundColor('#FFFFFF').enterKeyType(EnterKeyType.Search)
         .onChange((value: string) => {
+          // ArkUI also reports changes caused by clearing the submitted draft.
+          if (value === this.query) { return; }
           this.query = value;
           if (this.activeSearch !== null) { this.invalidate(); this.products = []; this.summary = '需求已更新，等待发送'; }
         }).onSubmit(() => this.search(this.query))
@@ -275,7 +308,7 @@ struct Index {
       Text('仅记录结构化答案和调度指标，不记录搜索原文或图片，不自动上传。可随时关闭。')
         .fontSize(13).fontColor('#747878').width('100%')
       Divider().color('#E2E2E2')
-      Button('调度控制台').width('100%').backgroundColor('#111111').onClick(() => this.openScheduler())
+      Button('打开实时调度盘').width('100%').backgroundColor('#111111').onClick(() => this.openScheduler())
       Text(this.receiptText || '暂无反馈回执').fontSize(13).fontColor('#444748').width('100%')
       Text('清单与对话历史仅保留在本次运行中').fontSize(12).fontColor('#747878').width('100%')
       Button('清空本次清单与历史').fontSize(13).backgroundColor('#EEEEEE').fontColor('#1A1C1C')
@@ -313,7 +346,10 @@ struct Index {
         summary: this.summary, plan: this.plan, busy: this.loading, photoUri: this.photoUri,
         highQuality: this.highQuality, priceSorted: this.priceSorted,
         onSort: () => { this.priceSorted = !this.priceSorted; },
-        onQuality: (value: boolean) => { this.highQuality = value; if (this.lastQuery !== '') { this.search(this.lastQuery); } },
+        onQuality: (value: boolean) => {
+          this.highQuality = value;
+          if (this.lastQuery !== '') { this.search(this.lastQuery); }
+        },
         onOpen: (item: Product) => this.openProduct(item), onSave: (item: Product) => this.toggleSaved(item),
         onRetry: () => this.search(this.lastQuery), onCancel: () => this.invalidate(TaskSignalType.CANCEL), onPhoto: () => this.choosePhoto() })
     } else if (this.tab === CommerceTab.CATALOG) { this.Collection(this.catalog, '本地商品') }
@@ -323,16 +359,47 @@ struct Index {
   build() {
     Column({ space: 8 }) {
       this.Header()
+      if (this.showDashboard) {
+        Column() {
+          SchedulerDashboard({ feedbackStatus: this.feedbackStatus, onClose: () => { this.showDashboard = false; },
+            onSettings: () => this.openSchedulerSettings() })
+        }.width('100%').height('38%')
+      }
       Stack({ alignContent: Alignment.Bottom }) {
-        Scroll() {
+        Scroll(this.contentScroller) {
           Column({ space: 16 }) {
-            this.Body()
+            if (this.contentHeight < 300 && this.feedback !== null && !this.loading && !this.showHistory &&
+              this.selected === null && this.tab === CommerceTab.RADAR) {
+              if (this.feedbackHidden) {
+                Button('体验反馈').height(36).fontSize(12).backgroundColor('#D7F8ED').fontColor('#00513F')
+                  .onClick(() => { this.feedbackHidden = false; })
+              } else {
+                ExperienceFeedback({ request: this.feedback, submitting: this.answering, maxRise: 0,
+                  onAnswer: (option: FeedbackOption) => this.answer(option), onDismiss: () => { this.feedbackHidden = true; } })
+              }
+            }
+            if (this.tab === CommerceTab.RADAR) {
+              if (this.showDashboard) { Text(this.feedbackStatus).fontSize(12).fontColor('#747878').width('100%') }
+              if (!this.feedbackEnabled && this.ready) {
+                Row() {
+                  Text('偶尔回答使用感受（可选）').fontSize(12).layoutWeight(1)
+                  Toggle({ type: ToggleType.Switch, isOn: this.feedbackEnabled }).selectedColor('#009576')
+                    .onChange((value: boolean) => this.setConsent(value))
+                }.width('100%')
+                Text('仅保存在本机，不记录搜索内容或图片。').fontSize(11).fontColor('#747878').width('100%')
+              } else if (this.feedback === null && this.feedbackStatus === '可以回答本次体验题') {
+                Button('回答本次体验题').height(36).fontSize(12).onClick(() => this.requestFeedback())
+              }
+            }
             if (this.receiptText !== '' && this.tab !== CommerceTab.PROFILE) {
               Text(this.receiptText).fontSize(12).fontColor('#00513F').width('100%').padding(12).backgroundColor('#D7F8ED')
             }
-          }.width('100%').padding({ top: 12, bottom: this.feedback !== null && !this.feedbackHidden ? 270 : 20 })
+            this.Body()
+          }.width('100%').padding({ top: 12, bottom: this.contentHeight >= 300 && this.feedback !== null &&
+            !this.feedbackHidden ? 270 : 20 })
         }.width('100%').height('100%').scrollBar(BarState.Off)
-        if (this.feedback !== null && !this.loading && !this.showHistory) {
+        if (this.contentHeight >= 300 && this.feedback !== null && !this.loading && !this.showHistory &&
+          this.selected === null && this.tab === CommerceTab.RADAR) {
           if (this.feedbackHidden) {
             Button('体验反馈').height(36).fontSize(12).backgroundColor('#D7F8ED').fontColor('#00513F')
               .onClick(() => { this.feedbackHidden = false; }).margin({ bottom: 8 })

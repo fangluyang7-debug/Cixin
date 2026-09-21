@@ -431,6 +431,14 @@ export interface TaskSignal {
   type: TaskSignalType;
   value?: boolean;
   feedback?: UserFeedback;
+  experience?: AppExperienceObservation;
+}
+
+// Optional host observations for this result, never inferred from absent values.
+export interface AppExperienceObservation {
+  responseReadyMs?: number;
+  resultUseful?: boolean;
+  resultQualityUncertain?: boolean;
 }
 
 export interface TaskCheckpoint {
@@ -473,6 +481,8 @@ export interface TaskTelemetry {
   executedProfileIds?: string[];
   taskRunId?: string;
   endToEndDurationMs?: number;
+  softDeadlineMs?: number;
+  appExperience?: AppExperienceObservation;
   softDeadlineMissed?: boolean;
   feedbackRequest?: FeedbackRequest;
   userFeedback?: UserFeedback;
@@ -633,12 +643,38 @@ export interface FeedbackRequest {
   suggestedAfter: 'RESULT_DISPLAYED' | 'PAGE_EXIT' | 'NEXT_IDLE';
   options: FeedbackOption[];
   expiresAtMs: number;
+  selectionReason?: string;
+  priority?: number;
 }
 
 export interface UserFeedback {
   taskRunId: string;
   kind: FeedbackKind;
   option: FeedbackOption;
+}
+
+export interface FeedbackAvailability {
+  eligible: boolean;
+  reason: 'READY' | 'CONSENT_REQUIRED' | 'APP_BACKGROUND' | 'WORKFLOW_NOT_READY' | 'TASK_NOT_SUCCESSFUL' |
+    'TASK_TYPE_EXCLUDED' | 'RESULT_NOT_DISPLAYED' | 'PROFILE_REQUIRED' | 'ALREADY_ANSWERED' |
+    'INVITATION_EXPIRED' | 'DAILY_LIMIT' | 'CAPABILITY_DAILY_LIMIT' | 'INTERVAL_LIMIT' | 'RUNTIME_UNSUPPORTED' |
+    'NO_QUESTION_NEEDED';
+  nextAllowedAtMs?: number;
+}
+
+export interface ActiveTaskSnapshot {
+  taskId: string;
+  capability: string;
+  taskType: TaskType;
+  status: TaskStatus;
+  executionPlan: ExecutionPlan;
+  queuedAt: number;
+  startedAt: number | null;
+  stopRequestedAt?: number;
+  targetLatencyMs?: number;
+  softDeadlineMs?: number;
+  deadlineMs?: number;
+  highQuality?: boolean;
 }
 
 export interface FeedbackCalibration {

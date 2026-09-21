@@ -15,8 +15,8 @@ export struct ExperienceFeedback {
     Column({ space: 10 }) {
       Row({ space: 8 }) {
         Image($r('sys.media.ohos_ic_public_drawer_open')).width(18).height(18).fillColor('#009576')
-        Text('搜索体验反馈').fontSize(13).fontWeight(FontWeight.Bold).layoutWeight(1)
-        CommerceIconButton({ icon: $r('sys.media.ohos_ic_public_close'), label: '稍后反馈', action: this.onDismiss })
+        Text('刚才的使用体验').fontSize(13).fontWeight(FontWeight.Bold).layoutWeight(1)
+        CommerceIconButton({ icon: $r('sys.media.ohos_ic_public_close'), label: '稍后回答', action: this.onDismiss })
       }.width('100%').gesture(PanGesture().onActionStart(() => { this.startY = this.offsetY; })
         .onActionUpdate((event: GestureEvent) => { this.offsetY = Math.max(-Math.max(0, this.maxRise), Math.min(0, this.startY + event.offsetY)); }))
       Divider().color('#EEEEEE')

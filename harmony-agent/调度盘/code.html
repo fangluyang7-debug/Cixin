@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="zh-CN" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>定昌电子 DC_ENP1 工业级边缘算力总线监控台 (CIX CD8180) - 机架控制台</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Share+Tech+Mono&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><style id="aurora-ambient-style">
+  .aurora-container {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+  .aurora-beam {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(85px);
+    opacity: 0.22;
+    mix-blend-mode: screen;
+    will-change: transform, opacity;
+  }
+  .aurora-beam-1 {
+    width: 65vw;
+    height: 38vh;
+    top: -10%;
+    left: 15%;
+    background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.45) 0%, rgba(0, 102, 255, 0.25) 45%, transparent 70%);
+    animation: aurora-drift-1 22s ease-in-out infinite alternate;
+  }
+  .aurora-beam-2 {
+    width: 75vw;
+    height: 45vh;
+    bottom: -8%;
+    right: -5%;
+    background: radial-gradient(ellipse at center, rgba(121, 40, 202, 0.35) 0%, rgba(0, 102, 255, 0.22) 50%, transparent 75%);
+    animation: aurora-drift-2 26s ease-in-out infinite alternate;
+  }
+  .aurora-beam-3 {
+    width: 55vw;
+    height: 32vh;
+    top: 35%;
+    left: -12%;
+    background: radial-gradient(ellipse at center, rgba(0, 229, 255, 0.3) 0%, rgba(78, 222, 163, 0.25) 40%, transparent 70%);
+    animation: aurora-drift-3 18s ease-in-out infinite alternate;
+  }
+  @keyframes aurora-drift-1 {
+    0% {
+      transform: translate3d(-6%, 0, 0) rotate(-4deg) scale(0.95);
+      opacity: 0.16;
+    }
+    50% {
+      transform: translate3d(8%, 6%, 0) rotate(5deg) scale(1.1);
+      opacity: 0.26;
+    }
+    100% {
+      transform: translate3d(2%, -4%, 0) rotate(-2deg) scale(1.02);
+      opacity: 0.18;
+    }
+  }
+  @keyframes aurora-drift-2 {
+    0% {
+      transform: translate3d(4%, 4%, 0) rotate(3deg) scale(1);
+      opacity: 0.18;
+    }
+    50% {
+      transform: translate3d(-10%, -6%, 0) rotate(-6deg) scale(1.15);
+      opacity: 0.28;
+    }
+    100% {
+      transform: translate3d(0, 2%, 0) rotate(2deg) scale(0.92);
+      opacity: 0.14;
+    }
+  }
+  @keyframes aurora-drift-3 {
+    0% {
+      transform: translate3d(0, -6%, 0) rotate(-8deg) scale(1.05);
+      opacity: 0.15;
+    }
+    50% {
+      transform: translate3d(12%, 8%, 0) rotate(7deg) scale(0.9);
+      opacity: 0.24;
+    }
+    100% {
+      transform: translate3d(-4%, 2%, 0) rotate(-3deg) scale(1.12);
+      opacity: 0.19;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .aurora-beam {
+      animation: none !important;
+      opacity: 0.15;
+    }
+  }
+</style><style id="custom-cyber-scrollbar">
+  html {
+    scroll-behavior: smooth;
+    height: auto !important;
+  }
+  /* 全局沉浸式工业极光风格精致滚动条 */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(12, 14, 18, 0.85);
+    border-left: 1px solid rgba(255, 184, 0, 0.08);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(212, 175, 55, 0.35) 0%, rgba(0, 229, 255, 0.3) 100%);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 184, 0, 0.25);
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.6), 0 0 8px rgba(0, 229, 255, 0.2);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(255, 184, 0, 0.6) 0%, rgba(0, 229, 255, 0.7) 100%);
+    border-color: rgba(0, 229, 255, 0.6);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.4), inset 0 0 4px rgba(255, 230, 150, 0.4);
+  }
+  .obsidian-grid {
+    background-attachment: fixed !important;
+  }
+</style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        obsidian: {
+          950: '#07090C',
+          900: '#0C0E12',
+          850: '#12151B',
+          800: '#161A22',
+          750: '#1D222C',
+          700: '#252B37',
+          600: '#343D4E',
+          500: '#4B5569'
+        },
+        amber: {
+          350: '#FFC837',
+          400: '#FFB800',
+          450: '#F59E0B',
+          500: '#E5A93C',
+          600: '#D4AF37',
+          700: '#B8860B',
+          900: '#4E3807'
+        },
+        gold: {
+          light: '#F5E2B3',
+          base: '#D4AF37',
+          dim: '#8A7326',
+          deep: '#3A2E0B'
+        },
+        indGreen: '#22C55E'
+      },
+      fontFamily: {
+        mono: ['JetBrains Mono', 'Share Tech Mono', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Plus Jakarta Sans', 'PingFang SC', 'sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+  body {
+    background-color: #0C0E12;
+    color: #CBD5E1;
+    font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", "PingFang SC", "Segoe UI", sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  /* 黑曜石工业精密底网与微刻度网格 */
+  .obsidian-grid {
+    background-color: #0C0E12;
+    background-image: 
+      radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.06) 1px, transparent 1px),
+      linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 24px 24px, 96px 96px, 96px 96px;
+  }
+
+  /* 重型机架模块面板 (Rack Panel) - 带沉头内六角螺栓与微拉丝金属倒角 */
+  .rack-panel {
+    background: linear-gradient(180deg, #181D26 0%, #13161E 100%);
+    border: 1px solid rgba(212, 175, 55, 0.28);
+    box-shadow: 
+      0 4px 16px -2px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 220, 120, 0.15),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.6);
+    position: relative;
+    border-radius: 4px;
+  }
+  .rack-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.45), transparent);
+  }
+
+  /* 工业机架角隅内六角螺栓 (Corner Bolts) */
+  .bolt {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1e2430;
+    border: 1px solid #4a5568;
+    box-shadow: inset 0 1px 1px #000, 0 0 1px rgba(212, 175, 55, 0.4);
+    position: absolute;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .bolt-tl { top: 5px; left: 6px; }
+  .bolt-tr { top: 5px; right: 6px; }
+  .bolt-bl { bottom: 5px; left: 6px; }
+  .bolt-br { bottom: 5px; right: 6px; }
+
+  /* 凹入式机械槽位 (Machined Recessed Bay) */
+  .recessed-bay {
+    background: #090B0F;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-top-color: rgba(0, 0, 0, 0.9);
+    border-bottom-color: rgba(212, 175, 55, 0.2);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.85);
+  }
+
+  /* 沉入式卡片单元 */
+  .recessed-cell {
+    background: linear-gradient(180deg, #0F1218 0%, #0B0D12 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.22);
+  }
+
+  /* 琥珀高对比数码管背光字效 */
+  .amber-glow-text {
+    color: #FFB800;
+    text-shadow: 0 0 10px rgba(255, 184, 0, 0.45), 0 0 2px rgba(255, 230, 150, 0.6);
+  }
+  .amber-glow-soft {
+    color: #F59E0B;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+  }
+  .green-glow-text {
+    color: #22C55E;
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  }
+
+  /* 琥珀色与暖绿透镜式工业 LED */
+  .lens-led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    position: relative;
+    display: inline-block;
+  }
+  .lens-led.amber {
+    background: #FFB800;
+    box-shadow: 0 0 0 1px #8A6400, 0 0 8px #FFB800, inset 0 1px 1px #FFE699;
+  }
+  .lens-led.gold {
+    background: #D4AF37;
+    box-shadow: 0 0 0 1px #5E4B12, 0 0 7px #E5A93C, inset 0 1px 1px #FFF0B8;
+  }
+  .lens-led.green {
+    background: #22C55E;
+    box-shadow: 0 0 0 1px #14532D, 0 0 8px #22C55E, inset 0 1px 1px #BBF7D0;
+  }
+  .lens-led.off {
+    background: #2A303C;
+    box-shadow: inset 0 1px 2px #000;
+  }
+
+  /* 工业铜铝蚀刻铭牌风格标签 */
+  .spec-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    line-height: 1;
+    padding: 2.5px 5.5px;
+    border-radius: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+  .spec-badge-gold {
+    background: linear-gradient(180deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.08) 100%);
+    color: #F8DC89;
+    border: 1px solid rgba(212, 175, 55, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 230, 150, 0.2);
+  }
+  .spec-badge-amber {
+    background: rgba(245, 158, 11, 0.16);
+    color: #FCD34D;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+  }
+  .spec-badge-green {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86EFAC;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+  }
+  .spec-badge-dark {
+    background: #11141A;
+    color: #94A3B8;
+    border: 1px solid #2B3342;
+  }
+
+  /* 进度指示条金色电铸光效 */
+  .meter-amber {
+    background: linear-gradient(90deg, #B8860B 0%, #FFB800 100%);
+    box-shadow: 0 0 6px rgba(255, 184, 0, 0.45);
+  }
+  .meter-gold {
+    background: linear-gradient(90deg, #8A7326 0%, #D4AF37 100%);
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.4);
+  }
+  .meter-green {
+    background: linear-gradient(90deg, #15803D 0%, #22C55E 100%);
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+  }
+
+  /* 等宽数码排版 */
+  .tabular-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 滚动条深色机架收敛 */
+  .log-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .log-scroll::-webkit-scrollbar-track {
+    background: #090B0F;
+  }
+  .log-scroll::-webkit-scrollbar-thumb {
+    background: #3A2E0B;
+    border-radius: 2px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+</style>
+</head>
+<body class="antialiased flex flex-col relative obsidian-grid selection:bg-amber-500/30 selection:text-amber-200 overflow-y-auto"><div aria-hidden="true" class="aurora-container"><div class="aurora-beam aurora-beam-1"></div><div class="aurora-beam aurora-beam-2"></div><div class="aurora-beam aurora-beam-3"></div></div>
+<!-- 顶部机柜边缘拉丝香槟暖金微刻蚀高光带 -->
+<div class="h-1 bg-gradient-to-r from-[#2A2310] via-[#D4AF37] to-[#8A6400] w-full border-b border-[#FFB800]/40 shrink-0"></div>
+<!-- 1. 工业机架级全局标头 (Rack Navigation & Global State) -->
+<header class="bg-[#0E1116]/95 backdrop-blur border-b border-[#2D2615] px-5 py-2.5 z-40 shrink-0 shadow-[0_4px_20px_rgba(0,0,0,0.8)]">
+<div class="max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2.5 bg-gradient-to-b from-[#1E232E] to-[#12151B] text-white px-3.5 py-1.5 rounded-[3px] border border-[#D4AF37]/40 shadow-[inset_0_1px_0_rgba(255,230,150,0.2),0_2px_4px_rgba(0,0,0,0.6)]">
+<span class="spec-badge-gold">CD8180</span>
+<span class="font-mono font-extrabold text-sm tracking-widest text-[#FFF2C2]">DC-ENP1</span>
+</div>
+<div>
+<div class="flex items-center gap-3">
+<h1 class="font-bold text-[18px] text-[#F1F5F9] tracking-wide flex items-center gap-2.5">
+<span class="text-amber-400 font-extrabold">边缘算力调度控制台</span>
+<span class="text-[#717D96] font-mono text-xs font-normal">· 控制台</span>
+</h1>
+<span class="spec-badge-green flex items-center gap-1.5 px-2 py-0.5 text-xs">
+<span class="lens-led green animate-pulse"></span>系统正常运行
+          </span>
+</div>
+<div class="flex items-center gap-3 text-xs font-mono text-[#8C98A9] mt-0.5">
+<span class="">节点: <span class="text-[#E2E8F0] font-semibold">edge-01</span></span>
+<span class="text-[#3A4354]">|</span>
+<span class="">时钟: <span class="text-amber-300/90 tabular-num font-semibold" id="clock-tick">UTC+8 20:39:28.146</span></span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-[#090B0F] border border-[#3D331A] rounded-[3px] p-1 gap-2 text-xs font-mono shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]">
+<div class="flex items-center gap-1.5 px-2 py-0.5 bg-[#141820] border border-[#4D3F1E] rounded-[2px]">
+<span class="lens-led amber animate-pulse" id="telemetry-led"></span>
+<span class="text-amber-300 font-extrabold text-[11px] tracking-wider">实时监测</span>
+</div>
+<span class="text-[#94A3B8] text-[11px] font-bold">采样:</span>
+<select class="bg-transparent border-0 p-0 text-xs font-mono text-[#F8DC89] font-bold focus:ring-0 cursor-pointer" id="telemetry-interval">
+<option class="bg-[#12151B] text-[#F8DC89]" value="600">600ms (高精)</option>
+<option class="bg-[#12151B] text-[#F8DC89]" selected="" value="1200">1200ms (标称)</option>
+<option class="bg-[#12151B] text-[#F8DC89]" value="2500">2500ms (节电)</option>
+</select>
+<button class="ml-1 px-2.5 py-0.5 bg-gradient-to-b from-[#2A2312] to-[#171309] hover:from-[#3E341B] hover:to-[#221C0E] border border-[#8A7326] text-[#F8DC89] rounded-[2px] text-[11px] font-extrabold tracking-wider transition active:scale-95 shadow-xs" id="toggle-sim-btn">暂停采集</button>
+</div>
+<!-- 算力规格标签 -->
+<div class="shrink-0 flex items-center gap-2 text-xs font-mono text-[#A89870] bg-[#12161E] border border-[#3E3319] px-3.5 py-1.5 rounded-[3px] shadow-[inset_0_1px_0_rgba(255,220,120,0.1)]">
+<span class="text-[#717D96] whitespace-nowrap">算力规格:</span>
+<span class="font-bold text-[#FFB800] tracking-wide whitespace-nowrap">45TOPS 峰值</span>
+<span class="w-1.5 h-1.5 rounded-full bg-[#FFB800] shadow-[0_0_6px_#FFB800] shrink-0"></span>
+</div>
+</div>
+</div>
+</header>
+<!-- 2. 全局 6 联排工业黑曜石-琥珀金仪表总线 (Instrument HUD Rack) -->
+<section class="bg-[#090B0F] border-b border-[#2A2312] px-5 py-2.5 shrink-0 shadow-[0_8px_16px_rgba(0,0,0,0.6)] relative">
+<div class="max-w-[1920px] mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+<!-- 仪表 1: 整板瞬时功耗 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-amber">PWR</span> 瞬时总功耗
+        </span>
+<span class="text-[#64748B]">MAX: 35W</span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num amber-glow-text leading-none" id="metric-pwr">20.40</span>
+<span class="text-[11px] font-mono text-[#A89870]">W</span>
+<span class="ml-auto text-[11px] font-mono font-bold text-[#E5A93C]" id="metric-pwr-pct">58.3% TDP</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2D2411]">
+<div class="meter-amber h-full transition-all duration-500" id="bar-pwr" style="width: 58.3%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">DYNAMIC P-STATE</span>
+<span class="text-[#E5A93C] font-semibold">能效 4.1 TOPS/W</span>
+</div>
+</div>
+<!-- 仪表 2: SoC 核心温度 & 热状态 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-gold">TMP</span> 核心结温
+        </span>
+<span class="text-indGreen font-bold flex items-center gap-1" id="metric-thermal-state">
+<span class="lens-led green"></span> NORMAL
+        </span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num amber-glow-soft leading-none" id="metric-temp">56.1</span>
+<span class="text-[11px] font-mono text-[#A89870]">°C</span>
+<span class="ml-auto text-[10px] font-mono text-[#64748B]">临界 85.0°C</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2D2411]">
+<div class="meter-gold h-full transition-all duration-500" id="bar-temp" style="width: 66%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">PWM FAN: 1850 RPM</span>
+<span class="text-indGreen font-semibold">PASS 无降频</span>
+</div>
+</div>
+<!-- 仪表 3: 12核 CPU 综合负荷 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-dark">CPU</span> 12-CORE
+        </span>
+<span class="font-mono text-[#D4AF37] font-bold" id="metric-cpu-freq">2.80 GHz</span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num text-[#F1F5F9] leading-none" id="metric-cpu-load">38.0</span>
+<span class="text-[11px] font-mono text-[#64748B]">%</span>
+<span class="ml-auto text-[10px] font-mono text-[#8C98A9]">4A720+4A720+4A520</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2B3342]">
+<div class="bg-gradient-to-r from-slate-600 to-amber-400 h-full transition-all duration-500" id="bar-cpu" style="width: 38%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">3-CLUSTER DynamIQ</span>
+<span class="text-[#E2E8F0] font-semibold">Affinity OK</span>
+</div>
+</div>
+<!-- 仪表 4: NPU 推理引擎吞吐 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-amber">NPU</span> 加速阵列
+        </span>
+<span class="text-amber-400 font-bold" id="metric-npu-q">Q: 3 TASK</span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num amber-glow-text leading-none" id="metric-npu-load">76.5</span>
+<span class="text-[11px] font-mono text-[#A89870]">%</span>
+<span class="ml-auto text-[10px] font-mono font-extrabold text-[#FFB800]">30.0 TOPS</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2D2411]">
+<div class="meter-amber h-full transition-all duration-500" id="bar-npu" style="width: 76.5%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">SRAM: 14.8MB HIT</span>
+<span class="text-[#E2E8F0]">Avg Wait: <b class="text-amber-400" id="metric-npu-wait">2.3ms</b></span>
+</div>
+</div>
+<!-- 仪表 5: LPDDR5 物理内存分配 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-gold">DRAM</span> 统一内存
+        </span>
+<span class="text-[#64748B]">TOTAL: 64GB</span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num text-[#F1F5F9] leading-none" id="metric-ram-used">22.8</span>
+<span class="text-[11px] font-mono text-[#8C98A9]">/ 64 GB</span>
+<span class="ml-auto text-[11px] font-mono font-bold text-[#D4AF37]" id="metric-ram-pct">35.6%</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2D2411]">
+<div class="meter-gold h-full transition-all duration-500" id="bar-ram" style="width: 35.6%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">DMA POOL: 8.4GB</span>
+<span class="text-[#E2E8F0]">68.2 GB/s BW</span>
+</div>
+</div>
+<!-- 仪表 6: 端云同步往返与健康度 -->
+<div class="rack-panel p-2.5 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between text-[10px] font-mono">
+<span class="font-bold text-[#C8AA6E] tracking-wider flex items-center gap-1.5">
+<span class="spec-badge-amber">CLOUD</span> pgvector
+        </span>
+<span class="lens-led green"></span>
+</div>
+<div class="my-1.5 flex items-baseline gap-1">
+<span class="text-[22px] font-bold tabular-num amber-glow-soft leading-none" id="metric-cloud-rtt">39.3</span>
+<span class="text-[11px] font-mono text-[#A89870]">ms RTT</span>
+<span class="ml-auto text-[10px] font-mono text-indGreen font-bold" id="metric-cloud-loss">0.00% 丢包</span>
+</div>
+<div class="w-full bg-[#090B0F] h-1.5 rounded-xs overflow-hidden border border-[#2D2411]">
+<div class="meter-amber h-full transition-all duration-500" id="bar-cloud" style="width: 82%;"></div>
+</div>
+<div class="flex justify-between text-[9px] font-mono text-[#8C98A9] mt-1">
+<span class="">JITTER: <b class="text-amber-300" id="metric-cloud-jitter">1.7ms</b></span>
+<span class="text-[#CBD5E1]">PostgreSQL 16</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 3. 主体工作台：三栏高度自适应、严格对齐的工业机架大屏布局 -->
+<main class="max-w-[1920px] w-full mx-auto p-3.5 flex-1 grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch min-h-0 relative">
+<!-- ==================== 第一列 (Col 1 - 4): 扩展后的 CPU 集群调度与细粒度线程拓扑 + GPU ==================== -->
+<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<!-- 卡片 1.1: 深度扩展的 CPU 12核 DynamIQ 簇架构 + 细粒度工作线程与分片任务监控 -->
+<div class="rack-panel p-3.5 flex flex-col flex-1 min-h-0 justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+<div class="flex flex-col flex-1 min-h-0">
+<div class="flex items-center justify-between pb-2 border-b border-[#2D2615] shrink-0">
+<div class="w-full flex items-center justify-between">
+<div>
+<h2 class="font-bold text-[15px] text-[#FFF2C2] tracking-wide">CPU 集群调度与线程拓扑</h2>
+<p class="text-[11px] text-[#8C98A9] font-normal">12核 DynamIQ 异构负载 · EAS / CFS + RT-FIFO</p>
+</div>
+<span class="spec-badge-gold text-xs">在线调度</span>
+</div>
+</div>
+<!-- 3 个微架构核心簇详细状态 -->
+<div class="grid grid-cols-3 gap-2 mt-2 text-left shrink-0">
+<!-- 大核簇 -->
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="flex items-center justify-between text-[10px] font-mono text-[#8C98A9]">
+<span class="font-bold text-[#E2E8F0]">4× A720 大核</span>
+<span class="text-amber-400 font-extrabold" id="val-a720b-freq">2.8G</span>
+</div>
+<div class="my-1 flex items-baseline gap-1 font-mono">
+<span class="text-[16px] font-bold tabular-num amber-glow-text" id="val-a720b-pct">50.8</span>
+<span class="text-[10px] text-[#8C98A9]">%</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden">
+<div class="meter-amber h-full transition-all duration-300" id="bar-a720b" style="width: 50.8%;"></div>
+</div>
+<span class="text-[8.5px] font-mono text-[#64748B] block mt-1">AI预处理 / 调度总线</span>
+</div>
+<!-- 中核簇 -->
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="flex items-center justify-between text-[10px] font-mono text-[#8C98A9]">
+<span class="font-bold text-[#E2E8F0]">4× A720 中核</span>
+<span class="text-[#D4AF37] font-bold" id="val-a720m-freq">2.4G</span>
+</div>
+<div class="my-1 flex items-baseline gap-1 font-mono">
+<span class="text-[16px] font-bold tabular-num text-[#E2E8F0]" id="val-a720m-pct">35.5</span>
+<span class="text-[10px] text-[#8C98A9]">%</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden">
+<div class="meter-gold h-full transition-all duration-300" id="bar-a720m" style="width: 35.5%;"></div>
+</div>
+<span class="text-[8.5px] font-mono text-[#64748B] block mt-1">4路视频软解 / 编解码</span>
+</div>
+<!-- 小核能效簇 -->
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="flex items-center justify-between text-[10px] font-mono text-[#8C98A9]">
+<span class="font-bold text-[#E2E8F0]">4× A520 小核</span>
+<span class="text-indGreen font-bold">1.8G</span>
+</div>
+<div class="my-1 flex items-baseline gap-1 font-mono">
+<span class="text-[16px] font-bold tabular-num text-indGreen" id="val-a520-pct">16.7</span>
+<span class="text-[10px] text-[#8C98A9]">%</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden">
+<div class="meter-green h-full transition-all duration-300" id="bar-a520" style="width: 16.7%;"></div>
+</div>
+<span class="text-[8.5px] font-mono text-[#64748B] block mt-1">外设中断 / 守护进程</span>
+</div>
+</div>
+<!-- 12 核心硬件亲和性刻度矩阵 -->
+<div class="mt-2 recessed-bay p-2 rounded-[3px] shrink-0">
+<div class="flex items-center justify-between text-[9.5px] font-mono mb-1">
+<span class="font-bold text-[#C8AA6E] flex items-center gap-1.5">
+<span class="lens-led amber"></span> CORE AFFINITY MATRIX (C0 - C11)
+            </span>
+<span class="text-[#8C98A9] font-mono text-[9px]">LOCK MASK: 0x0FFF</span>
+</div>
+<div class="grid grid-cols-12 gap-1 items-end h-8 pt-0.5 border-b border-[#231E12] pb-0.5">
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-amber rounded-t-xs transition-all duration-300" id="core-bar-0" style="height: 56%;"></div><span class="text-[7.5px] font-mono text-[#A89870]">C0</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-amber rounded-t-xs transition-all duration-300" id="core-bar-1" style="height: 56%;"></div><span class="text-[7.5px] font-mono text-[#A89870]">C1</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-amber rounded-t-xs transition-all duration-300" id="core-bar-2" style="height: 44%;"></div><span class="text-[7.5px] font-mono text-[#A89870]">C2</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-amber rounded-t-xs transition-all duration-300" id="core-bar-3" style="height: 58%;"></div><span class="text-[7.5px] font-mono text-[#A89870]">C3</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-gold rounded-t-xs transition-all duration-300" id="core-bar-4" style="height: 35%;"></div><span class="text-[7.5px] font-mono text-[#8C98A9]">C4</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-gold rounded-t-xs transition-all duration-300" id="core-bar-5" style="height: 30%;"></div><span class="text-[7.5px] font-mono text-[#8C98A9]">C5</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-gold rounded-t-xs transition-all duration-300" id="core-bar-6" style="height: 33%;"></div><span class="text-[7.5px] font-mono text-[#8C98A9]">C6</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-gold rounded-t-xs transition-all duration-300" id="core-bar-7" style="height: 42%;"></div><span class="text-[7.5px] font-mono text-[#8C98A9]">C7</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-green rounded-t-xs transition-all duration-300" id="core-bar-8" style="height: 21%;"></div><span class="text-[7.5px] font-mono text-indGreen">C8</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-green rounded-t-xs transition-all duration-300" id="core-bar-9" style="height: 23%;"></div><span class="text-[7.5px] font-mono text-indGreen">C9</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-green rounded-t-xs transition-all duration-300" id="core-bar-10" style="height: 10%;"></div><span class="text-[7.5px] font-mono text-indGreen">C10</span></div>
+<div class="h-full flex flex-col justify-end items-center"><div class="w-full meter-green rounded-t-xs transition-all duration-300" id="core-bar-11" style="height: 16%;"></div><span class="text-[7.5px] font-mono text-indGreen">C11</span></div>
+</div>
+</div>
+<!-- 细粒度线程活动与分片任务明细监控区 (根据用户明确标注全面扩充) -->
+<div class="mt-2 recessed-bay p-2 rounded-[3px] border border-[#3E3319]/80 flex-1 min-h-0 flex flex-col">
+<div class="flex items-center justify-between text-[10px] font-mono pb-1 border-b border-[#231E12] shrink-0"><span class="font-bold text-[#F8DC89] flex items-center gap-1"><span class="spec-badge-gold text-[8.5px]">THREADS</span> 活跃工作线程任务调度 (12 Active Threads · 全负载调度)</span><span class="text-[#8C98A9] text-[9px]">切频: 9.6k/s · 零丢帧直通</span></div>
+<div class="mt-1.5 space-y-1.5 font-mono text-[9.5px] overflow-y-auto log-scroll flex-1 pr-1">
+<!-- 线程 1: 数据切分 -->
+<div class="p-1.5 bg-[#141822] rounded-[2px] border border-[#282F3E] flex items-center justify-between gap-2 hover:border-amber-500/40 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led amber shrink-0"></span>
+<span class="text-amber-400 font-bold shrink-0">T1024</span>
+<span class="text-[#F1F5F9] font-semibold truncate">数据切分 (Batch Slicing / Sharding)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#A89870] text-[8.5px] tabular-num">1.2ms</span>
+<span class="spec-badge-amber text-[7.5px]">RUNNING</span>
+<span class="spec-badge-dark text-[7.5px] text-[#CBD5E1]">C0-C1</span>
+</div>
+</div>
+<!-- 线程 2: 图片切片 -->
+<div class="p-1.5 bg-[#141822] rounded-[2px] border border-[#282F3E] flex items-center justify-between gap-2 hover:border-amber-500/40 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led amber shrink-0"></span>
+<span class="text-amber-400 font-bold shrink-0">T1025</span>
+<span class="text-[#F1F5F9] font-semibold truncate">图片切片 (Image Tile Partition 4K)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#A89870] text-[8.5px] tabular-num">3.8ms</span>
+<span class="spec-badge-amber text-[7.5px]">RUNNING</span>
+<span class="spec-badge-dark text-[7.5px] text-[#CBD5E1]">C2-C3</span>
+</div>
+</div>
+<!-- 线程 3: 特征向量预处理 -->
+<div class="p-1.5 bg-[#12151D] rounded-[2px] border border-[#232936] flex items-center justify-between gap-2 hover:border-amber-500/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led gold shrink-0"></span>
+<span class="text-[#D4AF37] font-bold shrink-0">T1048</span>
+<span class="text-[#CBD5E1] truncate">特征向量预处理 (Embedding Prep)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#8C98A9] text-[8.5px] tabular-num">2.4ms</span>
+<span class="spec-badge-gold text-[7.5px]">READY</span>
+<span class="spec-badge-dark text-[7.5px] text-[#94A3B8]">C4-C5</span>
+</div>
+</div>
+<!-- 线程 4: MIPI 硬件解包流 -->
+<div class="p-1.5 bg-[#12151D] rounded-[2px] border border-[#232936] flex items-center justify-between gap-2 hover:border-amber-500/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led gold shrink-0"></span>
+<span class="text-[#D4AF37] font-bold shrink-0">T1049</span>
+<span class="text-[#CBD5E1] truncate">MIPI 硬件解包流 (De-packetizer)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#8C98A9] text-[8.5px] tabular-num">0.8ms</span>
+<span class="spec-badge-gold text-[7.5px]">READY</span>
+<span class="spec-badge-dark text-[7.5px] text-[#94A3B8]">C6-C7</span>
+</div>
+</div>
+<!-- 线程 5: VPU 硬件后处理 -->
+<div class="p-1.5 bg-[#121620] rounded-[2px] border border-[#232B3A] flex items-center justify-between gap-2 hover:border-amber-500/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led gold shrink-0"></span>
+<span class="text-[#D4AF37] font-bold shrink-0">T0902</span>
+<span class="text-[#CBD5E1] truncate">VPU 视频硬件色彩空间转换 (CSC-NV12)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#8C98A9] text-[8.5px] tabular-num">1.6ms</span>
+<span class="spec-badge-gold text-[7.5px]">READY</span>
+<span class="spec-badge-dark text-[7.5px] text-[#94A3B8]">C6-C7</span>
+</div>
+</div>
+<!-- 线程 6: IPC 共享内存搬运 -->
+<div class="p-1.5 bg-[#10131A] rounded-[2px] border border-[#1E232E] flex items-center justify-between gap-2 hover:border-indGreen/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led green shrink-0"></span>
+<span class="text-indGreen font-bold shrink-0">T0812</span>
+<span class="text-[#94A3B8] truncate">IPC 共享内存搬运 (Zero-copy Mover)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#64748B] text-[8.5px] tabular-num">0.3ms</span>
+<span class="spec-badge-green text-[7.5px]">POLL</span>
+<span class="spec-badge-dark text-[7.5px] text-[#64748B]">C8-C9</span>
+</div>
+</div>
+<!-- 线程 7: TLS 1.3 会话加密 -->
+<div class="p-1.5 bg-[#10131A] rounded-[2px] border border-[#1E232E] flex items-center justify-between gap-2 hover:border-indGreen/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led green shrink-0"></span>
+<span class="text-indGreen font-bold shrink-0">T0911</span>
+<span class="text-[#94A3B8] truncate">TLS 1.3 证书握手与向量哈希签名</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#64748B] text-[8.5px] tabular-num">0.5ms</span>
+<span class="spec-badge-green text-[7.5px]">POLL</span>
+<span class="spec-badge-dark text-[7.5px] text-[#64748B]">C8-C9</span>
+</div>
+</div>
+<!-- 线程 8: RT 实时执行调度器 -->
+<div class="p-1.5 bg-[#10131A] rounded-[2px] border border-[#1E232E] flex items-center justify-between gap-2 hover:border-indGreen/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led green shrink-0"></span>
+<span class="text-indGreen font-bold shrink-0">T0815</span>
+<span class="text-[#94A3B8] truncate">RT 实时执行调度器 (Priority Dispatcher)</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#64748B] text-[8.5px] tabular-num">&lt;0.1ms</span>
+<span class="spec-badge-green text-[7.5px]">RT 99</span>
+<span class="spec-badge-dark text-[7.5px] text-[#64748B]">C10-C11</span>
+</div>
+</div>
+<!-- 线程 9: RS485 轮询守护 -->
+<div class="p-1.5 bg-[#10131A] rounded-[2px] border border-[#1E232E] flex items-center justify-between gap-2 hover:border-indGreen/30 transition">
+<div class="flex items-center gap-1.5 min-w-0">
+<span class="lens-led green shrink-0"></span>
+<span class="text-indGreen font-bold shrink-0">T0933</span>
+<span class="text-[#94A3B8] truncate">RS485 / Modbus 工业总线周期轮询</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="text-[#64748B] text-[8.5px] tabular-num">0.2ms</span>
+<span class="spec-badge-green text-[7.5px]">RT 50</span>
+<span class="spec-badge-dark text-[7.5px] text-[#64748B]">C10-C11</span>
+</div>
+</div>
+<div class="p-1.5 bg-[#141822] rounded-[2px] border border-[#282F3E] flex items-center justify-between gap-2 hover:border-amber-500/40 transition"><div class="flex items-center gap-1.5 min-w-0"><span class="lens-led amber shrink-0"></span><span class="text-amber-400 font-bold shrink-0">T0412</span><span class="text-[#F1F5F9] font-semibold truncate">模型权重 DMA 分块加载 (Weights Chunking)</span></div><div class="flex items-center gap-1 shrink-0"><span class="text-[#A89870] text-[8.5px] tabular-num">1.9ms</span><span class="spec-badge-amber text-[7.5px]">RUNNING</span><span class="spec-badge-dark text-[7.5px] text-[#CBD5E1]">C2-C3</span></div></div><div class="p-1.5 bg-[#12151D] rounded-[2px] border border-[#232936] flex items-center justify-between gap-2 hover:border-amber-500/30 transition"><div class="flex items-center gap-1.5 min-w-0"><span class="lens-led gold shrink-0"></span><span class="text-[#D4AF37] font-bold shrink-0">T0233</span><span class="text-[#CBD5E1] truncate">双目视差计算与立体匹配 (Stereo Depth)</span></div><div class="flex items-center gap-1 shrink-0"><span class="text-[#8C98A9] text-[8.5px] tabular-num">3.1ms</span><span class="spec-badge-gold text-[7.5px]">READY</span><span class="spec-badge-dark text-[7.5px] text-[#94A3B8]">C4-C7</span></div></div><div class="p-1.5 bg-[#10131A] rounded-[2px] border border-[#1E232E] flex items-center justify-between gap-2 hover:border-indGreen/30 transition"><div class="flex items-center gap-1.5 min-w-0"><span class="lens-led green shrink-0"></span><span class="text-indGreen font-bold shrink-0">T0118</span><span class="text-[#94A3B8] truncate">RT 硬件看门狗心跳监测 (Watchdog Keeper)</span></div><div class="flex items-center gap-1 shrink-0"><span class="text-[#64748B] text-[8.5px] tabular-num">&lt;0.1ms</span><span class="spec-badge-green text-[7.5px]">POLL</span><span class="spec-badge-dark text-[7.5px] text-[#64748B]">C10-C11</span></div></div></div>
+</div>
+</div>
+<div class="flex justify-between items-center text-[9px] font-mono pt-1 text-[#8C98A9] shrink-0">
+<span class="">THROTTLING: NONE (PASS)</span>
+<span class="text-amber-400/90 font-semibold">KERNEL PREEMPT RT: ENABLED</span>
+</div>
+</div>
+<!-- 卡片 1.2: GPU 图形渲染与通用并行计算 -->
+<div class="rack-panel p-3 flex flex-col justify-between shrink-0">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<h2 class="font-bold text-[14px] text-[#FFF2C2] tracking-wide">GPU 计算与图形渲染</h2>
+<span class="spec-badge-amber tabular-num text-[10px]" id="val-gpu-load">31.9% 负载</span>
+</div>
+</div>
+<div class="mt-2 grid grid-cols-2 gap-2">
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="text-[9.5px] font-mono text-[#8C98A9]">显存池物理划分 (VRAM)</div>
+<div class="my-0.5 flex items-baseline gap-1 font-mono">
+<span class="text-[16px] font-bold tabular-num text-[#F1F5F9]" id="val-gpu-vram">4.2</span>
+<span class="text-[9.5px] text-[#64748B]">/ 64 GB</span>
+<span class="ml-auto text-[9.5px] text-amber-400 font-bold">15.0%</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden">
+<div class="meter-gold h-full transition-all duration-300" id="bar-gpu-vram" style="width: 15%;"></div>
+</div>
+</div>
+<div class="recessed-bay p-2 flex flex-col justify-between rounded-[3px]">
+<div class="text-[9.5px] font-mono text-[#8C98A9]">计算驱动接口规范</div>
+<div class="text-[10.5px] font-mono font-bold text-[#E2E8F0]">Vulkan 1.3 / OpenCL 3.0</div>
+<div class="text-[8.5px] font-mono text-indGreen">RAY TRACING: ACCEL ON</div>
+</div>
+</div>
+<div class="mt-1.5 recessed-bay p-1.5 text-[9.5px] font-mono flex items-center justify-between text-[#8C98A9] rounded-[2px]">
+<span class="flex items-center gap-1.5">
+<span class="lens-led green"></span>
+          DISPLAY PIPELINE: 4K@60Hz UI + YUV422 格式硬件解调
+        </span>
+<span class="text-[#F8DC89] font-bold bg-[#141822] px-1.5 py-0.5 border border-[#3E3319]">FPS: 60.0</span>
+</div>
+</div>
+</div>
+<!-- ==================== 第二列 (Col 5 - 8): 专有 NPU 算子引擎 & 统一内存与 NVMe 存储 ==================== -->
+<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<!-- 卡片 2.1: 专有 NPU 神经加速器 (CIX-NPU 30 TOPS) -->
+<div class="rack-panel p-3.5 flex flex-col justify-between shrink-0">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+<div>
+<div class="flex items-center justify-between pb-2 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<span class="spec-badge-amber text-xs font-bold">30 TOPS</span>
+<div class="text-center flex-1">
+<h2 class="font-bold text-[16px] text-[#FFF2C2] tracking-wide">NPU 神经算力监测</h2>
+<p class="text-[11px] text-[#8C98A9] font-normal">算子流水线直通 · 硬件零拷贝</p>
+</div>
+<div class="flex items-center gap-1.5 font-mono text-xs text-amber-400 font-bold">
+<span class="lens-led amber animate-ping"></span> 推理中
+            </div>
+</div>
+</div>
+<!-- 核心仪表盘：利用率与物理驻留指标 -->
+<div class="mt-2.5 recessed-bay p-2.5 rounded-[3px] grid grid-cols-12 gap-3 items-center">
+<div class="col-span-4 flex flex-col items-center justify-center border-r border-[#2D2411] pr-2">
+<div class="relative w-14 h-14 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<path class="text-[#202735]" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3"></path>
+<path class="text-amber-400 transition-all duration-500" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" id="npu-radial-svg" stroke="currentColor" stroke-dasharray="76.5, 100" stroke-linecap="butt" stroke-width="3.5" style="filter: drop-shadow(0 0 4px #FFB800);"></path>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center font-mono">
+<span class="text-[14px] font-bold amber-glow-text leading-none tabular-num" id="val-npu-radial-pct">76.5%</span>
+<span class="text-[7.5px] text-[#A89870] mt-0.5">UTIL</span>
+</div>
+</div>
+<span class="text-[9.5px] font-mono text-[#F8DC89] font-bold mt-1">4.1 TOPS/W</span>
+</div>
+<div class="col-span-8 flex flex-col justify-between text-[10.5px] font-mono space-y-1">
+<div class="flex items-center justify-between pb-0.5 border-b border-[#231E12]">
+<span class="text-[#8C98A9]">驻留模型</span>
+<span class="font-bold text-[#E2E8F0]">多模态 ViT-B (FP16)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[#8C98A9]">推理单帧延迟</span>
+<span class="font-bold text-amber-400 tabular-num" id="val-vit-latency">37.7 ms</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[#8C98A9]">主频标称 / 瞬时</span>
+<span class="text-[#CBD5E1] font-semibold" id="val-npu-freq">1.15 GHz (定频)</span>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-[#8C98A9]">SRAM 硬件驻留</span>
+<span class="font-bold text-[#F8DC89]" id="val-npu-sram">14.8 / 16.0 MB (92%)</span>
+</div>
+</div>
+</div>
+<!-- 硬件级算子队列流水线 -->
+<div class="mt-2.5">
+<div class="flex items-center justify-between text-[9.5px] font-mono mb-1">
+<span class="font-bold text-[#C8AA6E] flex items-center gap-1.5">
+<span class="spec-badge-gold">OP-QUEUE</span>
+              CIX-ENGINE EXECUTION PIPELINE
+            </span>
+<span class="text-[#8C98A9] font-bold" id="val-npu-qdepth">DEPTH: 3 TASKS</span>
+</div>
+<div class="grid grid-cols-3 gap-1.5 text-left font-mono">
+<div class="p-1.5 bg-[#171C26] border border-amber-500/40 rounded-[3px] shadow-[inset_0_1px_0_rgba(255,184,0,0.2)]">
+<div class="flex items-center justify-between text-[8.5px] text-amber-300 font-bold">
+<span class="">OP #1 [EXEC]</span>
+<span class="lens-led amber"></span>
+</div>
+<div class="text-[10px] font-bold text-[#F1F5F9] truncate mt-0.5">Conv2d_3x3_K16</div>
+<div class="text-[8.5px] text-amber-400 mt-0.5 tabular-num" id="op-lat-1">12.4ms (FP16)</div>
+</div>
+<div class="p-1.5 bg-[#121620] border border-[#423924] rounded-[3px]">
+<div class="flex items-center justify-between text-[8.5px] text-[#D4AF37] font-bold">
+<span class="">OP #2 [WAIT]</span>
+<span class="lens-led gold"></span>
+</div>
+<div class="text-[10px] font-bold text-[#CBD5E1] truncate mt-0.5">LayerNorm_Act</div>
+<div class="text-[8.5px] text-[#A89870] mt-0.5">等待 DMA 搬运</div>
+</div>
+<div class="p-1.5 bg-[#0E1118] border border-[#232B3A] rounded-[3px]">
+<div class="flex items-center justify-between text-[8.5px] text-[#64748B] font-bold">
+<span class="">OP #3 [READY]</span>
+<span class="lens-led off"></span>
+</div>
+<div class="text-[10px] font-bold text-[#64748B] truncate mt-0.5">Softmax_Vector</div>
+<div class="text-[8.5px] text-[#475569] mt-0.5">预加载完成</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 卡片 2.2: 统一内存池结构与 NVMe 存储度量 (统一规整栅格对齐) -->
+<div class="grid grid-cols-2 gap-3.5 shrink-0">
+<!-- LPDDR5 物理内存分区度量 -->
+<div class="rack-panel p-3 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div>
+<div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
+<span class="font-bold text-xs text-[#F8DC89]">统一内存池</span>
+<span class="spec-badge-gold text-[9px]">68.2 GB/s</span>
+</div>
+<div class="mt-1.5 flex items-baseline justify-between font-mono">
+<div>
+<span class="text-[17px] font-bold tabular-num text-[#F1F5F9]" id="val-dram-used-col">22.8</span>
+<span class="text-[9.5px] text-[#8C98A9]">/ 64 GB</span>
+</div>
+<span class="text-[11px] font-bold text-amber-400" id="val-dram-pct-col">35.6%</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden mt-1">
+<div class="meter-gold h-full transition-all duration-300" id="bar-dram-col" style="width: 35.6%;"></div>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-1.5 font-mono text-[8.5px] mt-2">
+<div class="p-1 recessed-bay rounded-[2px]">
+<span class="text-[#8C98A9] block">DMA 环形池:</span>
+<span class="font-bold text-[#E2E8F0]" id="val-dma-pool">8.4GB 锁页</span>
+</div>
+<div class="p-1 recessed-bay rounded-[2px]">
+<span class="text-[#8C98A9] block">NPU 权重区:</span>
+<span class="font-bold text-[#E2E8F0]" id="val-npu-pool">6.8GB 直通</span>
+</div>
+</div>
+</div>
+<!-- M.2 NVMe PCIe 4.0 存储矩阵 -->
+<div class="rack-panel p-3 flex flex-col justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div>
+<div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
+<span class="font-bold text-xs text-[#F8DC89]">高速固态存储</span>
+<span class="spec-badge-amber text-[9px]">PCIe 4.0</span>
+</div>
+<div class="mt-1.5 grid grid-cols-2 gap-1.5 font-mono">
+<div>
+<span class="text-[8.5px] text-[#8C98A9] block">实时吞吐 (R/W)</span>
+<span class="text-[15px] font-bold tabular-num text-[#F1F5F9]" id="val-nvme-throughput">199.6</span>
+<span class="text-[8.5px] text-[#A89870]">MB/s</span>
+</div>
+<div>
+<span class="text-[8.5px] text-[#8C98A9] block">I/O 调度速率</span>
+<span class="text-[15px] font-bold tabular-num text-amber-400" id="val-nvme-iops">45.2K</span>
+<span class="text-[8.5px] text-[#A89870]">IOPS</span>
+</div>
+</div>
+</div>
+<div class="recessed-bay p-1 text-[8.5px] font-mono flex items-center justify-between text-[#8C98A9] mt-2 rounded-[2px]">
+<span class="text-[#CBD5E1]">NVMe 阵列: PASS</span>
+<span class="text-indGreen font-bold">iowait: 0.12%</span>
+</div>
+</div>
+</div>
+<!-- 卡片 2.3: 严谨工业硬件日志流 (填充空间并与第1、3列底边严丝合缝对齐) -->
+<div class="rack-panel p-3.5 flex flex-col flex-1 min-h-0 justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+<div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<h2 class="font-bold text-[14px] text-[#FFF2C2] tracking-wide">系统调度与硬件事件日志</h2>
+<div class="flex items-center gap-1.5 text-xs font-mono text-indGreen">
+<span class="lens-led green animate-pulse"></span> 实时日志流
+          </div>
+</div>
+</div>
+<div class="mt-2.5 space-y-2 font-mono text-xs log-scroll flex-1 overflow-y-auto pr-1.5" id="log-container">
+<div class="p-2.5 recessed-bay rounded-[3px] leading-relaxed border-l-4 border-amber-500 hover:border-amber-400 transition bg-[#0E1118]">
+<div class="flex items-center justify-between text-[#8C98A9] mb-1">
+<span class="text-amber-400 font-bold text-[13px] flex items-center gap-1.5">
+<span class="lens-led amber shrink-0"></span> [CIX-NPU:INT] 调频与权重固化完成
+      </span>
+<span class="text-[#8C98A9] font-mono text-[11px]" id="log-time-1">19:55:04.892</span>
+</div>
+<div class="text-[#F1F5F9] text-[12px] font-medium leading-normal">
+      ViT-B 权重校验成功，工作频点固化至 <span class="text-[#FFB800] font-bold">1.15GHz</span>，SRAM 14.8MB 命中 (命中率 98.4%)
+    </div>
+</div>
+<div class="p-2.5 recessed-bay rounded-[3px] leading-relaxed border-l-4 border-[#D4AF37] hover:border-amber-300 transition bg-[#0E1118]">
+<div class="flex items-center justify-between text-[#8C98A9] mb-1">
+<span class="text-[#F8DC89] font-bold text-[13px] flex items-center gap-1.5">
+<span class="lens-led gold shrink-0"></span> [DDR-DMA:SYNC] 零拷贝切片直通完成
+      </span>
+<span class="text-[#8C98A9] font-mono text-[11px]" id="log-time-2">19:55:04.120</span>
+</div>
+<div class="text-[#F1F5F9] text-[12px] font-medium leading-normal">
+      MIPI 传感器通道帧缓存 <span class="text-[#CBD5E1] font-mono font-semibold">0x88400000</span> 长度 32MB 已直接映射至 NPU 算子寄存器
+    </div>
+</div>
+<div class="p-2.5 recessed-bay rounded-[3px] leading-relaxed border-l-4 border-[#4EDE82] hover:border-indGreen transition bg-[#0E1118]">
+<div class="flex items-center justify-between text-[#8C98A9] mb-1">
+<span class="text-indGreen font-bold text-[13px] flex items-center gap-1.5">
+<span class="lens-led green shrink-0"></span> [NET-SYNC:TX] 向量批次上载及签名
+      </span>
+<span class="text-[#8C98A9] font-mono text-[11px]" id="log-time-3">19:55:03.452</span>
+</div>
+<div class="text-[#F1F5F9] text-[12px] font-medium leading-normal">
+      Batch #8942 特征向量已完成 TLS 1.3 签名，毫秒级推送写入云端 pgvector 实例
+    </div>
+</div>
+</div>
+<div class="mt-1.5 pt-1.5 border-t border-[#2D2615] flex items-center justify-between text-[9.5px] font-mono text-[#8C98A9]">
+<span class="">FILTER: INFO &amp; WARN</span>
+<button class="px-2 py-0.5 bg-[#171C26] border border-[#3E3319] hover:border-[#D4AF37] text-[#F8DC89] rounded-[2px] font-bold transition" onclick="clearLogs()">
+          清空屏幕
+        </button>
+</div>
+</div>
+</div>
+<!-- ==================== 第三列 (Col 9 - 12): 算力流水线、端云协同 & 移至此处的硬件总线 ==================== -->
+<div class="xl:col-span-4 flex flex-col gap-3.5 min-h-0">
+<!-- 卡片 3.1: 端到端算力调度流水线 -->
+<div class="rack-panel p-3.5 flex flex-col justify-between shrink-0">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+<div class="flex items-center justify-between pb-2 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="spec-badge-green text-xs font-bold">全链路闭环</span>
+<h2 class="font-bold text-[16px] text-[#FFF2C2] tracking-wide">端到端算力调度流水线</h2>
+</div>
+<span class="text-xs font-mono font-bold text-indGreen flex items-center gap-1.5">
+<span class="lens-led green"></span> 60.0 FPS
+          </span>
+</div>
+</div>
+<!-- 清晰直接的 4 阶段串联 DAG 节点 -->
+<div class="mt-3 grid grid-cols-4 gap-2 text-center font-mono">
+<!-- ST 01 传感器采集 -->
+<div class="recessed-bay p-2.5 rounded-[4px] border border-[#3D331A]/60 flex flex-col justify-between hover:border-amber-400/50 transition">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold text-[#F8DC89]">ST01</span>
+<span class="lens-led amber"></span>
+</div>
+<div class="my-2 text-left">
+<div class="text-[12px] font-bold text-[#F1F5F9]">传感器采集</div>
+<div class="text-[10px] text-[#8C98A9] mt-0.5">MIPI 4K@60</div>
+</div>
+<div class="pt-1.5 border-t border-[#231E12] text-left">
+<span class="text-[12px] font-bold text-indGreen tabular-num" id="pipe-st1">1.2 Gbps</span>
+</div>
+</div>
+<!-- ST 02 硬件解包 -->
+<div class="recessed-bay p-2.5 rounded-[4px] border border-[#3D331A]/60 flex flex-col justify-between hover:border-amber-400/50 transition">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold text-[#F8DC89]">ST02</span>
+<span class="lens-led gold"></span>
+</div>
+<div class="my-2 text-left">
+<div class="text-[12px] font-bold text-[#F1F5F9]">硬件解包</div>
+<div class="text-[10px] text-[#8C98A9] mt-0.5">A720 加速</div>
+</div>
+<div class="pt-1.5 border-t border-[#231E12] text-left">
+<span class="text-[12px] font-bold text-amber-400 tabular-num" id="pipe-st2">4.2 ms</span>
+</div>
+</div>
+<!-- ST 03 NPU 推理 -->
+<div class="recessed-bay p-2.5 rounded-[4px] border border-amber-500/60 bg-gradient-to-b from-[#1E190B] to-[#0E0C06] flex flex-col justify-between shadow-[0_0_12px_rgba(255,184,0,0.15)]">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold text-amber-300">ST03</span>
+<span class="lens-led amber animate-pulse"></span>
+</div>
+<div class="my-2 text-left">
+<div class="text-[12px] font-bold text-[#FFB800]">NPU 推理</div>
+<div class="text-[10px] text-amber-200/90 mt-0.5">30T ViT 抽取</div>
+</div>
+<div class="pt-1.5 border-t border-amber-500/30 text-left">
+<span class="text-[12px] font-bold text-amber-300 tabular-num" id="pipe-st3">37.7 ms</span>
+</div>
+</div>
+<!-- ST 04 执行控制 -->
+<div class="recessed-bay p-2.5 rounded-[4px] border border-[#3D331A]/60 flex flex-col justify-between hover:border-amber-400/50 transition">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold text-[#F8DC89]">ST04</span>
+<span class="lens-led green"></span>
+</div>
+<div class="my-2 text-left">
+<div class="text-[12px] font-bold text-[#F1F5F9]">执行控制</div>
+<div class="text-[10px] text-[#8C98A9] mt-0.5">GPIO / 485</div>
+</div>
+<div class="pt-1.5 border-t border-[#231E12] text-left">
+<span class="text-[12px] font-bold text-indGreen tabular-num" id="pipe-st4">&lt;0.9 ms</span>
+</div>
+</div>
+</div>
+<!-- 零拷贝环形队列指示条 -->
+<div class="mt-2.5 recessed-bay p-2 px-3 text-[11px] font-mono flex items-center justify-between text-[#CBD5E1] rounded-[3px] border border-[#2A2312]">
+<div class="flex items-center gap-2">
+<span class="lens-led green"></span>
+<span class="font-bold text-[#F8DC89]">Zero-Copy Ring Buffer: ACTIVE</span>
+</div>
+<span class="text-indGreen font-bold tracking-wide">60 FPS 硬件直通无丢帧</span>
+</div>
+</div>
+<!-- 卡片 3.2: 端云协同与云端数据库同步监测 -->
+<div class="rack-panel p-3.5 flex flex-col justify-between shrink-0">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div>
+<div>
+<div class="flex items-center justify-between pb-2 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<span class="spec-badge-gold text-xs">安全已加密</span>
+<div class="text-center flex-1">
+<h2 class="font-bold text-[15px] text-[#FFF2C2] tracking-wide">端云协同与向量库同步</h2>
+<p class="text-[11px] text-[#8C98A9] font-normal">pgvector 向量库实时写入</p>
+</div>
+<span class="spec-badge-green text-xs">已同步</span>
+</div>
+</div>
+<!-- 三联关键云端网络指标 -->
+<div class="mt-2.5 grid grid-cols-3 gap-2 font-mono">
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="text-[9px] text-[#8C98A9]">端云 RTT 往返</div>
+<div class="mt-1 flex items-baseline gap-0.5">
+<span class="text-[16px] font-bold tabular-num amber-glow-soft" id="val-cloud-rtt-sub">39.3</span>
+<span class="text-[9.5px] text-[#A89870]">ms</span>
+</div>
+<div class="text-[8.5px] text-amber-400/90 mt-0.5" id="val-cloud-jitter-sub">Jitter: 1.7ms</div>
+</div>
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="text-[9px] text-[#8C98A9]">向量写入延迟</div>
+<div class="mt-1 flex items-baseline gap-0.5">
+<span class="text-[16px] font-bold tabular-num text-indGreen" id="val-db-latency">15.4</span>
+<span class="text-[9.5px] text-[#A89870]">ms</span>
+</div>
+<div class="text-[8.5px] text-[#64748B] mt-0.5">Pool: 8 活跃连接</div>
+</div>
+<div class="recessed-bay p-2 rounded-[3px]">
+<div class="text-[9px] text-[#8C98A9]">网络丢包与重传</div>
+<div class="mt-1 flex items-baseline gap-0.5">
+<span class="text-[16px] font-bold tabular-num text-indGreen" id="val-cloud-loss-sub">0.00</span>
+<span class="text-[9.5px] text-[#A89870]">%</span>
+</div>
+<div class="text-[8.5px] text-indGreen mt-0.5">QUIC 加速启用</div>
+</div>
+</div>
+<!-- 实时上下行吞吐双向标尺 -->
+<div class="mt-2.5 recessed-bay p-2.5 rounded-[3px]">
+<!-- 上行 -->
+<div>
+<div class="flex items-center justify-between text-[9.5px] font-mono">
+<span class="text-[#E2E8F0] font-bold flex items-center gap-1.5">
+<span class="spec-badge-amber">TX</span> 上行带宽 (特征向量流)
+              </span>
+<span class="font-bold text-[#FFB800] tabular-num" id="val-tx-rate">14.90 MB/s</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden mt-1">
+<div class="meter-amber h-full transition-all duration-300" id="bar-tx" style="width: 60%;"></div>
+</div>
+</div>
+<!-- 下行 -->
+<div class="mt-2 pt-1.5 border-t border-[#231E12]">
+<div class="flex items-center justify-between text-[9.5px] font-mono">
+<span class="text-[#E2E8F0] font-bold flex items-center gap-1.5">
+<span class="spec-badge-green">RX</span> 下行带宽 (控制策略/比价流)
+              </span>
+<span class="font-bold text-indGreen tabular-num" id="val-rx-rate">2.98 MB/s</span>
+</div>
+<div class="w-full bg-[#161B24] h-1.5 rounded-xs overflow-hidden mt-1">
+<div class="meter-green h-full transition-all duration-300" id="bar-rx" style="width: 30%;"></div>
+</div>
+</div>
+</div>
+</div>
+<div>
+<!-- 最新事务同步打卡栏 -->
+<div class="mt-2 recessed-bay p-2 text-[10px] font-mono flex items-center justify-between text-[#CBD5E1] rounded-[2px]">
+<div class="flex items-center gap-2">
+<span class="lens-led green"></span>
+<span class="">最新同步: <b class="text-[#F8DC89]" id="val-last-batch">Batch #8942</b> (512-dim)</span>
+</div>
+<span class="text-[#8C98A9]" id="val-last-synctime">耗时 16ms · 19:55:03</span>
+</div>
+</div>
+</div>
+<!-- 卡片 3.3: 硬件总线与外设状态 (从左栏移入此处，填补下方留白，与第1、2列底边严格平齐) -->
+<div class="rack-panel p-3.5 flex flex-col flex-1 min-h-0 justify-between">
+<div class="bolt bolt-tl"></div><div class="bolt bolt-tr"></div><div class="bolt bolt-bl"></div><div class="bolt bolt-br"></div>
+<div class="flex items-center justify-between pb-1.5 border-b border-[#2D2615]">
+<div class="w-full flex items-center justify-between">
+<h2 class="font-bold text-[14px] text-[#FFF2C2] tracking-wide">硬件总线与外设状态</h2>
+<span class="spec-badge-green text-xs">全部连通</span>
+</div>
+</div>
+<div class="mt-2 grid grid-cols-2 gap-2 text-[10.5px] font-mono flex-1">
+<!-- 2.5G 双网口 -->
+<div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-bold text-[#E2E8F0] text-[9.5px]">[LAN] 2× 2.5G RJ45</span>
+<span class="spec-badge-green">UP</span>
+</div>
+<div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
+<span class="">LAN1: 1.25 Gbps</span>
+<span class="text-[#4B5569]">LAN2: IDLE</span>
+</div>
+</div>
+<!-- 4路 MIPI-CSI 相机接口 -->
+<div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-bold text-[#E2E8F0] text-[9.5px]">[CSI] 4× MIPI-CSI</span>
+<span class="spec-badge-gold">4-CH</span>
+</div>
+<div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
+<span class="">4× 1080P@60</span>
+<span class="text-indGreen font-bold">0 丢帧</span>
+</div>
+</div>
+<!-- 多路视频输出 -->
+<div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-bold text-[#E2E8F0] text-[9.5px]">[DISP] HDMI 2.1 + 2×DP</span>
+<span class="spec-badge-dark">4K60</span>
+</div>
+<div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
+<span class="text-[#E2E8F0]">HDMI: CONNECTED</span>
+<span class="text-[#4B5569]">DP: READY</span>
+</div>
+</div>
+<!-- 工业级串口矩阵与GPIO -->
+<div class="recessed-bay p-2 rounded-[3px] flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-bold text-[#E2E8F0] text-[9.5px]">[I/O] 7× UART / 40p GPIO</span>
+<span class="spec-badge-green">POLL</span>
+</div>
+<div class="text-[9px] text-[#8C98A9] mt-1 flex justify-between">
+<span class="">RS485/232 轮询中</span>
+<span class="text-amber-400 font-bold">IRQ: 0.12ms</span>
+</div>
+</div>
+</div>
+<div class="mt-2 pt-1 border-t border-[#2D2615] flex items-center justify-between text-[9px] font-mono text-[#8C98A9]">
+<span class="">PCIE LINK: X4 GEN4 ACTIVE</span>
+<span class="text-indGreen font-semibold">ALL PERIPHERALS HEALTHY</span>
+</div>
+</div>
+</div>
+</main>
+<!-- 4. 工业工控底栏状态矩阵 (System Chassis Status Footer - 统一整洁单行排布) -->
+<footer class="bg-[#0E1116] border-t border-[#2D2615] px-5 py-2.5 z-40 text-[11px] font-mono text-[#8C98A9] shrink-0 shadow-[0_-4px_16px_rgba(0,0,0,0.8)]">
+<div class="max-w-[1920px] mx-auto flex items-center justify-between flex-nowrap overflow-x-auto whitespace-nowrap gap-4">
+<div class="flex items-center gap-4 flex-nowrap">
+<span class="flex items-center gap-1.5 font-bold text-[#E2E8F0]">
+<span class="lens-led green"></span> HARDWARE BUS: SYNCHRONIZED
+    </span>
+<span class="text-[#3A4354]">|</span>
+<span class="">BOARD: <span class="text-[#CBD5E1] font-semibold">定昌电子 DC_ENP1</span></span>
+<span class="text-[#3A4354]">|</span>
+<span class="">SoC: <span class="text-amber-400 font-semibold">此芯科技 CD8180</span> (12 Cores / 3.0GHz Capable)</span>
+<span class="text-[#3A4354]">|</span>
+<span class="">PCIe Gen4 x4: 16.0 GT/s</span>
+<span class="text-[#3A4354]">|</span>
+<span class="">SCHEDULER ENGINE: <span class="text-[#F8DC89] font-semibold">DynamIQ EAS / RT-FIFO</span></span>
+</div>
+<div class="flex items-center gap-4 text-[#717D96] text-[10.5px]">
+<span class="">SYSTEM HEALTH: <b class="text-indGreen">100% OPTIMAL</b></span>
+<span class="text-[#3A4354]">|</span>
+<span class="">SECURITY MASK: <b class="text-[#CBD5E1]">ACTIVE (TLS 1.3)</b></span>
+</div>
+</div>
+</footer>
+<!-- 5. 动态单点数据源驱动引擎 (RuntimeState / Telemetry Dynamic Engine) -->
+<script>
+window.__RUNTIME_STATE__ = {
+  active: true,
+  intervalMs: 1200,
+  data: {
+    cpuLoad: 47.9,
+    gpuLoad: 36.9,
+    npuLoad: 72.4,
+    cpuFreq: 2.80,
+    temp: 55.0,
+    fanRpm: 1850,
+    throttled: false,
+    dramUsed: 22.0,
+    dmaPool: 8.4,
+    npuPool: 6.8,
+    gpuVram: 4.2,
+    npuQDepth: 2,
+    npuAvgWaitMs: 2.2,
+    boardPower: 19.95,
+    efficiency: 4.1,
+    txRate: 14.29,
+    rxRate: 3.80,
+    jitter: 2.2,
+    lossRate: 0.00,
+    nvmeThroughput: 204.3,
+    nvmeIops: 45.2,
+    iowait: 0.12,
+    fps: 60.0,
+    mipiRate: 1.2,
+    droppedFrames: 0,
+    cloudRtt: 39.6,
+    dbLatency: 16.1,
+    batchId: 8942,
+    vitLatency: 37.5
+  }
+};
+
+let simTimer = null;
+
+function jitterValue(base, range, min, max, fixed = 1) {
+  const delta = (Math.random() * 2 - 1) * range;
+  let val = base + delta;
+  if (val < min) val = min;
+  if (val > max) val = max;
+  return parseFloat(val.toFixed(fixed));
+}
+
+function updateTelemetryUI() {
+  const s = window.__RUNTIME_STATE__.data;
+
+  // 1. 顶部六联排仪表
+  document.getElementById('metric-pwr').textContent = s.boardPower.toFixed(2);
+  const pwrPct = ((s.boardPower / 35.0) * 100).toFixed(1);
+  document.getElementById('metric-pwr-pct').textContent = `${pwrPct}% TDP`;
+  document.getElementById('bar-pwr').style.width = `${pwrPct}%`;
+
+  document.getElementById('metric-temp').textContent = s.temp.toFixed(1);
+  const tempPct = ((s.temp / 85.0) * 100).toFixed(1);
+  document.getElementById('bar-temp').style.width = `${tempPct}%`;
+
+  document.getElementById('metric-cpu-load').textContent = s.cpuLoad.toFixed(1);
+  document.getElementById('bar-cpu').style.width = `${s.cpuLoad}%`;
+
+  document.getElementById('metric-npu-load').textContent = s.npuLoad.toFixed(1);
+  document.getElementById('bar-npu').style.width = `${s.npuLoad}%`;
+  document.getElementById('metric-npu-q').textContent = `Q: ${s.npuQDepth} TASK`;
+  document.getElementById('metric-npu-wait').textContent = `${s.npuAvgWaitMs.toFixed(1)}ms`;
+
+  document.getElementById('metric-ram-used').textContent = s.dramUsed.toFixed(1);
+  const ramPct = ((s.dramUsed / 64.0) * 100).toFixed(1);
+  document.getElementById('metric-ram-pct').textContent = `${ramPct}%`;
+  document.getElementById('bar-ram').style.width = `${ramPct}%`;
+
+  document.getElementById('metric-cloud-rtt').textContent = s.cloudRtt.toFixed(1);
+  document.getElementById('metric-cloud-jitter').textContent = `${s.jitter.toFixed(1)}ms`;
+
+  // 2. 第一列细节
+  const a720b = jitterValue(s.cpuLoad * 1.36, 1.8, 48, 78, 1);
+  const a720m = jitterValue(s.cpuLoad * 0.93, 1.5, 28, 58, 1);
+  const a520 = jitterValue(s.cpuLoad * 0.44, 1.0, 12, 30, 1);
+
+  document.getElementById('val-a720b-pct').textContent = a720b;
+  document.getElementById('bar-a720b').style.width = `${a720b}%`;
+  document.getElementById('val-a720m-pct').textContent = a720m;
+  document.getElementById('bar-a720m').style.width = `${a720m}%`;
+  document.getElementById('val-a520-pct').textContent = a520;
+  document.getElementById('bar-a520').style.width = `${a520}%`;
+
+  for (let i = 0; i < 12; i++) {
+    const el = document.getElementById(`core-bar-${i}`);
+    if (el) {
+      let baseH = i < 4 ? a720b : (i < 8 ? a720m : a520);
+      let randH = Math.max(8, Math.min(95, Math.round(baseH + (Math.random() * 14 - 7))));
+      el.style.height = `${randH}%`;
+    }
+  }
+
+  document.getElementById('val-gpu-load').textContent = `${s.gpuLoad.toFixed(1)}% 负载`;
+
+  // 3. 第二列细节 (NPU & 内存)
+  document.getElementById('val-npu-radial-pct').textContent = `${s.npuLoad.toFixed(1)}%`;
+  const svgOffset = s.npuLoad.toFixed(1);
+  document.getElementById('npu-radial-svg').setAttribute('stroke-dasharray', `${svgOffset}, 100`);
+
+  document.getElementById('val-vit-latency').textContent = `${s.vitLatency.toFixed(1)} ms`;
+  document.getElementById('val-dram-used-col').textContent = s.dramUsed.toFixed(1);
+  document.getElementById('val-dram-pct-col').textContent = `${ramPct}%`;
+  document.getElementById('bar-dram-col').style.width = `${ramPct}%`;
+
+  document.getElementById('val-nvme-throughput').textContent = s.nvmeThroughput.toFixed(1);
+  document.getElementById('val-nvme-iops').textContent = `${s.nvmeIops.toFixed(1)}K`;
+
+  // 4. 第三列细节 (Pipeline & 端云)
+  document.getElementById('pipe-st3').textContent = `${s.vitLatency.toFixed(1)} ms`;
+  document.getElementById('val-cloud-rtt-sub').textContent = s.cloudRtt.toFixed(1);
+  document.getElementById('val-cloud-jitter-sub').textContent = `Jitter: ${s.jitter.toFixed(1)}ms`;
+  document.getElementById('val-db-latency').textContent = s.dbLatency.toFixed(1);
+
+  document.getElementById('val-tx-rate').textContent = `${s.txRate.toFixed(2)} MB/s`;
+  document.getElementById('bar-tx').style.width = `${Math.min(100, (s.txRate / 25) * 100).toFixed(0)}%`;
+
+  document.getElementById('val-rx-rate').textContent = `${s.rxRate.toFixed(2)} MB/s`;
+  document.getElementById('bar-rx').style.width = `${Math.min(100, (s.rxRate / 10) * 100).toFixed(0)}%`;
+}
+
+function tickTelemetryStep() {
+  if (!window.__RUNTIME_STATE__.active) return;
+  const d = window.__RUNTIME_STATE__.data;
+
+  d.boardPower = jitterValue(d.boardPower, 0.35, 17.8, 20.4, 2);
+  d.temp = jitterValue(d.temp, 0.18, 53.8, 56.5, 1);
+  d.cpuLoad = jitterValue(d.cpuLoad, 1.8, 38.0, 52.0, 1);
+  d.npuLoad = jitterValue(d.npuLoad, 1.5, 71.0, 79.0, 1);
+  d.gpuLoad = jitterValue(d.gpuLoad, 1.2, 29.0, 39.0, 1);
+  d.dramUsed = jitterValue(d.dramUsed, 0.08, 21.8, 23.2, 1);
+  d.cloudRtt = jitterValue(d.cloudRtt, 0.7, 38.5, 43.5, 1);
+  d.jitter = jitterValue(d.jitter, 0.15, 1.2, 2.4, 1);
+  d.dbLatency = jitterValue(d.dbLatency, 0.4, 14.2, 17.8, 1);
+  d.txRate = jitterValue(d.txRate, 0.3, 13.5, 16.2, 2);
+  d.rxRate = jitterValue(d.rxRate, 0.15, 2.8, 3.8, 2);
+  d.vitLatency = jitterValue(d.vitLatency, 0.4, 36.8, 39.2, 1);
+  d.nvmeThroughput = jitterValue(d.nvmeThroughput, 4.0, 195.0, 220.0, 1);
+
+  if (Math.random() > 0.7) {
+    d.npuQDepth = Math.floor(Math.random() * 2) + 2;
+    d.npuAvgWaitMs = jitterValue(2.2, 0.2, 1.9, 2.7, 1);
+  }
+
+  const now = new Date();
+  const timeStr = `UTC+8 ${now.toTimeString().split(' ')[0]}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+  document.getElementById('clock-tick').textContent = timeStr;
+
+  updateTelemetryUI();
+}
+
+function startSimulation() {
+  if (simTimer) clearInterval(simTimer);
+  simTimer = setInterval(tickTelemetryStep, window.__RUNTIME_STATE__.intervalMs);
+}
+
+document.getElementById('toggle-sim-btn').addEventListener('click', function() {
+  window.__RUNTIME_STATE__.active = !window.__RUNTIME_STATE__.active;
+  const led = document.getElementById('telemetry-led');
+  if (window.__RUNTIME_STATE__.active) {
+    this.textContent = '暂停采集';
+    this.className = 'ml-1 px-2.5 py-0.5 bg-gradient-to-b from-[#2A2312] to-[#171309] hover:from-[#3E341B] hover:to-[#221C0E] border border-[#8A7326] text-[#F8DC89] rounded-[2px] text-[11px] font-extrabold tracking-wider transition active:scale-95 shadow-xs';
+    led.className = 'lens-led amber animate-pulse';
+  } else {
+    this.textContent = '恢复采集';
+    this.className = 'ml-1 px-2.5 py-0.5 bg-gradient-to-b from-[#14532D] to-[#052E16] hover:from-[#15803D] hover:to-[#14532D] border border-indGreen text-white rounded-[2px] text-[11px] font-extrabold tracking-wider transition active:scale-95 shadow-xs';
+    led.className = 'lens-led off';
+  }
+});
+
+document.getElementById('telemetry-interval').addEventListener('change', function(e) {
+  window.__RUNTIME_STATE__.intervalMs = parseInt(e.target.value, 10);
+  startSimulation();
+});
+
+function clearLogs() {
+  document.getElementById('log-container').innerHTML = `
+    <div class="p-2 text-center text-[#64748B] font-mono text-[10px]">
+      -- 机架事件日志缓冲区已重置 --
+    </div>
+  `;
+}
+
+startSimulation();
+updateTelemetryUI();
+</script>
+</body></html>

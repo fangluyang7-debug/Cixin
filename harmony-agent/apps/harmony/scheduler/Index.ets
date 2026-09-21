@@ -58,7 +58,7 @@ export { QueueItem, TaskQueue } from './src/main/ets/queue/TaskQueue';
 export { SchedulerService } from './src/main/ets/api/SchedulerService';
 export { SchedulerClient, SchedulerRuntime } from './src/main/ets/api/SchedulerClient';
 export {
-  TaskTemplate, TaskContext, TaskSignal, TaskSignalType, TaskTelemetry, ResourceHints,
+  TaskTemplate, TaskContext, TaskSignal, TaskSignalType, TaskTelemetry, AppExperienceObservation, ResourceHints,
   QualityLevel, ResourcePrediction, ExecutorTelemetry, TaskCheckpoint, Interruptibility,
   DuplicatePolicy, PrivacyPolicy, DependencyFailurePolicy, WorkflowNode, WorkflowInput,
   WorkflowResult, WorkflowHandle
@@ -67,5 +67,6 @@ export {
   ExecutionProfile, TaskCapabilityManifest, ProfileTransition, ConstrainedPolicyMode,
   ConstrainedPolicyConfig, CapabilityPolicyRule, NonInferiorityThresholds, PolicyDecisionAudit,
   UtilityComponents, FeedbackKind, FeedbackOption, FeedbackRequest, UserFeedback, FeedbackReceipt, FeedbackCalibration,
+  FeedbackAvailability, ActiveTaskSnapshot,
   StateObservation, PolicyStateStore, PolicyMetricsGroup
 } from './src/main/ets/api/SchedulerTypes';

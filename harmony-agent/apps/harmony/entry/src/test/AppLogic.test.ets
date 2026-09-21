@@ -3,9 +3,9 @@ import { parseSearchConstraints, matchesSearchConstraints } from '../main/ets/se
 import { NormalizationProgress, validateNormalizationProgress, appendNormalizationValues } from '../main/ets/services/NormalizationCheckpoint';
 import { collectVectorPartitions } from '../main/ets/services/VectorPartitionResults';
 import { ExperimentTrial, exportTrialRecords } from '../main/ets/services/ExperimentRecords';
-import { numericPrice, productKey, safeProductUrl, feedbackReceiptText } from '../main/ets/services/CommercePresentation';
+import { numericPrice, productKey, safeProductUrl, feedbackQuestion, feedbackLabel, feedbackReceiptText } from '../main/ets/services/CommercePresentation';
 import { Product } from '../main/ets/models/Product';
-import { ConstrainedPolicyMode } from 'scheduler';
+import { ConstrainedPolicyMode, FeedbackKind, FeedbackOption } from 'scheduler';
 
 function trialFixture(): ExperimentTrial {
   return { mode: 'ADAPTIVE', background: false, repetition: 0, queryId: 'shoes', startedAt: 1,
@@ -37,12 +37,18 @@ export default function appLogicTests(): void {
     it('rejectedFeedbackDoesNotClaimOptimization', 0, () => {
       expect(feedbackReceiptText({ accepted: false, taskRunId: 'a', effect: 'REJECTED', reason: 'expired' }).indexOf('未接收') >= 0).assertTrue();
     });
-    it('shadowFeedbackReceiptExplicitlyAvoidsExecutionClaims', 0, () => {
+    it('experienceQuestionsAskOnlyAboutSubjectiveToleranceAndResultNeeds', 0, () => {
+      expect(feedbackQuestion(FeedbackKind.RESPONSE_TIME).indexOf('目标') < 0).assertTrue();
+      expect(feedbackQuestion(FeedbackKind.RESPONSE_TIME).indexOf('接受') >= 0).assertTrue();
+      expect(feedbackQuestion(FeedbackKind.RESULT_UTILITY).indexOf('需求') >= 0).assertTrue();
+      expect(feedbackLabel(FeedbackOption.SLOW)).assertEqual('有点慢');
+    });
+    it('feedbackReceiptUsesPlainLanguageWithoutExecutionClaims', 0, () => {
       const text = feedbackReceiptText({ accepted: true, taskRunId: 'a', effect: 'CALIBRATED', reason: 'bounded',
         mode: ConstrainedPolicyMode.SHADOW, after: { speedSamples: 2, qualitySamples: 0, profileSamples: 2,
-          latencyWeight: 10, qualityWeight: 3, profilePenalty: 3 } });
-      expect(text.indexOf('不改变执行配置') >= 0).assertTrue();
-      expect(text.indexOf('10.0') >= 0).assertTrue();
+        latencyWeight: 10, qualityWeight: 3, profilePenalty: 3 } });
+      expect(text.indexOf('安全边界') >= 0).assertTrue();
+      expect(text.indexOf('10.0') < 0).assertTrue();
     });
     it('omitsQualityResultsFromDefaultExperimentExport', 0, () => {
       const result = exportTrialRecords([trialFixture()]);

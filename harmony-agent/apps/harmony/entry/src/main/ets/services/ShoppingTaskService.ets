@@ -2,12 +2,13 @@ import {
   Backend, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan, ExecutorResult,
   InferenceLocation, Interruptibility, LocalExecutionPlan, ModelTier, PrivacyPolicy, QualityLevel,
   SchedulerClient, SchedulerRuntime, TaskCheckpoint, TaskContext, TaskTemplate, TaskType,
-  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest, FeedbackReceipt, UserFeedback
+  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest, FeedbackReceipt, UserFeedback, FeedbackAvailability
 } from 'scheduler';
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
 import { DataInitService } from './DataInitService';
 import { encoderManifest, searchManifest, warmupManifest } from './ShoppingProfiles';
+import { SearchPreference, searchContext } from './SearchPreferences';
 import { NeuralEmbeddingIndex, NormalizationProgress, VectorSearchTelemetry } from './NeuralEmbeddingIndex';
 
 type CpuWork<TInput, TOutput> = (input: TInput, plan: LocalExecutionPlan,
@@ -127,14 +128,10 @@ export class ShoppingTaskService {
       async (input: string): Promise<ExecutorResult<string>> => ({ output: input })));
   }
 
-  public search(query: string, highQuality: boolean = false): WorkflowHandle<Product[]> {
-    return this.requireClient().submit<string, Product[]>('product_search', query, {
-      deadlineMs: 3000, freshnessMs: 4000, userVisible: true, userWaiting: true,
-      targetLatencyMs: 500, softDeadlineMs: 1500,
-      accuracyFloor: highQuality ? ModelTier.HIGH_ACCURACY : ModelTier.LIGHTWEIGHT,
-      highQuality: highQuality, businessImportance: 0.8, inputTokens: Math.max(1, query.length),
-      candidateCount: NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, deduplicationKey: 'search-page', networkAllowed: false
-    });
+  public search(query: string, highQuality: boolean = false,
+    preference: SearchPreference = SearchPreference.BALANCED): WorkflowHandle<Product[]> {
+    return this.requireClient().submit<string, Product[]>('product_search', query,
+      searchContext(query.length, NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, preference, highQuality));
   }
 
   public warmup(): WorkflowHandle<number> {
@@ -155,6 +152,7 @@ export class ShoppingTaskService {
   }
 
   public feedbackRequest(workflowId: string): FeedbackRequest | null { return this.requireClient().getFeedbackRequest(workflowId); }
+  public feedbackAvailability(workflowId: string): FeedbackAvailability { return this.requireClient().getFeedbackAvailability(workflowId); }
   public submitFeedback(workflowId: string, feedback: UserFeedback): FeedbackReceipt {
     return this.requireClient().submitFeedback(workflowId, feedback);
   }

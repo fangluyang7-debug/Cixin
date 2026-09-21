@@ -20,30 +20,23 @@ export function safeProductUrl(url: string): boolean {
   return /^https:\/\/[^\s/@:?#]+(?:[/?#][^\s]*)?$/i.test(url);
 }
 export function feedbackQuestion(kind: FeedbackKind): string {
-  return kind === FeedbackKind.RESPONSE_TIME ? '这次搜索的响应速度如何？' :
-    kind === FeedbackKind.RESULT_UTILITY ? '这次搜索结果对你有帮助吗？' : '这次任务的设备体验如何？';
+  return kind === FeedbackKind.RESPONSE_TIME ? '刚才等待结果的时间可以接受吗？' : '这次结果符合你的需求吗？';
 }
 export function feedbackLabel(option: FeedbackOption): string {
   switch (option) {
     case FeedbackOption.FAST: return '很快';
-    case FeedbackOption.ACCEPTABLE: return '可接受';
-    case FeedbackOption.SLOW: return '偏慢';
-    case FeedbackOption.NO_RESULT: return '未得到结果';
+    case FeedbackOption.ACCEPTABLE: return '能接受';
+    case FeedbackOption.SLOW: return '有点慢';
+    case FeedbackOption.NO_RESULT: return '一直没出来';
     case FeedbackOption.USEFUL: return '有用';
     case FeedbackOption.INACCURATE: return '不够准确';
     case FeedbackOption.IRRELEVANT: return '无关';
-    case FeedbackOption.COMFORTABLE: return '舒适';
-    default: return '发热明显';
+    default: return '其他';
   }
 }
 export function feedbackReceiptText(receipt: FeedbackReceipt): string {
   if (!receipt.accepted) { return '本次反馈未接收，邀请可能已过期或已回答。'; }
-  if (receipt.effect === 'RECORDED_ONLY') { return '已记录反馈；该样本不参与当前策略校准。'; }
-  const after = receipt.after;
-  if (receipt.effect === 'COLLECTING') {
-    return `已记录。速度样本 ${after?.speedSamples ?? 0}，质量样本 ${after?.qualitySamples ?? 0}；各维度达到 ${receipt.minimumSamples} 条后校准。`;
-  }
-  const scope = receipt.mode === 'OBSERVE' ? '当前仅观察，不改变执行配置。' :
-    receipt.mode === 'SHADOW' ? '当前仅影子评估，不改变执行配置。' : '后续任务仍须通过配置验证、质量和冷却门槛。';
-  return `已校准：时延权重 ${after?.latencyWeight.toFixed(1)}，质量权重 ${after?.qualityWeight.toFixed(1)}。${scope}`;
+  if (receipt.effect === 'RECORDED_ONLY') { return '已记录这次体验，但暂不用于当前策略校准。'; }
+  if (receipt.effect === 'COLLECTING') { return '已记录这次体验，积累更多回答后再调整调度。'; }
+  return '已记录这次体验，后续调度会继续经过设备状态和安全边界校验。';
 }

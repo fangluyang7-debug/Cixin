@@ -1,5 +1,6 @@
 import {
-  FeedbackKind, FeedbackOption, FeedbackRequest, SchedulerLogEntry, TaskStatus, TaskType, UserFeedback
+  FeedbackKind, FeedbackOption, FeedbackRequest, SchedulerLogEntry, TaskStatus, TaskType,
+  UserFeedback, FeedbackAvailability
 } from '../api/SchedulerTypes';
 
 interface FeedbackQuota {
@@ -7,6 +8,12 @@ interface FeedbackQuota {
   count: number;
   lastAskedAt: number;
   types: string[];
+}
+
+interface FeedbackCandidate {
+  kind: FeedbackKind;
+  reason: string;
+  priority: number;
 }
 
 export class FeedbackController {
@@ -17,25 +24,48 @@ export class FeedbackController {
   public setEnabled(enabled: boolean): void { this.enabled = enabled; }
   public isEnabled(): boolean { return this.enabled; }
 
-  public request(log: SchedulerLogEntry, now: number = Date.now()): FeedbackRequest | null {
-    if (!this.enabled || log.status !== TaskStatus.SUCCEEDED || log.taskType === TaskType.FOREGROUND_REALTIME ||
-      log.taskType === TaskType.BACKGROUND_BATCH || log.telemetry?.resultDisplayed !== true ||
-      log.telemetry.userFeedback !== undefined || log.executionPlan.executionProfile === undefined) { return null; }
+  public inspect(log: SchedulerLogEntry, now: number = Date.now()): FeedbackAvailability {
+    if (!this.enabled) { return { eligible: false, reason: 'CONSENT_REQUIRED' }; }
+    if (log.status !== TaskStatus.SUCCEEDED) { return { eligible: false, reason: 'TASK_NOT_SUCCESSFUL' }; }
+    if (log.taskType === TaskType.FOREGROUND_REALTIME || log.taskType === TaskType.BACKGROUND_BATCH) {
+      return { eligible: false, reason: 'TASK_TYPE_EXCLUDED' };
+    }
+    if (log.telemetry?.userFeedback !== undefined) { return { eligible: false, reason: 'ALREADY_ANSWERED' }; }
+    if (log.telemetry?.resultDisplayed !== true) { return { eligible: false, reason: 'RESULT_NOT_DISPLAYED' }; }
+    if (log.executionPlan.executionProfile === undefined) { return { eligible: false, reason: 'PROFILE_REQUIRED' }; }
     const existing = log.telemetry.feedbackRequest;
+    if (existing !== undefined) { return { eligible: existing.expiresAtMs > now, reason: existing.expiresAtMs > now ? 'READY' : 'INVITATION_EXPIRED' }; }
+    if (this.selectQuestion(log) === null) { return { eligible: false, reason: 'NO_QUESTION_NEEDED' }; }
+    const day = Math.floor(now / 86400000);
+    const sameDay = this.quota.day === day;
+    const tomorrow = (day + 1) * 86400000;
+    const intervalEnd = this.quota.lastAskedAt + 30 * 60000;
+    const nextDay = Math.max(tomorrow, intervalEnd);
+    const typeKey = `${log.taskType}:${log.capability.replace(/^client-\d+:/, '')}`;
+    if (sameDay && this.quota.count >= 2) { return { eligible: false, reason: 'DAILY_LIMIT', nextAllowedAtMs: nextDay }; }
+    if (sameDay && this.quota.types.indexOf(typeKey) >= 0) {
+      return { eligible: false, reason: 'CAPABILITY_DAILY_LIMIT', nextAllowedAtMs: nextDay };
+    }
+    if (now < intervalEnd) { return { eligible: false, reason: 'INTERVAL_LIMIT', nextAllowedAtMs: intervalEnd }; }
+    return { eligible: true, reason: 'READY' };
+  }
+
+  public request(log: SchedulerLogEntry, now: number = Date.now()): FeedbackRequest | null {
+    if (!this.inspect(log, now).eligible) { return null; }
+    const existing = log.telemetry!.feedbackRequest;
     if (existing !== undefined) { return existing.expiresAtMs > now ? this.clone(existing) : null; }
     const day: number = Math.floor(now / 86400000);
     if (this.quota.day !== day) { this.quota = { day: day, count: 0, lastAskedAt: this.quota.lastAskedAt, types: [] }; }
     const typeKey: string = `${log.taskType}:${log.capability.replace(/^client-\d+:/, '')}`;
     if (this.quota.count >= 2 || now - this.quota.lastAskedAt < 30 * 60000 || this.quota.types.indexOf(typeKey) >= 0) { return null; }
-    // Alternate dimensions; one answer never represents every aspect of experience.
-    const kind: FeedbackKind = day % 2 === 0 || log.telemetry.softDeadlineMissed === true ?
-      FeedbackKind.RESPONSE_TIME : FeedbackKind.RESULT_UTILITY;
-    const request: FeedbackRequest = { taskRunId: log.taskId, kind: kind, suggestedAfter: 'RESULT_DISPLAYED',
-      options: kind === FeedbackKind.RESPONSE_TIME ?
-        [FeedbackOption.FAST, FeedbackOption.ACCEPTABLE, FeedbackOption.SLOW, FeedbackOption.NO_RESULT] :
-        [FeedbackOption.USEFUL, FeedbackOption.INACCURATE, FeedbackOption.IRRELEVANT], expiresAtMs: now + 120000 };
+    // Ask only for the highest-priority experience signal that the runtime cannot infer.
+    const candidate = this.selectQuestion(log);
+    if (candidate === null) { return null; }
+    const request: FeedbackRequest = { taskRunId: log.taskId, kind: candidate.kind, suggestedAfter: 'RESULT_DISPLAYED',
+      options: this.optionsFor(candidate.kind), expiresAtMs: now + 120000,
+      selectionReason: candidate.reason, priority: candidate.priority };
     this.quota.count++; this.quota.lastAskedAt = now; this.quota.types.push(typeKey);
-    log.telemetry.feedbackRequest = request;
+    log.telemetry!.feedbackRequest = request;
     return this.clone(request);
   }
 
@@ -59,6 +89,26 @@ export class FeedbackController {
         quota.types.some((type: string) => typeof type !== 'string' || type.length > 256)) { return false; }
       this.quota = quota; return true;
     } catch (_) { return false; }
+  }
+  private selectQuestion(log: SchedulerLogEntry): FeedbackCandidate | null {
+    const telemetry = log.telemetry!;
+    const app = telemetry.appExperience;
+    const appSlow = app?.responseReadyMs !== undefined && telemetry.softDeadlineMs !== undefined &&
+      app.responseReadyMs > telemetry.softDeadlineMs;
+    if (telemetry.softDeadlineMissed === true || appSlow) {
+      return { kind: FeedbackKind.RESPONSE_TIME, reason: 'SLOW_RESPONSE_ACCEPTABILITY_UNKNOWN', priority: 80 };
+    }
+    // Consuming a result suppresses an unnecessary question, but is not a positive training label.
+    if (app?.resultQualityUncertain === true && app.resultUseful === undefined && telemetry.resultConsumed !== true) {
+      return { kind: FeedbackKind.RESULT_UTILITY, reason: 'APP_REPORTED_QUALITY_UNCERTAINTY', priority: 40 };
+    }
+    return null;
+  }
+  private optionsFor(kind: FeedbackKind): FeedbackOption[] {
+    if (kind === FeedbackKind.RESPONSE_TIME) {
+      return [FeedbackOption.FAST, FeedbackOption.ACCEPTABLE, FeedbackOption.SLOW, FeedbackOption.NO_RESULT];
+    }
+    return [FeedbackOption.USEFUL, FeedbackOption.INACCURATE, FeedbackOption.IRRELEVANT];
   }
   private clone(request: FeedbackRequest): FeedbackRequest { return JSON.parse(JSON.stringify(request)) as FeedbackRequest; }
 }

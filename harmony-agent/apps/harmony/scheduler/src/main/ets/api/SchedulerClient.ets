@@ -4,7 +4,7 @@ import {
   TaskContext, TaskHandle, TaskRequest, TaskResult, TaskSignal, TaskSignalType, TaskStatus,
   TaskTemplate, WorkflowHandle, WorkflowInput, WorkflowNode, WorkflowResult, WorkloadExecutor
 } from './SchedulerTypes';
-import { FeedbackRequest, FeedbackReceipt, UserFeedback } from './SchedulerTypes';
+import { FeedbackRequest, FeedbackReceipt, UserFeedback, FeedbackAvailability } from './SchedulerTypes';
 import { validateManifest } from '../policy/ProfileContract';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 
@@ -16,6 +16,7 @@ export interface SchedulerRuntime {
   exportAudit(): string;
   getFeedbackRequest?(taskId: string): FeedbackRequest | null;
   submitFeedback?(feedback: UserFeedback): FeedbackReceipt;
+  getFeedbackAvailability?(taskId: string): FeedbackAvailability;
 }
 
 interface ActiveWorkflow {
@@ -172,6 +173,14 @@ export class SchedulerClient {
       return { accepted: false, taskRunId: feedback.taskRunId, effect: 'REJECTED', reason: 'WORKFLOW_NOT_ELIGIBLE' };
     }
     return this.runtime.submitFeedback(feedback);
+  }
+
+  public getFeedbackAvailability(workflowId: string): FeedbackAvailability {
+    this.assertOpen();
+    const run = this.workflows.get(workflowId);
+    if (run === undefined || !run.finished || run.cancelled) { return { eligible: false, reason: 'WORKFLOW_NOT_READY' }; }
+    if (this.runtime.getFeedbackAvailability === undefined) { return { eligible: false, reason: 'RUNTIME_UNSUPPORTED' }; }
+    return this.runtime.getFeedbackAvailability(run.outputTaskId);
   }
 
   public async dispose(): Promise<void> {
