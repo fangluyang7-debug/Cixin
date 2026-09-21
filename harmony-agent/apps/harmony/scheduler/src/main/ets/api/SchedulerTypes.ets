@@ -74,6 +74,7 @@ export enum TaskStatus {
   CREATED = 'CREATED',
   QUEUED = 'QUEUED',
   RUNNING = 'RUNNING',
+  STOP_REQUESTED = 'STOP_REQUESTED',
   SUCCEEDED = 'SUCCEEDED',
   FAILED = 'FAILED',
   TIMED_OUT = 'TIMED_OUT',
@@ -168,6 +169,7 @@ export interface TaskResult<TOutput> {
   executionDurationMs: number;
   totalDurationMs: number;
   errorCode?: string;
+  stopRequestedAt?: number;
 }
 
 export interface TaskHandle<TOutput> {
@@ -292,6 +294,7 @@ export interface SchedulerLogEntry {
   executionDurationMs: number | null;
   totalDurationMs: number | null;
   errorCode?: string;
+  stopRequestedAt?: number;
   telemetry?: TaskTelemetry;
 }
 
@@ -314,7 +317,7 @@ export interface MetricsSnapshot {
 export type Unsubscribe = () => void;
 export type StateCallback = (state: DeviceState, mode: PolicyMode) => void;
 export type SchedulerLogCallback = (entry: SchedulerLogEntry) => void;
-export type TaskExecutor<TInput, TOutput> = (input: TInput, plan: ExecutionPlan) => Promise<TOutput>;
+export type TaskExecutor<TInput, TOutput> = (input: TInput, plan: ExecutionPlan, signal: CancellationSignal) => Promise<TOutput>;
 
 export enum Interruptibility {
   NON_INTERRUPTIBLE = 'NON_INTERRUPTIBLE',

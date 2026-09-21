@@ -139,3 +139,11 @@ query_prepare：等待本地数据就绪，整理文本
 原 `runTask/submitTask/evaluate` 保留为低层兼容 API，缺少新契约时日志标注 `SEMANTICS_UNSPECIFIED`；不应把低层兼容调用当作已获得全部新语义能力。新应用以 `SchedulerClient` 为入口。
 
 测试与仍待验收的部分见 [语义调度验收记录](testing/04-semantic-scheduler-acceptance.md)。
+
+## 9. 整合后的执行安全基线（2026-09-21）
+
+运行任务收到取消、超时、过期或设备保护时，低层状态为 `STOP_REQUESTED`。这表示停止已请求，执行器可能仍在计算；真正结束后才输出 `CANCELLED` / `TIMED_OUT`，并释放执行槽。日志与 TaskResult 的 `stopRequestedAt` 用于区分请求与确认，首个停止原因不被后续错误覆盖。工作流最终结果同样必须等待其活动节点结束。
+
+回调执行器可接收第三个 `CancellationSignal` 参数；底层不可中断的调用必须等待其结束，不能假报完成。平均耗时与 P95 使用 `totalDurationMs`（包含排队），单独执行耗时仍在日志保留。
+
+`scripts/test-semantic-scheduler.ps1` 委托 `native-check.ps1 -Task test` 运行全部调度器测试，同时保留业务依赖扫描；当前共 76 项通过。阶段三的 65 项报告属于历史验证范围。新增测试文件必须加入 `scheduler/src/test/List.test.ets`，门禁会核对声明数与实际执行数，避免遗漏测试被误报为通过。
