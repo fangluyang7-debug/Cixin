@@ -275,6 +275,32 @@ export default function constrainedPolicyTest(): void {
       expect(result.status).assertEqual(TaskStatus.SUCCEEDED); expect(executor.plans[0].executionProfile!.id).assertEqual('SAFE');
     });
 
+    it('queuedUnsupportedProfileTripsCircuitAndUsesLegalFallback', 0, async () => {
+      register(); await service.pause();
+      const handle = client.submit<string, string>('generic-profiled', 'input', context());
+      expect(service.getMetricsSnapshot().queuedCount).assertEqual(1);
+      executor.unsupportedDefault = true;
+      service.updateRealDeviceState({ batteryPercent: 79 });
+      expect(executor.calls).assertEqual(0);
+      await service.resume();
+      const result = await handle.result;
+      expect(result.status).assertEqual(TaskStatus.SUCCEEDED);
+      expect(result.nodes[0].executionPlan.executionProfile!.id).assertEqual('SAFE');
+      expect(result.nodes[0].executionPlan.policyAudit!.fallbackReason).assertEqual('EXECUTOR_UNSUPPORTED_CIRCUIT');
+      expect(executor.calls).assertEqual(1);
+    });
+
+    it('criticalStateRejectsQueuedProfileWhileSchedulerRemainsPaused', 0, async () => {
+      register(); await service.pause();
+      const handle = client.submit<string, string>('generic-profiled', 'input', context());
+      expect(service.getMetricsSnapshot().queuedCount).assertEqual(1);
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.CRITICAL });
+      expect(service.getMetricsSnapshot().queuedCount).assertEqual(0);
+      const result = await handle.result;
+      expect(result.status).assertEqual(TaskStatus.FAILED);
+      expect(executor.calls).assertEqual(0);
+    });
+
     it('consecutiveFailuresTripLocalCircuit', 0, async () => {
       register(); service.configureConstrainedPolicy(config()); executor.fail = true;
       await run(); await run(); executor.fail = false;
@@ -429,7 +455,8 @@ export default function constrainedPolicyTest(): void {
       await new Promise<void>((resolve) => setTimeout(resolve, 5)); await handle.cancel();
       const result = await handle.result;
       expect(result.status).assertEqual(TaskStatus.CANCELLED);
-      expect(service.getRecentLogs(10).some((log) => log.status === TaskStatus.RUNNING &&
+      expect(service.getRecentLogs(10).some((log) => log.status === TaskStatus.STOP_REQUESTED &&
+        log.stopRequestedAt !== undefined && log.finishedAt === null &&
         log.errorCode === 'CANCELLATION_NOT_ACKNOWLEDGED')).assertTrue();
       expect(result.nodes[0].executionDurationMs >= 2000).assertTrue();
     });

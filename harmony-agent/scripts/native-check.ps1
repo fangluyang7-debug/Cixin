@@ -39,7 +39,7 @@ try {
       $declaredCases += [regex]::Matches((Get-Content -LiteralPath $_.FullName -Raw), '(?m)^\s*it\(').Count
     }
     $summary = [regex]::Match($results, 'Tests run: (\d+), Failure: (\d+), Error: (\d+), Pass: (\d+), Ignore: (\d+)')
-    if (-not $summary.Success -or $declaredCases -lt 26 -or [int]$summary.Groups[1].Value -ne $declaredCases -or
+    if (-not $summary.Success -or $declaredCases -lt 74 -or [int]$summary.Groups[1].Value -ne $declaredCases -or
         [int]$summary.Groups[2].Value -ne 0 -or [int]$summary.Groups[3].Value -ne 0 -or
         [int]$summary.Groups[4].Value -ne [int]$summary.Groups[1].Value -or [int]$summary.Groups[5].Value -ne 0) {
       throw "Scheduler cases did not all pass: $results"

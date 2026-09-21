@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it } from '@ohos/hypium';
+import { afterEach, beforeEach, describe, expect, it } from '@ohos/hypium';
 import {
   AccuracyPreference, CancellationSignal, ExecutionPlan, ExecutorResult,
-  InferenceLocation, LocalExecutionPlan, PolicyMode, SchedulerConfig,
-  SchedulerErrorCode, SchedulerService, TaskRequest, TaskStatus, TaskType,
+  InferenceLocation, LocalExecutionPlan, ModelTier, PolicyMode, SchedulerConfig,
+  SchedulerError, SchedulerErrorCode, SchedulerService, TaskRequest, TaskStatus, TaskType,
   ThermalLevel, WorkloadExecutor, MemoryPressure
 } from '../../Index';
 
@@ -28,6 +28,7 @@ class ControlledExecutor implements WorkloadExecutor<string, string> {
   holdWarmup: boolean = false;
   onlyFourThreads: boolean = false;
   calls: number = 0;
+  throwTimeoutAfterRelease: boolean = false;
   supports(plan: ExecutionPlan): boolean {
     return plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE &&
       (!this.onlyFourThreads || (plan as LocalExecutionPlan).threadCount === 4);
@@ -43,6 +44,7 @@ class ControlledExecutor implements WorkloadExecutor<string, string> {
     // Deliberately non-interruptible work: cancellation does not resolve release.
     await this.release.promise;
     unsubscribe();
+    if (this.throwTimeoutAfterRelease) { throw new SchedulerError(SchedulerErrorCode.TASK_TIMEOUT, 'Late executor timeout.'); }
     return { output: `${(plan as LocalExecutionPlan).threadCount}` };
   }
   async dispose(): Promise<void> {}
@@ -74,6 +76,11 @@ export default function executionSafetyUnitTest(): void {
   describe('ExecutionSafety', () => {
     const service = SchedulerService.getInstance();
     let executor: ControlledExecutor = new ControlledExecutor();
+    beforeEach(async () => {
+      executor.release.open();
+      executor.warmRelease.open();
+      await service.shutdown();
+    });
     afterEach(async () => {
       executor.release.open();
       executor.warmRelease.open();
@@ -87,9 +94,11 @@ export default function executionSafetyUnitTest(): void {
       service.registerExecutor(executor);
       await service.pause();
       const handle = await service.submitTask<string, string>(request('refreshed'));
+      expect((service.getRecentLogs(1)[0].executionPlan as LocalExecutionPlan).threadCount).assertEqual(4);
       service.updateRealDeviceState({ batteryPercent: 10, isCharging: false, thermalLevel: ThermalLevel.HOT });
       await service.resume();
       const result = await handle.result;
+      // Combined low battery and HOT state require one thread, not the submitted four-thread plan.
       expect(result.output).assertEqual('1');
       expect((result.executionPlan as LocalExecutionPlan).threadCount).assertEqual(1);
     });
@@ -103,15 +112,17 @@ export default function executionSafetyUnitTest(): void {
       input.allowDegrade = false;
       const handle = await service.submitTask<string, string>(input);
       service.updateRealDeviceState({ thermalLevel: ThermalLevel.CRITICAL });
+      expect(handle.getStatus()).assertEqual(TaskStatus.FAILED);
       await service.resume();
       const result = await handle.result;
-      expect(result.errorCode).assertEqual(SchedulerErrorCode.POLICY_REJECTED);
+      expect(result.errorCode).assertEqual(SchedulerErrorCode.THERMAL_PROTECTION);
       expect(result.status).assertEqual(TaskStatus.FAILED);
       expect(executor.calls).assertEqual(0);
     });
 
     it('automaticallyResumesPolicyPausedTaskAfterRecovery', 0, async () => {
       await initialize(service);
+      await service.setPolicyMode(PolicyMode.ADAPTIVE);
       executor = new ControlledExecutor();
       executor.release.open();
       service.registerExecutor(executor);
@@ -162,7 +173,7 @@ export default function executionSafetyUnitTest(): void {
       await executor.started.promise;
       const second = await service.submitTask<string, string>(request('timeout-second'));
       await executor.stopped.promise;
-      expect(first.getStatus()).assertEqual(TaskStatus.RUNNING);
+      expect(first.getStatus()).assertEqual(TaskStatus.STOP_REQUESTED);
       expect(second.getStatus()).assertEqual(TaskStatus.QUEUED);
       expect(executor.calls).assertEqual(1);
       executor.release.open();
@@ -174,6 +185,26 @@ export default function executionSafetyUnitTest(): void {
       expect(service.getMetricsSnapshot().p95LatencyMs >= result.totalDurationMs).assertTrue();
     });
 
+    it('selectsAnotherRegisteredExecutorAfterQueuedPlanChanges', 0, async () => {
+      await initialize(service);
+      const alternative = new ControlledExecutor();
+      alternative.release.open();
+      service.registerExecutor(alternative);
+      executor = new ControlledExecutor();
+      executor.onlyFourThreads = true;
+      service.registerExecutor(executor);
+      await service.pause();
+      const handle = await service.submitTask<string, string>(request('switch-executor'));
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT });
+      expect(handle.getStatus()).assertEqual(TaskStatus.QUEUED);
+      await service.resume();
+      const result = await handle.result;
+      expect(result.status).assertEqual(TaskStatus.SUCCEEDED);
+      expect(result.output).assertEqual('2');
+      expect(executor.calls).assertEqual(0);
+      expect(alternative.calls).assertEqual(1);
+    });
+
     it('holdsSlotOnUserCancelAndDiscardsLateResult', 0, async () => {
       await initialize(service);
       executor = new ControlledExecutor();
@@ -183,7 +214,7 @@ export default function executionSafetyUnitTest(): void {
       const second = await service.submitTask<string, string>(request('cancel-second'));
       expect(await first.cancel()).assertTrue();
       expect(await first.cancel()).assertFalse();
-      expect(first.getStatus()).assertEqual(TaskStatus.RUNNING);
+      expect(first.getStatus()).assertEqual(TaskStatus.STOP_REQUESTED);
       expect(executor.calls).assertEqual(1);
       executor.release.open();
       const result = await first.result;
@@ -203,6 +234,45 @@ export default function executionSafetyUnitTest(): void {
       executor.warmRelease.open();
       expect((await handle.result).status).assertEqual(TaskStatus.CANCELLED);
       expect(executor.calls).assertEqual(0);
+    });
+
+    it('keepsFirstStopReasonWhenExecutorLaterThrowsTimeout', 0, async () => {
+      await initialize(service);
+      executor = new ControlledExecutor();
+      executor.throwTimeoutAfterRelease = true;
+      service.registerExecutor(executor);
+      const handle = await service.submitTask<string, string>(request('first-stop-wins'));
+      await executor.started.promise;
+      await handle.cancel();
+      executor.release.open();
+      const result = await handle.result;
+      expect(result.status).assertEqual(TaskStatus.CANCELLED);
+      expect(result.errorCode).assertEqual(SchedulerErrorCode.TASK_CANCELLED);
+      expect(result.stopRequestedAt !== undefined).assertTrue();
+    });
+
+    it('exposesExpiryStopWhileNonInterruptibleWorkStillOccupiesSlot', 0, async () => {
+      await initialize(service);
+      executor = new ControlledExecutor();
+      service.registerExecutor(executor);
+      const input = request('expiry-stop');
+      input.context = { userVisible: true, userWaiting: true, accuracyFloor: ModelTier.LIGHTWEIGHT,
+        freshnessMs: 100 };
+      const first = await service.submitTask<string, string>(input);
+      await executor.started.promise;
+      const second = await service.submitTask<string, string>(request('after-expiry'));
+      await executor.stopped.promise;
+      expect(first.getStatus()).assertEqual(TaskStatus.STOP_REQUESTED);
+      expect(second.getStatus()).assertEqual(TaskStatus.QUEUED);
+      expect(service.getMetricsSnapshot().runningCount).assertEqual(1);
+      const stopLogs = service.getRecentLogs(20).filter((entry) => entry.status === TaskStatus.STOP_REQUESTED);
+      expect(stopLogs.length).assertEqual(1);
+      expect(stopLogs[0].stopRequestedAt !== undefined).assertTrue();
+      executor.release.open();
+      const result = await first.result;
+      expect(result.errorCode).assertEqual(SchedulerErrorCode.RESULT_EXPIRED);
+      expect(result.output === null).assertTrue();
+      expect((await second.result).status).assertEqual(TaskStatus.SUCCEEDED);
     });
 
     it('passesCancellationSignalToFunctionExecutor', 0, async () => {

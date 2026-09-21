@@ -732,6 +732,7 @@ struct SchedulerPanelPage {
   }
 
   private taskStatusShortText(status: TaskStatus): string {
+    if (status === TaskStatus.STOP_REQUESTED) { return '等待停止'; }
     if (status === TaskStatus.CREATED || status === TaskStatus.QUEUED) {
       return '排队';
     }
@@ -754,6 +755,7 @@ struct SchedulerPanelPage {
     return entry.status === TaskStatus.CREATED ||
       entry.status === TaskStatus.QUEUED ||
       entry.status === TaskStatus.RUNNING ||
+      entry.status === TaskStatus.STOP_REQUESTED ||
       this.isTerminalStatus(entry.status);
   }
 
@@ -790,7 +792,7 @@ struct SchedulerPanelPage {
     if (entry.executionDurationMs !== null) {
       return `${Math.round(entry.executionDurationMs)} ms`;
     }
-    if (entry.status === TaskStatus.RUNNING && entry.startedAt !== null) {
+    if ((entry.status === TaskStatus.RUNNING || entry.status === TaskStatus.STOP_REQUESTED) && entry.startedAt !== null) {
       return `${Math.max(0, Math.round(Date.now() - entry.startedAt + tick * 0))} ms`;
     }
     if (entry.status === TaskStatus.CREATED || entry.status === TaskStatus.QUEUED) {
@@ -818,6 +820,7 @@ struct SchedulerPanelPage {
   }
 
   private statusColor(status: TaskStatus): string {
+    if (status === TaskStatus.STOP_REQUESTED) { return '#B54708'; }
     if (status === TaskStatus.SUCCEEDED) {
       return '#067647';
     }
@@ -1980,7 +1983,7 @@ struct SchedulerPanelPage {
               .width('100%')
               Row({ space: 8 }) {
                 this.metricCell('终态任务', `${this.metrics.taskCount}`)
-                this.metricCell('P95 执行', `${Math.round(this.metrics.p95LatencyMs)} ms`)
+                this.metricCell('P95 总耗时', `${Math.round(this.metrics.p95LatencyMs)} ms`)
               }
               .width('100%')
               Row({ space: 8 }) {

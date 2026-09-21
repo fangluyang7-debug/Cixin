@@ -1,0 +1,26 @@
+{
+  "stage": 4,
+  "verifiedAt": "2026-09-21T13:33:58.2696039+08:00",
+  "integratedCommit": "d7c1a2ef98f1da55cb8eb92c1102fa4fd53a0917",
+  "studioHome": "D:/Users/17321/AppData/DevEco Studio",
+  "buildCommand": "./scripts/native-check.ps1 -StudioHome '<DevEco Studio>' -Task build",
+  "testCommand": "./scripts/test-semantic-scheduler.ps1 -DevEcoHome '<DevEco Studio>'",
+  "build": "HAP and HAR successful",
+  "testSummary": "Tests run: 76, Failure: 0, Error: 0, Pass: 76, Ignore: 0",
+  "deviceTargets": "[Empty]",
+  "signing": "HAP unsigned; no device installation tested",
+  "artifacts": [
+    {
+      "path": "apps/harmony/entry/build/default/outputs/default/entry-default-unsigned.hap",
+      "bytes": 11692825,
+      "sha256": "05F0ACE785D68486C807AE38C5BF818B84A27B087A52760125B7626279A261B4",
+      "modifiedAt": "2026-09-21T13:33:18.6540501+08:00"
+    },
+    {
+      "path": "apps/harmony/scheduler/build/default/outputs/default/scheduler.har",
+      "bytes": 114828,
+      "sha256": "18BCC21631186D1864F52B15B94255FD963670E575DFBD954E5AD0A537516BFA",
+      "modifiedAt": "2026-09-21T13:33:34.5464551+08:00"
+    }
+  ]
+}

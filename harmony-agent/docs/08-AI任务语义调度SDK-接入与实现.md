@@ -162,3 +162,12 @@ query_prepare：等待本地数据就绪，整理文本
 `getPolicyMetrics()` 按版本、能力/模型版本、任务类型、输入规模、设备状态、配置、组别输出有界窗口统计；`exportAudit()` 保留预测、实际、反馈与回退原因。P50/P95 预测的冷启动值是声明先验，经验分位数也不是因果收益；热风险/置信度不是概率。
 
 `PolicyStateStore` 由宿主实现，当前 App 使用私有 Preferences。启动读取和后台异步保存熔断/停用/同意/限频摘要，不保存原始任务数据；预测样本和检查点不跨进程恢复。默认不提供网络 Provider；未经验证的远端 JSON 不能直接传给本地策略入口。完整实现调整、测试与真机步骤见 [本轮验收记录](testing/05-constrained-policy-acceptance.md)。
+## 10. 整合后的执行安全基线（2026-09-21）
+
+运行任务收到取消、超时、过期或设备保护时，低层状态为 `STOP_REQUESTED`。这表示停止已请求，执行器可能仍在计算；真正结束后才输出 `CANCELLED` / `TIMED_OUT`，并释放执行槽。日志与 TaskResult 的 `stopRequestedAt` 用于区分请求与确认，首个停止原因不被后续错误覆盖。工作流最终结果同样必须等待其活动节点结束。
+
+回调执行器可接收第三个 `CancellationSignal` 参数；底层不可中断的调用必须等待其结束，不能假报完成。平均耗时与 P95 使用 `totalDurationMs`（包含排队），单独执行耗时仍在日志保留。
+
+受约束配置任务的取消看门狗也使用 `STOP_REQUESTED`：超过等待阈值记录 `CANCELLATION_NOT_ACKNOWLEDGED` 并熔断对应配置，保留首次停止时间；不宣称已终止底层调用。全局暂停期间仍执行队列保护检查，但不启动任务。配置改变时从注册表重新寻找支持最终计划的执行器；manifest 配置失效先熔断并重新评估合法 fallback，没有可行配置或执行器时失败。
+
+`scripts/test-semantic-scheduler.ps1` 委托 `native-check.ps1 -Task test` 运行全部调度器测试，同时保留业务依赖扫描和构建日志；最新整合结果见 [合并验收记录](testing/06-merge-integration-acceptance.md)。阶段三的 65 项、协作分线的 76 项及闭环分线的 117 项属于历史验证范围。新增测试文件必须加入 `scheduler/src/test/List.test.ets`，每个测试套件只注册一次；门禁核对声明数与实际执行数，避免遗漏或重复运行被误报为通过。

@@ -2,6 +2,8 @@
 
 日期：2026-09-21。分支：`harmony/mobile-scheduler`。范围：`harmony-agent/apps/harmony` 手机原生 App 与 scheduler HAR。
 
+历史范围：本记录对应闭环分线 `f77b811` 的 117 项验证及当时产物哈希；`semantic-test-result.txt` 随最新回归更新。后续执行安全合并的当前结果与产物见 [合并验收记录](06-merge-integration-acceptance.md)，不要使用本页历史哈希校验合并后的产物。
+
 需求与方案：[09-HarmonyOS受约束策略闭环实施方案](../09-HarmonyOS受约束策略闭环实施方案.md)。项目日志：[03-分阶段开发与验证记录](../03-分阶段开发与验证记录.md#阶段四受约束策略闭环-v12026-09-21)。
 
 ## 完成状态
