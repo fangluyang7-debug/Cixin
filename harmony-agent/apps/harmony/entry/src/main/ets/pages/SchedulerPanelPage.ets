@@ -1,3 +1,5 @@
+import { common } from '@kit.AbilityKit';
+import { ExperimentService } from '../services/ExperimentService';
 import { promptAction, router } from '@kit.ArkUI';
 import {
   AccuracyPreference,
@@ -52,6 +54,8 @@ struct SchedulerPanelPage {
   private logUnsubscribe: Unsubscribe | null = null;
   private metricsRefreshTimerId: number = -1;
 
+  @State experimentRunning: boolean = false;
+  @State experimentMessage: string = '真实 CPU 搜索与后台缓存：三种模式 × 有无后台 × 三次重复';
   @State isReady: boolean = false;
   @State isBusy: boolean = false;
   @State feedbackText: string = '';
@@ -115,6 +119,7 @@ struct SchedulerPanelPage {
   }
 
   aboutToDisappear(): void {
+    if (this.experimentRunning) { ExperimentService.getInstance().cancel(); }
     this.disconnectScheduler();
   }
 
@@ -464,11 +469,11 @@ struct SchedulerPanelPage {
       this.latestPanelExecutionText = `${Math.round(result.executionDurationMs)} ms`;
       this.latestPanelQueueText = `${Math.round(result.queueDurationMs)} ms`;
       const plan: ExecutionPlan = result.executionPlan;
-      this.feedbackText = `${scenario.title}执行成功：${this.planPrimaryLabel(plan)} · ${this.planSecondaryLabel(plan)} · 耗时 ${result.totalDurationMs} ms`;
+      this.feedbackText = `模拟任务${scenario.title}：${this.taskStatusShortText(result.status)} · ${this.planPrimaryLabel(plan)} · ${this.planSecondaryLabel(plan)} · 耗时 ${result.totalDurationMs} ms`;
       if (showToastAlert) {
         try {
           promptAction.showToast({
-            message: `${scenario.title}已运行！${this.planPrimaryLabel(plan)} | ${this.planSecondaryLabel(plan)}`,
+            message: `模拟任务${scenario.title}：${this.taskStatusShortText(result.status)} · ${this.planPrimaryLabel(plan)} | ${this.planSecondaryLabel(plan)}`,
             duration: 2500
           });
         } catch (e) {
@@ -936,13 +941,9 @@ struct SchedulerPanelPage {
   }
 
   private policyBannerDesc(mode: PolicyMode): string {
-    if (mode === PolicyMode.ADAPTIVE) {
-      return '根据热状态、电量与硬件能力动态调整。常温且高电量时自动使用 NPU/GPU 异构加速与高精度模型 (4线程)；温度升高或电量低于20%时自动降阶为 CPU 轻量模型 (1-2线程) 保护安全。';
-    }
-    if (mode === PolicyMode.FIXED_PERFORMANCE) {
-      return '对照实验模式：强行锁定 NPU/GPU 硬件加速后端 + 高精度模型 (HIGH_ACCURACY) + 4 线程并发，追求最低推理延迟与高精度，适合充饱电高性能场景。';
-    }
-    return '对照实验模式：强行锁定 CPU 低功耗后端 + 轻量模型 (LIGHTWEIGHT) + 1 线程，并对后台批处理任务进行降频限流，极度节省功耗与电量。';
+    if (mode === PolicyMode.ADAPTIVE) { return '根据真实或明确标注的注入状态，选择已声明的 CPU 线程与检索维度；保护即时生效，升档等待稳定窗口。'; }
+    if (mode === PolicyMode.FIXED_PERFORMANCE) { return '偏向高质量与较高 CPU 线程配置，仍遵守设备保护和能力约束；性能需通过真实负载实验测量。'; }
+    return '偏向低开销 CPU 配置；后台在分块边界让出或保护暂停。不控制硬件频率，不预设节能效果。';
   }
 
   private policyBannerBgColor(mode: PolicyMode): string {
@@ -955,55 +956,26 @@ struct SchedulerPanelPage {
     return '#ECFDF3';
   }
 
-  private getDynamicBatteryLifespan(): string {
-    let soc: number = 85;
-    if (this.deviceState !== null && this.deviceState.batteryPercent !== null) {
-      soc = this.deviceState.batteryPercent;
-    }
+  private getDynamicBatteryLifespan(): string { return '未测量'; }
+  private getDynamicComputeSpeed(): string { return '见真实实验导出'; }
+  private getModeWattText(_mode: PolicyMode): string { return '功耗未测量；不使用预设功率/时延'; }
 
-    let watt: number = 1.8;
-    if (this.policyMode === PolicyMode.FIXED_PERFORMANCE) {
-      watt = 4.8;
-    } else if (this.policyMode === PolicyMode.FIXED_POWER_SAVING) {
-      watt = 1.1;
-    } else if (this.deviceState !== null && this.deviceState.thermalLevel === ThermalLevel.HOT) {
-      watt = 1.2;
-    }
-
-    const hours: number = Math.round((soc / 100) * (15.0 / watt) * 10) / 10;
-    return `~${hours} 小时`;
+  private async runRealExperiment(): Promise<void> {
+    if (this.isBusy || this.experimentRunning) { return; }
+    this.experimentRunning = true; this.isBusy = true;
+    this.experimentMessage = '正在执行真实任务，请勿切换模式或注入状态；可停止并导出已有结果。';
+    try {
+      const count: number = await ExperimentService.getInstance().run();
+      this.experimentMessage = `实验结束：${count} 条搜索记录。请导出 JSON，结果包含失败与取消。`;
+    } catch (error) { this.experimentMessage = `实验未完成：${error}`; }
+    finally { this.experimentRunning = false; this.isBusy = false; this.refreshData(); }
   }
 
-  private getDynamicComputeSpeed(): string {
-    if (this.latestProbeResult !== null && this.latestProbeResult.totalDurationMs > 0) {
-      const scenario: PanelProbeScenario = this.getSelectedProbeScenario();
-      const calcKbps: number = Math.round((scenario.payloadKb / this.latestProbeResult.totalDurationMs) * 10) / 10;
-      return `${calcKbps} KB/s`;
-    }
-
-    if (this.metrics !== null && this.metrics.averageLatencyMs > 0) {
-      const realLatency: number = this.metrics.averageLatencyMs;
-      const calcKbps: number = Math.round((2000.0 / realLatency) * 10) / 10;
-      return `${calcKbps} KB/s`;
-    }
-
-    if (this.policyMode === PolicyMode.FIXED_PERFORMANCE) {
-      return '65.2 KB/s';
-    }
-    if (this.policyMode === PolicyMode.FIXED_POWER_SAVING) {
-      return '8.2 KB/s';
-    }
-    return '24.5 KB/s';
-  }
-
-  private getModeWattText(mode: PolicyMode): string {
-    if (mode === PolicyMode.FIXED_PERFORMANCE) {
-      return '高功耗运转 (4.8 W · 45 ms 时延)';
-    }
-    if (mode === PolicyMode.FIXED_POWER_SAVING) {
-      return '极低功耗 (1.1 W · 320 ms 时延)';
-    }
-    return '智能均衡功耗 (1.8 W · 52 ms 时延)';
+  private async exportRealExperiment(): Promise<void> {
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      this.experimentMessage = await ExperimentService.getInstance().save(context);
+    } catch (error) { this.experimentMessage = `导出失败：${error}`; }
   }
 
   private getModeBadgeTitle(mode: PolicyMode): string {
@@ -1090,7 +1062,7 @@ struct SchedulerPanelPage {
           .fontSize(11)
           .fontColor('#667085')
         Blank()
-        Text('🟢 实时监测中')
+        Text('无功耗采样')
           .fontSize(11)
           .fontColor('#067647')
           .fontWeight(FontWeight.Medium)
@@ -1109,12 +1081,12 @@ struct SchedulerPanelPage {
   private DecisionModelReasoningCard() {
     Column({ space: 10 }) {
       Row() {
-        Text('调度决策模型推理与归因分析 (Decision Model Reasoning)')
+        Text('调度规则与原因（模拟任务）')
           .fontSize(14)
           .fontWeight(FontWeight.Bold)
           .fontColor('#172B4D')
           .layoutWeight(1)
-        Text('决策耗时 <0.08 ms')
+        Text('决策耗时未测量')
           .fontSize(11)
           .fontWeight(FontWeight.Bold)
           .fontColor('#067647')
@@ -1124,7 +1096,7 @@ struct SchedulerPanelPage {
       }
       .width('100%')
 
-      Text('轻量调度模型读取任务画像、物理状态与运行反馈，使用同一份 executionPlan 输出解释和执行结果：')
+      Text('此区域展示旧兼容接口的模拟等待任务。真实语义工作流请使用上方对照实验，配置不代表系统线程采样。')
         .fontSize(11)
         .fontColor('#475467')
 
@@ -1156,12 +1128,12 @@ struct SchedulerPanelPage {
           .width('100%')
 
           Column({ space: 4 }) {
-            Text('模型决策归因链 (Attribution Rationale Chain)：')
+            Text('模拟计划原因：')
               .fontSize(11)
               .fontWeight(FontWeight.Bold)
               .fontColor('#172B4D')
 
-            Text(`① 当前样例：${this.getSelectedProbeScenario().title} · ${this.getSelectedProbeScenario().description}`)
+            Text(`① 模拟等待任务：${this.getSelectedProbeScenario().title} · ${this.getSelectedProbeScenario().description}`)
               .fontSize(11)
               .fontColor('#344054')
             Text(`② 状态向量：SOC ${this.batteryText(this.deviceState)} · ${this.chargingText(this.deviceState)} · ${this.thermalText(this.deviceState.thermalLevel)} · 队列 ${this.deviceState.queueDepth} · ${this.memoryPressureText(this.deviceState)}`)
@@ -1170,10 +1142,10 @@ struct SchedulerPanelPage {
             Text(`③ 任务 Spec：${this.getSelectedProbeScenario().capability} · ${this.getSelectedProbeScenario().taskType} · ${this.getSelectedProbeScenario().accuracyPreference} · 预算 ${this.getSelectedProbeScenario().latencyBudgetMs} ms`)
               .fontSize(11)
               .fontColor('#344054')
-            Text(`④ 模型评分依据：${this.getLatestPlanReasonText()}`)
+            Text(`④ 规则原因：${this.getLatestPlanReasonText()}`)
               .fontSize(11)
               .fontColor('#B54708')
-            Text(`⑤ 实际输出：${this.getLatestPlanOutputText()}`)
+            Text(`⑤ 模拟任务计划：${this.getLatestPlanOutputText()}`)
               .fontSize(11)
               .fontColor('#175CD3')
           }
@@ -1195,157 +1167,11 @@ struct SchedulerPanelPage {
 
   @Builder
   private OsEvaluationMatrixCard() {
-    Column({ space: 10 }) {
-      Row() {
-        Text('操作系统 AI 任务规范与优先级评估 Matrix')
-          .fontSize(14)
-          .fontWeight(FontWeight.Bold)
-          .fontColor('#172B4D')
-          .layoutWeight(1)
-        Text('任务规范基线')
-          .fontSize(11)
-          .fontColor('#667085')
-      }
-      .width('100%')
-
-      Text('各 AI 功能向调度中间件注册其基础需求 Spec，最终执行方案由调度决策模型结合电量/温度/队列动态计算：')
-        .fontSize(11)
-        .fontColor('#475467')
-
-      Column({ space: 6 }) {
-        Row({ space: 8 }) {
-          Text('98分')
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#B54708')
-            .backgroundColor('#FEF6EE')
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(4)
-          Column({ space: 2 }) {
-            Text('camera_lens_realtime (镜头实时预览)')
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#172B4D')
-            Text('基线需求：最高优先级 CRITICAL · 80ms 延迟预算 · 质量优先 (常温调度 NPU 4线程)')
-              .fontSize(10)
-              .fontColor('#667085')
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding(8)
-        .backgroundColor('#F8FAFC')
-        .borderRadius(8)
-
-        Row({ space: 8 }) {
-          Text('92分')
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#B54708')
-            .backgroundColor('#FEF6EE')
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(4)
-          Column({ space: 2 }) {
-            Text('image_crop_detection (图片主体框选与 ROI)')
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#172B4D')
-            Text('基线需求：最高优先级 CRITICAL · 100ms 延迟预算 · 质量优先 (支持 NPU 4线程/GPU)')
-              .fontSize(10)
-              .fontColor('#667085')
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding(8)
-        .backgroundColor('#F8FAFC')
-        .borderRadius(8)
-
-        Row({ space: 8 }) {
-          Text('82分')
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#175CD3')
-            .backgroundColor('#EFF8FF')
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(4)
-          Column({ space: 2 }) {
-            Text('chat_intent_reasoning (AI 助手意图推理)')
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#172B4D')
-            Text('基线需求：高优先级 HIGH · 300ms 延迟预算 · 支持云端动态卸载/端侧 2线程')
-              .fontSize(10)
-              .fontColor('#667085')
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding(8)
-        .backgroundColor('#F8FAFC')
-        .borderRadius(8)
-
-        Row({ space: 8 }) {
-          Text('75分')
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#175CD3')
-            .backgroundColor('#EFF8FF')
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(4)
-          Column({ space: 2 }) {
-            Text('local_product_search (文字关键词比价检索)')
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#172B4D')
-            Text('基线需求：高优先级 HIGH · 250ms 延迟预算 · 速度优先 (端侧 2线程/1线程)')
-              .fontSize(10)
-              .fontColor('#667085')
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding(8)
-        .backgroundColor('#F8FAFC')
-        .borderRadius(8)
-
-        Row({ space: 8 }) {
-          Text('30分')
-            .fontSize(11)
-            .fontWeight(FontWeight.Bold)
-            .fontColor('#067647')
-            .backgroundColor('#ECFDF3')
-            .padding({ left: 6, right: 6, top: 2, bottom: 2 })
-            .borderRadius(4)
-          Column({ space: 2 }) {
-            Text('background_index_update (离线特征索引更新)')
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor('#172B4D')
-            Text('规则：低优先级 LOW · 2000ms 预算 · CPU 1线程 (受发热/电池保护)')
-              .fontSize(10)
-              .fontColor('#667085')
-          }
-          .alignItems(HorizontalAlign.Start)
-          .layoutWeight(1)
-        }
-        .width('100%')
-        .padding(8)
-        .backgroundColor('#F8FAFC')
-        .borderRadius(8)
-      }
-      .width('100%')
-    }
-    .alignItems(HorizontalAlign.Start)
-    .width('100%')
-    .padding(12)
-    .backgroundColor(Color.White)
-    .borderRadius(12)
-    .border({ width: 1, color: '#EAECF0' })
+    Column({ space: 8 }) {
+      Text('真实能力范围').fontSize(14).fontWeight(FontWeight.Bold)
+      Text('已接入：CPU 文本编码、向量检索、128 行分块缓存。优先级由业务约束与状态决定，不使用固定业务评分。').fontSize(12)
+      Text('未接入：图像识别、GPU/NPU 推理、硬件频率控制。下面的硬件注入仅测试策略分支。').fontSize(12)
+    }.width('100%').padding(14).backgroundColor(Color.White).borderRadius(12)
   }
 
   private formatTime(timestamp: number): string {
@@ -1538,7 +1364,7 @@ struct SchedulerPanelPage {
             .fontSize(21)
             .fontWeight(FontWeight.Bold)
             .fontColor('#172B4D')
-          Text('多后端硬件异构 (NPU/CPU/GPU) · 动态感知调度')
+          Text('真实 CPU 任务 · 应用级资源感知调度')
             .fontSize(11)
             .fontColor('#667085')
         }
@@ -1673,6 +1499,11 @@ struct SchedulerPanelPage {
             .borderRadius(10)
 
             // Power & Battery Lifespan Benchmark Comparison Card
+            this.sectionTitle('真实负载对照实验', 'CPU 文本推理、向量检索与分块缓存；不包含模拟等待任务')
+            Text(this.experimentMessage).fontSize(13).width('100%')
+            Button('运行真实对照实验').enabled(!this.isBusy).onClick(() => { this.runRealExperiment(); })
+            Button('停止实验').enabled(this.experimentRunning).onClick(() => { ExperimentService.getInstance().cancel(); })
+            Button('导出实验 JSON').enabled(!this.experimentRunning).onClick(() => { this.exportRealExperiment(); })
             this.PowerBenchmarkCard()
 
             // OS Edge AI Task Priority Assessment Matrix Card
@@ -1937,7 +1768,7 @@ struct SchedulerPanelPage {
 
             this.sectionTitle('最近任务调度日志', '最多展示 20 条，最新记录位于最顶部')
             if (this.logs.length === 0) {
-              Text('暂无任务日志，请点击上方“运行调度样例任务”或返回首页执行检索')
+              Text('暂无任务日志，请点击上方“运行模拟调度任务”或返回首页执行检索')
                 .fontSize(13)
                 .fontColor('#667085')
                 .width('100%')

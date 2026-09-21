@@ -7,7 +7,7 @@ import {
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
 import { DataInitService } from './DataInitService';
-import { NeuralEmbeddingIndex, NormalizationProgress } from './NeuralEmbeddingIndex';
+import { NeuralEmbeddingIndex, NormalizationProgress, VectorSearchTelemetry } from './NeuralEmbeddingIndex';
 
 type CpuWork<TInput, TOutput> = (input: TInput, plan: LocalExecutionPlan,
   signal: CancellationSignal, checkpoint?: TaskCheckpoint) => Promise<ExecutorResult<TOutput>>;
@@ -85,11 +85,12 @@ export class ShoppingTaskService {
     client.registerExecutor(new ShoppingCpuExecutor<WorkflowInput<string>, Product[]>('vector_retrieve',
       async (input: WorkflowInput<string>, plan: LocalExecutionPlan): Promise<ExecutorResult<Product[]>> => {
         const dimension: number = plan.modelTier === ModelTier.HIGH_ACCURACY ? 256 : plan.modelTier === ModelTier.BALANCED ? 64 : 16;
+        const actual: VectorSearchTelemetry = { executionPath: 'not_started', configuredPartitions: 0, scannedCount: 0 };
         const found: EmbeddingSearchResult[] = await NeuralEmbeddingIndex.getInstance().searchVector(
-          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20);
+          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20, input.input, actual);
         return { output: found.map((item: EmbeddingSearchResult) => item.product),
           telemetry: { modelVersion: 'soleai-neural-char-v1', actualBackend: Backend.CPU,
-            actualThreads: plan.threadCount, candidateCount: 2700 } };
+            actualThreads: actual.configuredPartitions, executionPath: actual.executionPath, candidateCount: actual.scannedCount } };
       }));
     client.registerExecutor(new ShoppingCpuExecutor<string, number>('index_warmup',
       async (_input: string, _plan: LocalExecutionPlan, signal: CancellationSignal,
@@ -111,13 +112,13 @@ export class ShoppingTaskService {
       deadlineMs: 3000, freshnessMs: 4000, userVisible: true, userWaiting: true,
       accuracyFloor: highQuality ? ModelTier.HIGH_ACCURACY : ModelTier.LIGHTWEIGHT,
       highQuality: highQuality, businessImportance: 0.8, inputTokens: Math.max(1, query.length),
-      candidateCount: 2700, deduplicationKey: 'search-page', networkAllowed: false
+      candidateCount: NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, deduplicationKey: 'search-page', networkAllowed: false
     });
   }
 
   public warmup(): WorkflowHandle<number> {
     const context: TaskContext = { userVisible: false, userWaiting: false, accuracyFloor: ModelTier.LIGHTWEIGHT,
-      businessImportance: 0.1, candidateCount: 2700, deduplicationKey: 'full-norm-cache-v1', networkAllowed: false };
+      businessImportance: 0.1, candidateCount: NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, deduplicationKey: 'full-norm-cache-v1', networkAllowed: false };
     return this.requireClient().submit<string, number>('index_warmup', 'norm-cache', context);
   }
 

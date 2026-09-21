@@ -945,7 +945,7 @@ struct Index {
 
         // Interactive Feature Triggers for Auto Mode Testing
         Row({ space: 6 }) {
-          Button('测试【拍照识别】')
+          Button('镜头交互示意（无识别）')
             .layoutWeight(1)
             .height(30)
             .fontSize(10)
@@ -1500,7 +1500,7 @@ struct Index {
             Column() {
               Text('📷')
                 .fontSize(28)
-              Text('拍照并识别同款')
+              Text('运行运动鞋示例搜索')
                 .fontSize(12)
                 .fontWeight(FontWeight.Bold)
                 .fontColor('#FFFFFF')
@@ -1520,7 +1520,7 @@ struct Index {
           Row({ space: 10 }) {
             Text('🖼️')
               .fontSize(18)
-            Text('从相册选择图片框选')
+            Text('图片框选交互示意')
               .fontSize(14)
               .fontWeight(FontWeight.Medium)
               .fontColor('#FFFFFF')
@@ -1576,7 +1576,7 @@ struct Index {
         }
         .width('100%')
 
-        Text('拖拽下方选框，精准框选图中需比价识别的商品主体：')
+        Text('框选交互示意：尚未接入图像检测或识别。')
           .fontSize(12)
           .fontColor('#D6D8DF')
           .width('100%')

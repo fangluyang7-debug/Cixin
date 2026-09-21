@@ -1,3 +1,6 @@
+import { NormalizationProgress, validateNormalizationProgress, appendNormalizationValues } from './NormalizationCheckpoint';
+import { collectVectorPartitions } from './VectorPartitionResults';
+import { parseSearchConstraints, matchesSearchConstraints, SearchConstraints } from './SearchConstraints';
 import { taskpool } from '@kit.ArkTS';
 import { common } from '@kit.AbilityKit';
 import util from '@ohos.util';
@@ -14,6 +17,8 @@ import { MindSporeEmbeddingEngine } from './MindSporeEmbeddingEngine';
 import { computeQuantizedNormChunk, scoreQuantizedVectorChunk } from './VectorSearchWorker';
 import { CancellationSignal } from 'scheduler';
 
+export { NormalizationProgress } from './NormalizationCheckpoint';
+
 const ARTIFACT_RAWFILE: string = 'soleai_neural_embedding_v1.json';
 const EXPECTED_FORMAT_VERSION: number = 2;
 const MAX_PRODUCT_COUNT: number = 3000;
@@ -23,11 +28,10 @@ interface IndexedScore {
   score: number;
 }
 
-export interface NormalizationProgress {
-  cursor: number;
-  dimension: number;
-  modelVersion: string;
-  norms: number[];
+export interface VectorSearchTelemetry {
+  executionPath: string;
+  configuredPartitions: number;
+  scannedCount: number;
 }
 
 export class NeuralEmbeddingIndex {
@@ -101,7 +105,8 @@ export class NeuralEmbeddingIndex {
   }
 
   public async searchVector(queryVector: Float32Array, requestedDimension: number,
-    requestedPartitions: number, topK: number): Promise<EmbeddingSearchResult[]> {
+    requestedPartitions: number, topK: number, query: string = '',
+    telemetry?: VectorSearchTelemetry): Promise<EmbeddingSearchResult[]> {
     await this.waitUntilReady();
     if (this.artifact === null || this.products.length === 0) {
       return [];
@@ -116,6 +121,10 @@ export class NeuralEmbeddingIndex {
       queryValues.push(queryVector[index]);
     }
 
+    if (telemetry !== undefined) {
+      telemetry.executionPath = 'taskpool'; telemetry.configuredPartitions = partitionCount;
+      telemetry.scannedCount = this.products.length;
+    }
     const chunkSize: number = Math.ceil(this.products.length / partitionCount);
     const taskPromises: Promise<Object>[] = [];
     const chunkStarts: number[] = [];
@@ -151,7 +160,7 @@ export class NeuralEmbeddingIndex {
     }
 
     try {
-      const chunkResults: Object[] = await Promise.all(taskPromises);
+      const chunkResults: number[][] = await collectVectorPartitions(taskPromises);
       const scores: IndexedScore[] = [];
       for (let chunkIndex: number = 0; chunkIndex < chunkResults.length; chunkIndex++) {
         const chunkScores: number[] = chunkResults[chunkIndex] as number[];
@@ -161,14 +170,15 @@ export class NeuralEmbeddingIndex {
           scores.push({ index: start + localIndex, score: chunkScores[localIndex] });
         }
       }
-      return this.selectTopResults(scores, topK);
+      return this.selectTopResults(scores, topK, query);
     } catch (error) {
       hilog.error(
         0x0000,
         'NeuralEmbeddingIndex',
         `TaskPool vector search failed, using serial fallback: ${JSON.stringify(error)}`
       );
-      return this.searchSerial(queryVector, dimension, topK);
+      if (telemetry !== undefined) { telemetry.executionPath = 'serial_fallback'; telemetry.configuredPartitions = 1; }
+      return this.searchSerial(queryVector, dimension, topK, query);
     }
   }
 
@@ -236,10 +246,7 @@ export class NeuralEmbeddingIndex {
     const progress: NormalizationProgress = previous ?? {
       cursor: 0, dimension: dimension, modelVersion: this.artifact.modelVersion, norms: []
     };
-    if (progress.modelVersion !== this.artifact.modelVersion || progress.dimension !== dimension ||
-      progress.cursor !== progress.norms.length || progress.cursor > this.products.length) {
-      throw new Error('Checkpoint does not match the current index.');
-    }
+    validateNormalizationProgress(progress, this.artifact.modelVersion, dimension, this.products.length);
     if (signal.isCancellationRequested) { throw new Error('Index update cancelled.'); }
     const start: number = progress.cursor;
     const end: number = Math.min(this.products.length, start + chunkSize);
@@ -249,9 +256,7 @@ export class NeuralEmbeddingIndex {
         this.artifact.productScales.slice(start, end), dimension, dimension, end - start);
       const values: number[] = await taskpool.execute(task, taskpool.Priority.LOW) as number[];
       if (signal.isCancellationRequested) { throw new Error('Index update cancelled.'); }
-      if (values.length !== end - start) { throw new Error('Invalid norm chunk.'); }
-      for (let i: number = 0; i < values.length; i++) { progress.norms.push(values[i]); }
-      progress.cursor = end;
+      appendNormalizationValues(progress, values, end);
     }
     // Publish only a complete cache; cancellation leaves the previous cache usable.
     if (end === this.products.length && !signal.isCancellationRequested) {
@@ -347,7 +352,8 @@ export class NeuralEmbeddingIndex {
   private searchSerial(
     queryVector: Float32Array,
     dimension: number,
-    topK: number
+    topK: number,
+    query: string = ''
   ): EmbeddingSearchResult[] {
     if (this.artifact === null) {
       return [];
@@ -376,15 +382,19 @@ export class NeuralEmbeddingIndex {
         score: denominator > 0 ? dotProduct / denominator : 0
       });
     }
-    return this.selectTopResults(scores, topK);
+    return this.selectTopResults(scores, topK, query);
   }
 
   private selectTopResults(
     scores: IndexedScore[],
-    topK: number
+    topK: number,
+    query: string = ''
   ): EmbeddingSearchResult[] {
+    const constraints: SearchConstraints = parseSearchConstraints(query);
+    scores = scores.filter((item: IndexedScore) => matchesSearchConstraints(
+      this.products[item.index].title, this.products[item.index].price, constraints));
     scores.sort((left: IndexedScore, right: IndexedScore) => right.score - left.score);
-    const limit: number = Math.max(1, Math.min(Math.floor(topK), scores.length));
+    const limit: number = Math.max(0, Math.min(Math.floor(topK), scores.length));
     const results: EmbeddingSearchResult[] = [];
     for (let index: number = 0; index < limit; index++) {
       results.push({

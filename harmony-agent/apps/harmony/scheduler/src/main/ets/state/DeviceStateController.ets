@@ -12,6 +12,7 @@ import { SchedulerError, SchedulerErrorCode } from '../api/SchedulerError';
 
 export class DeviceStateController {
   private realState: DeviceState;
+  private sampledAt: Record<string, number> = {};
   private debugPatch: DebugStatePatch | null = null;
   private effectiveState: DeviceState;
 
@@ -20,13 +21,22 @@ export class DeviceStateController {
     this.effectiveState = this.cloneState(this.realState);
   }
 
-  public getSnapshot(): DeviceState {
-    return this.cloneState(this.effectiveState);
+  public getSnapshot(now: number = Date.now()): DeviceState {
+    return this.composeEffectiveState(now);
   }
 
   public applyRealState(patch: RealDeviceStatePatch, capturedAt: number = Date.now()): boolean {
     this.validatePatch(patch);
     const previous: DeviceState = this.effectiveState;
+    if (patch.batteryPercent !== undefined) { this.sampledAt['batteryPercent'] = capturedAt; }
+    if (patch.isCharging !== undefined) { this.sampledAt['isCharging'] = capturedAt; }
+    if (patch.thermalLevel !== undefined) { this.sampledAt['thermalLevel'] = capturedAt; }
+    if (patch.systemCpuUsage !== undefined) { this.sampledAt['systemCpuUsage'] = capturedAt; }
+    if (patch.appCpuUsage !== undefined) { this.sampledAt['appCpuUsage'] = capturedAt; }
+    if (patch.memoryPressure !== undefined) { this.sampledAt['memoryPressure'] = capturedAt; }
+    if (patch.totalMemoryMb !== undefined) { this.sampledAt['totalMemoryMb'] = capturedAt; }
+    if (patch.freeMemoryMb !== undefined) { this.sampledAt['freeMemoryMb'] = capturedAt; }
+    if (patch.availableMemoryMb !== undefined) { this.sampledAt['availableMemoryMb'] = capturedAt; }
     this.realState = this.mergeRealState(this.realState, patch, capturedAt);
     this.effectiveState = this.composeEffectiveState(capturedAt);
     return !this.hasSameValues(previous, this.effectiveState);
@@ -93,28 +103,39 @@ export class DeviceStateController {
   }
 
   private composeEffectiveState(capturedAt: number): DeviceState {
+    const realSnapshot: DeviceState = this.cloneState(this.realState);
+    realSnapshot.sampledAt = JSON.parse(JSON.stringify(this.sampledAt)) as Record<string, number>;
+    if (this.sampledAt['batteryPercent'] === undefined || capturedAt - this.sampledAt['batteryPercent'] > 30000) { realSnapshot.batteryPercent = null; }
+    if (this.sampledAt['isCharging'] === undefined || capturedAt - this.sampledAt['isCharging'] > 30000) { realSnapshot.isCharging = null; }
+    if (this.sampledAt['thermalLevel'] === undefined || capturedAt - this.sampledAt['thermalLevel'] > 30000) { realSnapshot.thermalLevel = ThermalLevel.UNKNOWN; }
+    if (this.sampledAt['systemCpuUsage'] === undefined || capturedAt - this.sampledAt['systemCpuUsage'] > 3000) { realSnapshot.systemCpuUsage = null; }
+    if (this.sampledAt['appCpuUsage'] === undefined || capturedAt - this.sampledAt['appCpuUsage'] > 3000) { realSnapshot.appCpuUsage = null; }
+    if (this.sampledAt['memoryPressure'] === undefined || capturedAt - this.sampledAt['memoryPressure'] > 3000) { realSnapshot.memoryPressure = MemoryPressure.UNKNOWN; }
+    if (this.sampledAt['totalMemoryMb'] === undefined || capturedAt - this.sampledAt['totalMemoryMb'] > 3000) { realSnapshot.totalMemoryMb = null; }
+    if (this.sampledAt['freeMemoryMb'] === undefined || capturedAt - this.sampledAt['freeMemoryMb'] > 3000) { realSnapshot.freeMemoryMb = null; }
+    if (this.sampledAt['availableMemoryMb'] === undefined || capturedAt - this.sampledAt['availableMemoryMb'] > 3000) { realSnapshot.availableMemoryMb = null; }
     if (this.debugPatch === null) {
-      const realSnapshot: DeviceState = this.cloneState(this.realState);
       realSnapshot.capturedAt = capturedAt;
       return realSnapshot;
     }
 
     const patch: DebugStatePatch = this.debugPatch;
     return {
-      batteryPercent: patch.batteryPercent === undefined ? this.realState.batteryPercent : patch.batteryPercent,
-      isCharging: patch.isCharging === undefined ? this.realState.isCharging : patch.isCharging,
-      thermalLevel: patch.thermalLevel === undefined ? this.realState.thermalLevel : patch.thermalLevel,
-      appVisibility: patch.appVisibility === undefined ? this.realState.appVisibility : patch.appVisibility,
-      recentLatencyMs: patch.recentLatencyMs === undefined ? this.realState.recentLatencyMs : patch.recentLatencyMs,
-      queueDepth: patch.queueDepth === undefined ? this.realState.queueDepth : patch.queueDepth,
-      systemCpuUsage: patch.systemCpuUsage === undefined ? this.realState.systemCpuUsage : patch.systemCpuUsage,
-      appCpuUsage: patch.appCpuUsage === undefined ? this.realState.appCpuUsage : patch.appCpuUsage,
-      memoryPressure: patch.memoryPressure === undefined ? this.realState.memoryPressure : patch.memoryPressure,
-      totalMemoryMb: patch.totalMemoryMb === undefined ? this.realState.totalMemoryMb : patch.totalMemoryMb,
-      freeMemoryMb: patch.freeMemoryMb === undefined ? this.realState.freeMemoryMb : patch.freeMemoryMb,
-      availableMemoryMb: patch.availableMemoryMb === undefined ? this.realState.availableMemoryMb : patch.availableMemoryMb,
+      batteryPercent: patch.batteryPercent === undefined ? realSnapshot.batteryPercent : patch.batteryPercent,
+      isCharging: patch.isCharging === undefined ? realSnapshot.isCharging : patch.isCharging,
+      thermalLevel: patch.thermalLevel === undefined ? realSnapshot.thermalLevel : patch.thermalLevel,
+      appVisibility: patch.appVisibility === undefined ? realSnapshot.appVisibility : patch.appVisibility,
+      recentLatencyMs: patch.recentLatencyMs === undefined ? realSnapshot.recentLatencyMs : patch.recentLatencyMs,
+      queueDepth: patch.queueDepth === undefined ? realSnapshot.queueDepth : patch.queueDepth,
+      systemCpuUsage: patch.systemCpuUsage === undefined ? realSnapshot.systemCpuUsage : patch.systemCpuUsage,
+      appCpuUsage: patch.appCpuUsage === undefined ? realSnapshot.appCpuUsage : patch.appCpuUsage,
+      memoryPressure: patch.memoryPressure === undefined ? realSnapshot.memoryPressure : patch.memoryPressure,
+      totalMemoryMb: patch.totalMemoryMb === undefined ? realSnapshot.totalMemoryMb : patch.totalMemoryMb,
+      freeMemoryMb: patch.freeMemoryMb === undefined ? realSnapshot.freeMemoryMb : patch.freeMemoryMb,
+      availableMemoryMb: patch.availableMemoryMb === undefined ? realSnapshot.availableMemoryMb : patch.availableMemoryMb,
       availableBackends: patch.availableBackends === undefined ?
-        this.realState.availableBackends.slice() : patch.availableBackends.slice(),
+        realSnapshot.availableBackends.slice() : patch.availableBackends.slice(),
+      sampledAt: realSnapshot.sampledAt,
       source: this.isCompleteDebugPatch(patch) ? DeviceStateSource.INJECTED : DeviceStateSource.MIXED,
       capturedAt: capturedAt
     };
@@ -221,6 +242,7 @@ export class DeviceStateController {
       freeMemoryMb: state.freeMemoryMb,
       availableMemoryMb: state.availableMemoryMb,
       availableBackends: state.availableBackends.slice(),
+      sampledAt: state.sampledAt === undefined ? undefined : JSON.parse(JSON.stringify(state.sampledAt)) as Record<string, number>,
       source: state.source,
       capturedAt: state.capturedAt
     };

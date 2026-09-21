@@ -21,19 +21,25 @@ interface SequencedQueueItem<TItem extends QueueItem> {
 export class TaskQueue<TItem extends QueueItem> {
   private items: SequencedQueueItem<TItem>[] = [];
   private nextSequence: number = 0;
+  private readonly clock: () => number;
+  constructor(clock: () => number = (): number => Date.now()) { this.clock = clock; }
 
   public enqueue(item: TItem): void {
     this.items.push({
       item: item,
       sequence: this.nextSequence++,
-      enqueuedAt: Date.now()
+      enqueuedAt: this.clock()
     });
     this.sortItems();
   }
 
   public dequeue(): TItem | null {
     this.sortItems();
-    const index: number = this.items.findIndex((entry: SequencedQueueItem<TItem>) => !entry.item.paused);
+    // Grant the next free slot to the oldest runnable task waiting at least 30 seconds.
+    const overdue = this.items.filter((entry: SequencedQueueItem<TItem>) =>
+      !entry.item.paused && this.clock() - entry.enqueuedAt >= QUEUE_AGING_INTERVAL_MS)
+      .sort((left: SequencedQueueItem<TItem>, right: SequencedQueueItem<TItem>) => left.sequence - right.sequence);
+    const index: number = overdue.length > 0 ? this.items.indexOf(overdue[0]) : this.items.findIndex((entry: SequencedQueueItem<TItem>) => !entry.item.paused);
     if (index < 0) {
       return null;
     }
@@ -94,7 +100,7 @@ export class TaskQueue<TItem extends QueueItem> {
   }
 
   private sortItems(): void {
-    const nowMs: number = Date.now();
+    const nowMs: number = this.clock();
     this.items.sort((left: SequencedQueueItem<TItem>, right: SequencedQueueItem<TItem>) => {
       const priorityDelta: number = this.effectivePriorityRank(right, nowMs) -
         this.effectivePriorityRank(left, nowMs);

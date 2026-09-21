@@ -1,3 +1,4 @@
+import { memoryKilobytesToMb } from './ResourceUnits';
 import { batteryInfo, BusinessError, commonEventManager, thermal } from '@kit.BasicServicesKit';
 import { hidebug } from '@kit.PerformanceAnalysisKit';
 import { Backend, MemoryPressure, RealDeviceStatePatch, ThermalLevel } from '../api/SchedulerTypes';
@@ -124,9 +125,7 @@ export class HarmonyDeviceStateAdapter {
       if (!this.started) {
         return;
       }
-      const patch: RealDeviceStatePatch = {};
-      this.refreshResourceState(patch);
-      this.callback(patch);
+      this.refresh();
     }, 1000);
   }
 
@@ -194,17 +193,7 @@ export class HarmonyDeviceStateAdapter {
   }
 
   private normalizeMemoryMb(value: number | bigint): number | null {
-    const numericValue: number = typeof value === 'bigint' ? Number(value) : value;
-    if (!Number.isFinite(numericValue) || numericValue < 0) {
-      return null;
-    }
-    if (numericValue > 64 * 1024 * 1024) {
-      return Math.round(numericValue / 1024 / 1024);
-    }
-    if (numericValue > 64 * 1024) {
-      return Math.round(numericValue / 1024);
-    }
-    return Math.round(numericValue);
+    return memoryKilobytesToMb(value);
   }
 
   private resolveMemoryPressure(availableMemoryMb: number | null, totalMemoryMb: number | null): MemoryPressure {

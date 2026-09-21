@@ -24,7 +24,7 @@ export class SemanticPolicy {
   private observations: Map<string, CostObservation> = new Map<string, CostObservation>();
   private consumption: Map<string, ConsumptionObservation> = new Map<string, ConsumptionObservation>();
 
-  public evaluate(profile: TaskProfile, state: DeviceState, mode: PolicyMode): ExecutionPlan {
+  public evaluate(profile: TaskProfile, state: DeviceState, mode: PolicyMode, maximumTier?: ModelTier): ExecutionPlan {
     const template = profile.template!;
     const context = profile.context!;
     const visible: boolean = context.userVisible && state.appVisibility === AppVisibility.FOREGROUND;
@@ -71,6 +71,7 @@ export class SemanticPolicy {
     let bestScore: number = -Infinity;
     for (let i: number = 0; i < template.qualityLevels.length; i++) {
       const level: QualityLevel = template.qualityLevels[i];
+      if (maximumTier !== undefined && qualityRank(level.modelTier) > qualityRank(maximumTier)) { continue; }
       if (qualityRank(level.modelTier) < floor) { continue; }
       if (constrained && qualityRank(level.modelTier) > 0) { continue; }
       if (unknown && qualityRank(level.modelTier) > 1) { continue; }
