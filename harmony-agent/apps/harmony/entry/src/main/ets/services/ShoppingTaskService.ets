@@ -2,7 +2,7 @@ import {
   Backend, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan, ExecutorResult,
   InferenceLocation, Interruptibility, LocalExecutionPlan, ModelTier, PrivacyPolicy, QualityLevel,
   SchedulerClient, SchedulerRuntime, TaskCheckpoint, TaskContext, TaskTemplate, TaskType,
-  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest
+  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest, FeedbackReceipt, UserFeedback
 } from 'scheduler';
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
@@ -155,6 +155,9 @@ export class ShoppingTaskService {
   }
 
   public feedbackRequest(workflowId: string): FeedbackRequest | null { return this.requireClient().getFeedbackRequest(workflowId); }
+  public submitFeedback(workflowId: string, feedback: UserFeedback): FeedbackReceipt {
+    return this.requireClient().submitFeedback(workflowId, feedback);
+  }
 
   private requireClient(): SchedulerClient {
     if (this.client === null) { throw new Error('Shopping task client is not initialized.'); }

@@ -476,6 +476,7 @@ export interface TaskTelemetry {
   softDeadlineMissed?: boolean;
   feedbackRequest?: FeedbackRequest;
   userFeedback?: UserFeedback;
+  feedbackReceipt?: FeedbackReceipt;
   resultDisplayed?: boolean;
   signals?: TaskSignalType[];
   prediction?: ResourcePrediction;
@@ -638,6 +639,28 @@ export interface UserFeedback {
   taskRunId: string;
   kind: FeedbackKind;
   option: FeedbackOption;
+}
+
+export interface FeedbackCalibration {
+  speedSamples: number;
+  qualitySamples: number;
+  profileSamples: number;
+  latencyWeight: number;
+  qualityWeight: number;
+  profilePenalty: number;
+}
+
+// A receipt reports calibration, never promises an immediate execution-profile change.
+export interface FeedbackReceipt {
+  accepted: boolean;
+  taskRunId: string;
+  reason: string;
+  effect: 'REJECTED' | 'RECORDED_ONLY' | 'COLLECTING' | 'CALIBRATED';
+  policyVersion?: string;
+  mode?: ConstrainedPolicyMode;
+  minimumSamples?: number;
+  before?: FeedbackCalibration;
+  after?: FeedbackCalibration;
 }
 
 export interface StateObservation {

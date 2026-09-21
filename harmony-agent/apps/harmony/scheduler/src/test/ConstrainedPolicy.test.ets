@@ -1,12 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it } from '@ohos/hypium';
 import {
-  AppVisibility, Backend, CancellationSignal, ConstrainedPolicyConfig, ConstrainedPolicyMode,
+  AppVisibility, Backend, CancellationSignal, ConstrainedPolicyConfig, ConstrainedPolicyMode, AccuracyPreference, TaskProfile, FeedbackKind,
   DuplicatePolicy, ExecutionPlan, ExecutorResult, ExecutorTelemetry, FeedbackOption,
   InferenceLocation, Interruptibility, MemoryPressure, ModelTier, PolicyMode, PrivacyPolicy,
   SchedulerClient, SchedulerService, TaskContext, TaskSignalType, TaskStatus, TaskTemplate,
   TaskType, ThermalLevel, WorkloadExecutor, PolicyStateStore, QualityLevel, WorkflowResult, TaskCheckpoint
 } from '../../Index';
 import { stablePolicyBucket } from '../main/ets/policy/ProfileContract';
+import { ConstrainedPolicy } from '../main/ets/policy/ConstrainedPolicy';
+import { SemanticPolicy } from '../main/ets/policy/SemanticPolicy';
 
 function declaration(background: boolean = false): TaskTemplate {
   return { capability: 'generic-profiled', taskType: background ? TaskType.BACKGROUND_BATCH : TaskType.USER_INITIATED,
@@ -341,6 +343,103 @@ export default function constrainedPolicyTest(): void {
       const log = service.getRecentLogs(1)[0]; expect(log.telemetry!.softDeadlineMissed).assertTrue();
     });
 
+    it('calibratedWeightsReachFutureUtilityWithoutChangingObserveExecution', 0, async () => {
+      register(); const settings = config(ConstrainedPolicyMode.OBSERVE); settings.rules = [];
+      service.configureConstrainedPolicy(settings);
+      const policy = new ConstrainedPolicy(); policy.configure(settings);
+      const task: TaskProfile = { capability: 'generic-profiled', taskType: TaskType.USER_INITIATED,
+        inferenceLocation: InferenceLocation.LOCAL_DEVICE, accuracyPreference: AccuracyPreference.BALANCED,
+        latencyBudgetMs: 3000, timeoutMs: 5000, allowDegrade: true, allowPause: false,
+        template: declaration(), context: context() };
+      const costs = new SemanticPolicy(); const state = service.getDeviceState();
+      const before = policy.evaluate(task, state, costs);
+      // Synthetic policy-level samples deliberately do not bypass the public UI quota.
+      for (let index = 0; index < 2; index++) {
+        await run(); const log = service.getRecentLogs(1)[0];
+        policy.observe(task, log);
+        log.telemetry!.userFeedback = { taskRunId: log.taskId, kind: FeedbackKind.RESPONSE_TIME, option: FeedbackOption.SLOW };
+        const receipt = policy.feedback('generic-profiled', log);
+        expect(receipt.effect).assertEqual(index === 0 ? 'COLLECTING' : 'CALIBRATED');
+      }
+      const after = policy.evaluate(task, state, costs);
+      expect(after.policyAudit!.utility!.targetPressure > before.policyAudit!.utility!.targetPressure).assertTrue();
+      expect(after.policyAudit!.utility!.feedbackPenalty).assertEqual(3);
+      expect(after.executionProfile!.id).assertEqual(before.executionProfile!.id);
+      expect(after.utilityScore).assertEqual(before.utilityScore);
+      expect(after.priority).assertEqual(before.priority);
+      expect(task.context!.targetLatencyMs).assertEqual(100);
+    });
+    it('feedbackReceiptLinksAnswerToCalibrationAndRejectsDuplicate', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'private-input', context());
+      const result = await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      const receipt = client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] });
+      expect(receipt.accepted).assertTrue(); expect(receipt.effect).assertEqual('COLLECTING');
+      expect(receipt.after!.profileSamples).assertEqual(1);
+      expect(receipt.after!.latencyWeight).assertEqual(5); expect(receipt.after!.qualityWeight).assertEqual(3);
+      expect(result.nodes[0].executionPlan.executionProfile!.id).assertEqual('DEFAULT');
+      const duplicate = client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] });
+      expect(duplicate.accepted).assertFalse();
+      receipt.after!.latencyWeight = 999;
+      expect(service.getRecentLogs(1)[0].telemetry!.feedbackReceipt!.after!.latencyWeight).assertEqual(5);
+      expect(service.exportAudit().indexOf('private-input') < 0).assertTrue();
+    });
+    it('feedbackReceiptCannotCrossWorkflowOwnership', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      const other = new SchedulerClient(service);
+      const denied = other.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] });
+      expect(denied.accepted).assertFalse(); await other.dispose();
+      expect(service.getRecentLogs(1)[0].telemetry!.userFeedback === undefined).assertTrue();
+    });
+    it('feedbackReceiptRejectsRevokedConsentAndPageExit', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      service.setFeedbackEnabled(false);
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] }).accepted).assertFalse();
+      service.setFeedbackEnabled(true); await handle.signal({ type: TaskSignalType.PAGE_LEFT });
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] }).accepted).assertFalse();
+    });
+    it('reenablingConsentCannotResurrectAnOldInvitation', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      service.setFeedbackEnabled(false); service.setFeedbackEnabled(true);
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] }).accepted).assertFalse();
+    });
+    it('ignoredResultInvalidatesOutstandingFeedback', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] }).accepted).assertFalse();
+    });
+    it('oldVersionFeedbackIsRecordedWithoutTrainingNewVersion', 0, async () => {
+      register(); service.setFeedbackEnabled(true);
+      const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
+      await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      service.configureConstrainedPolicy(config());
+      const receipt = client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: request.options[0] });
+      expect(receipt.accepted).assertTrue(); expect(receipt.effect).assertEqual('RECORDED_ONLY');
+      expect(receipt.after === undefined).assertTrue();
+    });
     it('feedbackNeedsOptInDisplayedResultAndValidOption', 0, async () => {
       register(); const handle = client.submit<string, string>('generic-profiled', 'input', context()); await handle.result;
       expect(client.getFeedbackRequest(handle.workflowId) === null).assertTrue();

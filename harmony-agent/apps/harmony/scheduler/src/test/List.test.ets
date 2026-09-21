@@ -4,6 +4,7 @@ import taskExecutionUnitTest from './TaskExecutionUnit.test';
 import semanticSchedulerTest from './SemanticScheduler.test';
 import constrainedPolicyTest from './ConstrainedPolicy.test';
 import executionSafetyUnitTest from './ExecutionSafetyUnit.test';
+import feedbackCalibrationTests from './FeedbackCalibration.test';
 
 export default function testsuite(): void {
   resourceGapTests();
@@ -12,4 +13,5 @@ export default function testsuite(): void {
   semanticSchedulerTest();
   constrainedPolicyTest();
   executionSafetyUnitTest();
+  feedbackCalibrationTests();
 }

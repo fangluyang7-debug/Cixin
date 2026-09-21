@@ -3,6 +3,9 @@ import { parseSearchConstraints, matchesSearchConstraints } from '../main/ets/se
 import { NormalizationProgress, validateNormalizationProgress, appendNormalizationValues } from '../main/ets/services/NormalizationCheckpoint';
 import { collectVectorPartitions } from '../main/ets/services/VectorPartitionResults';
 import { ExperimentTrial, exportTrialRecords } from '../main/ets/services/ExperimentRecords';
+import { numericPrice, productKey, safeProductUrl, feedbackReceiptText } from '../main/ets/services/CommercePresentation';
+import { Product } from '../main/ets/models/Product';
+import { ConstrainedPolicyMode } from 'scheduler';
 
 function trialFixture(): ExperimentTrial {
   return { mode: 'ADAPTIVE', background: false, repetition: 0, queryId: 'shoes', startedAt: 1,
@@ -13,6 +16,34 @@ function trialFixture(): ExperimentTrial {
 
 export default function appLogicTests(): void {
   describe('RealWorkloadPureLogic', () => {
+    it('commerceLinksRejectExecutableSchemesAndMalformedHosts', 0, () => {
+      expect(safeProductUrl('https://item.jd.com/123.html')).assertTrue();
+      expect(safeProductUrl('javascript:alert(1)')).assertFalse();
+      expect(safeProductUrl('http://example.com')).assertFalse();
+      expect(safeProductUrl('https://good.com@bad.com')).assertFalse();
+      expect(safeProductUrl('https://bad.com/has space')).assertFalse();
+    });
+    it('commercePriceSortingDoesNotInventUnknownPrices', 0, () => {
+      const item = new Product('p1', 'jd', 'shoe', '￥1,000', 'CNY', '', '', '', '', '');
+      expect(numericPrice(item)).assertEqual(1000);
+      item.price = '200-600'; expect(numericPrice(item)).assertEqual(Infinity);
+      item.price = '面议'; expect(numericPrice(item)).assertEqual(Infinity);
+    });
+    it('savedProductIdentityIncludesPlatform', 0, () => {
+      const item = new Product('p1', 'jd', 'shoe', '100', 'CNY', '', '', '', '', '');
+      expect(productKey(item)).assertEqual('jd:p1');
+      item.platform = 'tb'; expect(productKey(item)).assertEqual('tb:p1');
+    });
+    it('rejectedFeedbackDoesNotClaimOptimization', 0, () => {
+      expect(feedbackReceiptText({ accepted: false, taskRunId: 'a', effect: 'REJECTED', reason: 'expired' }).indexOf('未接收') >= 0).assertTrue();
+    });
+    it('shadowFeedbackReceiptExplicitlyAvoidsExecutionClaims', 0, () => {
+      const text = feedbackReceiptText({ accepted: true, taskRunId: 'a', effect: 'CALIBRATED', reason: 'bounded',
+        mode: ConstrainedPolicyMode.SHADOW, after: { speedSamples: 2, qualitySamples: 0, profileSamples: 2,
+          latencyWeight: 10, qualityWeight: 3, profilePenalty: 3 } });
+      expect(text.indexOf('不改变执行配置') >= 0).assertTrue();
+      expect(text.indexOf('10.0') >= 0).assertTrue();
+    });
     it('omitsQualityResultsFromDefaultExperimentExport', 0, () => {
       const result = exportTrialRecords([trialFixture()]);
       const raw = JSON.stringify(result);

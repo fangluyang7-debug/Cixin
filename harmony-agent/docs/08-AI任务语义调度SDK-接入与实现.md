@@ -161,6 +161,8 @@ query_prepare：等待本地数据就绪，整理文本
 
 宿主显式启用本地反馈后，在 `RESULT_DISPLAYED` 后调用 `client.getFeedbackRequest(handle.workflowId)`，拿到可忽略的单题建议。通过 `handle.signal({ type: TaskSignalType.USER_FEEDBACK, feedback: ... })` 回传请求中允许的枚举。SDK 校验关联 ID、选项、有效期和去重；工作流反馈只关联输出节点，不向每个中间节点复制答案。
 
+需要处理结果时，优先调用新增 `client.submitFeedback(handle.workflowId, feedback): FeedbackReceipt`。接口校验工作流所有权并与旧信号共用接收入口；回执区分未接收、仅记录、积累、校准，含模式/版本、门槛和前后权重，写入 telemetry.feedbackReceipt。速度/质量按同配置独立计数，只影响后续效用评价，不修改截止时间或拼装参数；OBSERVE/SHADOW 不切换实际配置。规则与进程内样本限制见 [页面与反馈参数链路](12-原生页面转换与反馈参数链路.md)。
+
 `getPolicyMetrics()` 按版本、能力/模型版本、任务类型、输入规模、设备状态、配置、组别输出有界窗口统计；`exportAudit()` 保留预测、实际、反馈与回退原因。P50/P95 预测的冷启动值是声明先验，经验分位数也不是因果收益；热风险/置信度不是概率。
 
 `PolicyStateStore` 由宿主实现，当前 App 使用私有 Preferences。启动读取和后台异步保存熔断/停用/同意/限频摘要，不保存原始任务数据；预测样本和检查点不跨进程恢复。默认不提供网络 Provider；未经验证的远端 JSON 不能直接传给本地策略入口。完整实现调整、测试与真机步骤见 [本轮验收记录](testing/05-constrained-policy-acceptance.md)。

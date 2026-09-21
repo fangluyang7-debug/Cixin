@@ -30,7 +30,7 @@ import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 import { ExecutorTelemetry, Interruptibility, MemoryPressure, TaskCheckpoint, TaskSignal, TaskSignalType, TaskTelemetry, ThermalLevel } from './SchedulerTypes';
 import { qualityRank, SemanticPolicy } from '../policy/SemanticPolicy';
 import { SchedulerRuntime } from './SchedulerClient';
-import { ConstrainedPolicyConfig, FeedbackRequest, PolicyMetricsGroup, TaskContext, TaskTemplate } from './SchedulerTypes';
+import { ConstrainedPolicyConfig, FeedbackRequest, FeedbackReceipt, UserFeedback, PolicyMetricsGroup, TaskContext, TaskTemplate } from './SchedulerTypes';
 import { ConstrainedPolicy } from '../policy/ConstrainedPolicy';
 import { FeedbackController } from '../policy/FeedbackController';
 import { policyMetrics } from '../policy/PolicyMetrics';
@@ -602,6 +602,10 @@ export class SchedulerService implements SchedulerRuntime {
 
   public async signalTask(taskId: string, signal: TaskSignal): Promise<void> {
     this.requireInitialized();
+    if (signal.type === TaskSignalType.USER_FEEDBACK) {
+      if (signal.feedback !== undefined && signal.feedback.taskRunId === taskId) { this.submitFeedback(signal.feedback); }
+      return;
+    }
     const task: InternalTask | undefined = this.tasks.get(taskId);
     if (signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.PAGE_LEFT ||
       signal.type === TaskSignalType.INPUT_REPLACED) {
@@ -615,13 +619,6 @@ export class SchedulerService implements SchedulerRuntime {
     for (let i: number = this.logHistory.length - 1; i >= 0; i--) {
       const log: SchedulerLogEntry = this.logHistory[i];
       if (log.taskId === taskId && log.telemetry !== undefined) {
-        if (signal.type === TaskSignalType.USER_FEEDBACK) {
-          if (signal.feedback !== undefined && this.feedbackController.accept(log, signal.feedback)) {
-            this.constrainedPolicy.feedback(log.capability.replace(/^client-\d+:/, ''), log);
-            this.queuePolicySave();
-          }
-          break;
-        }
         log.telemetry.signal = signal.type;
         const signals = log.telemetry.signals ?? [];
         if (signals.indexOf(signal.type) < 0) { signals.push(signal.type); }
@@ -629,7 +626,8 @@ export class SchedulerService implements SchedulerRuntime {
         if (signal.type === TaskSignalType.RESULT_DISPLAYED && log.status === TaskStatus.SUCCEEDED) {
           log.telemetry.resultDisplayed = true;
         }
-        if (signal.type === TaskSignalType.PAGE_LEFT || signal.type === TaskSignalType.INPUT_REPLACED) {
+        if (signal.type === TaskSignalType.PAGE_LEFT || signal.type === TaskSignalType.INPUT_REPLACED ||
+          signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.RESULT_IGNORED) {
           log.telemetry.feedbackRequest = undefined;
           log.telemetry.resultDisplayed = false;
         }
@@ -657,9 +655,28 @@ export class SchedulerService implements SchedulerRuntime {
     this.requireInitialized(); this.constrainedPolicy.disable(); this.queuePolicySave(); this.scheduleDrain();
   }
   public setFeedbackEnabled(enabled: boolean): void {
-    this.requireInitialized(); this.feedbackController.setEnabled(enabled); this.queuePolicySave();
+    this.requireInitialized(); this.feedbackController.setEnabled(enabled);
+    if (!enabled) {
+      this.logHistory.forEach((log: SchedulerLogEntry) => {
+        if (log.telemetry !== undefined) { log.telemetry.feedbackRequest = undefined; }
+      });
+    }
+    this.queuePolicySave();
   }
   public isFeedbackEnabled(): boolean { return this.feedbackController.isEnabled(); }
+  public submitFeedback(feedback: UserFeedback): FeedbackReceipt {
+    this.requireInitialized();
+    const log = this.logHistory.slice().reverse().find((entry: SchedulerLogEntry) =>
+      entry.taskId === feedback.taskRunId && entry.finishedAt !== null);
+    if (this.getDeviceState().appVisibility !== 'FOREGROUND' || log === undefined ||
+      !this.feedbackController.accept(log, feedback)) {
+      return { accepted: false, taskRunId: feedback.taskRunId, effect: 'REJECTED', reason: 'INVALID_OR_EXPIRED_FEEDBACK' };
+    }
+    const receipt = this.constrainedPolicy.feedback(log.capability.replace(/^client-\d+:/, ''), log);
+    log.telemetry!.feedbackReceipt = receipt;
+    this.queuePolicySave();
+    return JSON.parse(JSON.stringify(receipt)) as FeedbackReceipt;
+  }
   public getPolicyStorageStatus(): string { return this.storageStatus; }
   public getFeedbackRequest(taskId: string): FeedbackRequest | null {
     this.requireInitialized();

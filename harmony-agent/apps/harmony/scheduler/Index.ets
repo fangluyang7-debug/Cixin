@@ -66,6 +66,6 @@ export {
 export {
   ExecutionProfile, TaskCapabilityManifest, ProfileTransition, ConstrainedPolicyMode,
   ConstrainedPolicyConfig, CapabilityPolicyRule, NonInferiorityThresholds, PolicyDecisionAudit,
-  UtilityComponents, FeedbackKind, FeedbackOption, FeedbackRequest, UserFeedback,
+  UtilityComponents, FeedbackKind, FeedbackOption, FeedbackRequest, UserFeedback, FeedbackReceipt, FeedbackCalibration,
   StateObservation, PolicyStateStore, PolicyMetricsGroup
 } from './src/main/ets/api/SchedulerTypes';

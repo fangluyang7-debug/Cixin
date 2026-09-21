@@ -2,6 +2,16 @@ class=localUnitTest
 test=assertContain
 result=Success
 class=RealWorkloadPureLogic
+test=commerceLinksRejectExecutableSchemesAndMalformedHosts
+result=Success
+test=commercePriceSortingDoesNotInventUnknownPrices
+result=Success
+test=savedProductIdentityIncludesPlatform
+result=Success
+test=rejectedFeedbackDoesNotClaimOptimization
+result=Success
+test=shadowFeedbackReceiptExplicitlyAvoidsExecutionClaims
+result=Success
 test=omitsQualityResultsFromDefaultExperimentExport
 result=Success
 test=exportsDetachedQualityIdsOnlyWhenExplicitlyEnabled
@@ -24,4 +34,4 @@ test=waitsForOtherWorkersBeforeAllowingFallback
 result=Success
 test=preservesAllSuccessfulPartitionScores
 result=Success
-Tests run: 12, Failure: 0, Error: 0, Pass: 12, Ignore: 0
+Tests run: 17, Failure: 0, Error: 0, Pass: 17, Ignore: 0

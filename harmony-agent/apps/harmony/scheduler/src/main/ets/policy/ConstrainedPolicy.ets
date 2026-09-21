@@ -2,11 +2,13 @@ import {
   AppVisibility, ConstrainedPolicyConfig, ConstrainedPolicyMode, DeviceState, ExecutionPlan,
   ExecutionProfile, ExecutorTelemetry, FeedbackOption, InferenceLocation, LocalExecutionPlan,
   MemoryPressure, PolicyDecisionAudit, QueueAction, ResourcePrediction, SchedulerLogEntry,
-  TaskPriority, TaskProfile, TaskStatus, TaskType, ThermalLevel, UtilityComponents, FeedbackKind
+  TaskPriority, TaskProfile, TaskStatus, TaskType, ThermalLevel, UtilityComponents, FeedbackKind,
+  FeedbackReceipt, FeedbackCalibration
 } from '../api/SchedulerTypes';
 import { defaultConstrainedPolicy, stablePolicyBucket, validatePolicy } from './ProfileContract';
 import { qualityRank, SemanticPolicy } from './SemanticPolicy';
 import { HysteresisController } from './HysteresisController';
+import { calibrateFeedback } from './FeedbackCalibration';
 
 interface Candidate {
   profile: ExecutionProfile;
@@ -212,7 +214,8 @@ export class ConstrainedPolicy {
       actualConfirmed: false
     };
     const priorityScore: number = (context.userWaiting ? 30 : 0) + (context.userVisible ? 15 : 0) +
-      (context.businessImportance ?? 0.5) * 20 + (actual?.utility.targetPressure ?? 0);
+      (context.businessImportance ?? 0.5) * 20 + (context.targetLatencyMs === undefined || actual === undefined ? 0 :
+        Math.min(20, (elapsed + actual.prediction.latencyMs) / context.targetLatencyMs * 5));
     return {
       inferenceLocation: InferenceLocation.LOCAL_DEVICE, modelTier: selected.modelTier,
       backend: selected.backend, threadCount: selected.workerCount,
@@ -273,13 +276,32 @@ export class ConstrainedPolicy {
     this.checkRegression(capability, log);
   }
 
-  public feedback(capability: string, log: SchedulerLogEntry): void {
+  public feedback(capability: string, log: SchedulerLogEntry): FeedbackReceipt {
+    const audit = log.executionPlan.policyAudit;
+    const receipt: FeedbackReceipt = { accepted: true, taskRunId: log.taskId, effect: 'RECORDED_ONLY',
+      reason: 'SAMPLE_NOT_ELIGIBLE', policyVersion: audit?.version, mode: this.getConfig().mode,
+      minimumSamples: this.config.minimumSampleCount };
     const sample = this.samples.find((item: TrialSample) => item.taskId === log.taskId);
-    if (sample === undefined || log.telemetry?.userFeedback === undefined) { return; }
+    if (sample === undefined || log.telemetry?.userFeedback === undefined || audit === undefined ||
+      audit.version !== this.config.version || audit.actualConfirmed !== true || log.telemetry.mixedExecution === true) { return receipt; }
+    const before = this.calibration(sample.stratum, sample.profileId);
     sample.negative = [FeedbackOption.SLOW, FeedbackOption.NO_RESULT, FeedbackOption.INACCURATE,
       FeedbackOption.IRRELEVANT, FeedbackOption.TOO_HOT].indexOf(log.telemetry.userFeedback.option) >= 0;
     sample.feedbackKind = log.telemetry.userFeedback.kind;
+    const after = this.calibration(sample.stratum, sample.profileId);
+    receipt.before = before; receipt.after = after;
+    const enough: boolean = sample.feedbackKind === FeedbackKind.RESPONSE_TIME ? after.speedSamples >= this.config.minimumSampleCount :
+      sample.feedbackKind === FeedbackKind.RESULT_UTILITY ? after.qualitySamples >= this.config.minimumSampleCount :
+        after.profileSamples >= this.config.minimumSampleCount;
+    receipt.effect = enough ? 'CALIBRATED' : 'COLLECTING';
+    receipt.reason = enough ? 'BOUNDED_CALIBRATION_FOR_FUTURE_DECISIONS' : 'MINIMUM_FEEDBACK_SAMPLES_NOT_REACHED';
     this.checkRegression(log.executionPlan.policyAudit!.contractId, log);
+    return receipt;
+  }
+
+  private calibration(stratum: string, profileId: string): FeedbackCalibration {
+    return calibrateFeedback(this.samples.filter((sample: TrialSample) => sample.stratum === stratum),
+      profileId, this.config.minimumSampleCount, this.config.observationWindowSize);
   }
 
   public exportState(): string {
@@ -309,25 +331,18 @@ export class ConstrainedPolicy {
     const context = task.context!;
     const contractId: string = `${task.template!.capability}@${task.template!.resourceHints.modelVersion}`;
     const stratum: string = this.stratum(contractId, task.taskType, `${bucket}:${this.inputBucket(task)}`);
-    const samples = this.samples.filter((sample: TrialSample) =>
-      sample.stratum === stratum && sample.profileId === profile.id && sample.negative !== undefined);
-    const penalty: number = samples.length < this.config.minimumSampleCount ? 0 :
-      Math.min(3, samples.filter((sample: TrialSample) => sample.negative === true).length / samples.length * 3);
-    const qualitySamples = this.samples.filter((sample: TrialSample) =>
-      sample.stratum === stratum && sample.feedbackKind === FeedbackKind.RESULT_UTILITY);
-    const qualityWeight: number = qualitySamples.length < this.config.minimumSampleCount ? 3 :
-      3 + Math.min(6, qualitySamples.filter((sample: TrialSample) => sample.negative === true).length / qualitySamples.length * 6);
+    const calibrated = this.calibration(stratum, profile.id);
     return {
       waiting: context.userWaiting && state.appVisibility === AppVisibility.FOREGROUND ? 30 : 0,
       visibility: context.userVisible && state.appVisibility === AppVisibility.FOREGROUND ? 15 : 0,
       importance: (context.businessImportance ?? 0.5) * 20,
-      targetPressure: context.targetLatencyMs === undefined ? 0 : Math.min(20, (elapsed + prediction.latencyMs) / context.targetLatencyMs * 5),
+      targetPressure: context.targetLatencyMs === undefined ? 0 : Math.min(20, (elapsed + prediction.latencyMs) / context.targetLatencyMs * calibrated.latencyWeight),
       freshnessRisk: context.freshnessMs === undefined ? 0 : Math.min(15, prediction.latencyMs / Math.max(1, context.freshnessMs - elapsed) * 15),
-      qualityLoss: (2 - qualityRank(profile.estimatedQualityLevel)) * qualityWeight,
+      qualityLoss: (2 - qualityRank(profile.estimatedQualityLevel)) * calibrated.qualityWeight,
       energyCost: prediction.relativeEnergyCost * 0.2,
       thermalRisk: prediction.thermalRisk * 2,
       memoryRisk: prediction.memoryMb === null || state.availableMemoryMb === null ? 1 : prediction.memoryMb / Math.max(1, state.availableMemoryMb),
-      feedbackPenalty: penalty
+      feedbackPenalty: calibrated.profilePenalty
     };
   }
 
