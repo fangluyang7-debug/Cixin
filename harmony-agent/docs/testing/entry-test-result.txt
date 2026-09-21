@@ -1,0 +1,27 @@
+class=localUnitTest
+test=assertContain
+result=Success
+class=RealWorkloadPureLogic
+test=omitsQualityResultsFromDefaultExperimentExport
+result=Success
+test=exportsDetachedQualityIdsOnlyWhenExplicitlyEnabled
+result=Success
+test=enforcesBrandAndUpperPriceTogether
+result=Success
+test=honorsBothBoundsAndIncludesBoundaryPrices
+result=Success
+test=doesNotAcceptUnknownOrRangePricesForHardConstraints
+result=Success
+test=unconstrainedSearchDoesNotDropUnknownPrices
+result=Success
+test=rejectsInconsistentCheckpointWithoutChangingIt
+result=Success
+test=rejectsOldModelCheckpoint
+result=Success
+test=appendsOnlyCompleteValidChunks
+result=Success
+test=waitsForOtherWorkersBeforeAllowingFallback
+result=Success
+test=preservesAllSuccessfulPartitionScores
+result=Success
+Tests run: 12, Failure: 0, Error: 0, Pass: 12, Ignore: 0

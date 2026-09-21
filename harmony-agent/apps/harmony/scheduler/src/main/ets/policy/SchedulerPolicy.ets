@@ -152,7 +152,7 @@ export class SchedulerPolicy {
     }
 
     if (profile.taskType === TaskType.BACKGROUND_BATCH) {
-      action = this.resolveProtectionAction(profile, QueueAction.THROTTLE);
+      action = this.resolveProtectionAction(profile, QueueAction.REJECT);
       this.appendQueueReason(action, reasons);
     }
     return this.createPlan(tier, priority, action, reasons, state, profile);
@@ -312,7 +312,7 @@ export class SchedulerPolicy {
 
   private resolveProtectionAction(profile: TaskProfile, defaultAction: QueueAction): QueueAction {
     if (profile.taskType === TaskType.BACKGROUND_BATCH) {
-      return profile.allowPause ? QueueAction.PAUSE : QueueAction.THROTTLE;
+      return profile.allowPause ? QueueAction.PAUSE : QueueAction.REJECT;
     }
     return defaultAction;
   }

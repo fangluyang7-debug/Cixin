@@ -2,6 +2,8 @@
 
 更新日期：2026-09-21。需求来源：[07-AI任务语义调度件工作要求](07-AI任务语义调度件工作要求.md)、[09-受约束策略闭环](09-HarmonyOS受约束策略闭环实施方案.md)。
 
+整合补充：未带 manifest 的语义路径加入升档稳定窗口，保留档位时重查质量/线程/截止约束；manifest 路径继续独立走 ConstrainedPolicy，不被旧三档 PolicyMode 覆盖。公共状态新增 sampledAt，真实电池/充电/温度 30 秒 TTL、CPU/内存 3 秒 TTL；闭环原有 10 秒观测保护同时保留，取更保守结果。显式调试覆盖不按真实采样 TTL 失效，但不能据此绕过闭环观测保护。可运行任务等待 30 秒后优先获得下一空闲槽，不越过保护暂停。兼容执行器可报告 serial_fallback 并排除原计划训练；受控 manifest 执行器禁止静默回退，发现回退会失败/熔断。
+
 本文说明本轮实际代码及边界。旧 API 文档和历史功能介绍中的购物能力名称硬编码、整批索引预热、固定任务类型优先级，不能代表新 `SchedulerClient` 路径。
 
 ## 1. 应用接口与依赖方向
@@ -170,4 +172,6 @@ query_prepare：等待本地数据就绪，整理文本
 
 受约束配置任务的取消看门狗也使用 `STOP_REQUESTED`：超过等待阈值记录 `CANCELLATION_NOT_ACKNOWLEDGED` 并熔断对应配置，保留首次停止时间；不宣称已终止底层调用。全局暂停期间仍执行队列保护检查，但不启动任务。配置改变时从注册表重新寻找支持最终计划的执行器；manifest 配置失效先熔断并重新评估合法 fallback，没有可行配置或执行器时失败。
 
-`scripts/test-semantic-scheduler.ps1` 委托 `native-check.ps1 -Task test` 运行全部调度器测试，同时保留业务依赖扫描和构建日志；最新整合结果见 [合并验收记录](testing/06-merge-integration-acceptance.md)。阶段三的 65 项、协作分线的 76 项及闭环分线的 117 项属于历史验证范围。新增测试文件必须加入 `scheduler/src/test/List.test.ets`，每个测试套件只注册一次；门禁核对声明数与实际执行数，避免遗漏或重复运行被误报为通过。
+`scripts/test-semantic-scheduler.ps1` 委托 `native-check.ps1 -Task test`，同时运行 scheduler 与 entry 两模块，保留业务依赖扫描、构建日志和成功报告归档；最新整合结果见 [第二轮整合验收](testing/07-resource-experiment-integration.md)。65/76/87/117/122 项均是不同历史阶段或分线的范围。新增测试文件必须加入所属模块 List.test.ets，每个测试套件只注册一次；门禁核对新鲜报告、声明/执行数量及失败/错误/忽略。
+
+App 实验导出经系统文件选择器保存；HAR 的 exportAudit 无文件系统或网络副作用，仍不含业务输入输出。实验记录默认只含预设 queryId 与诊断指标；单独勾选后才可导出固定测试语料的结果 externalId 供质量评价。旧 PolicyMode 标签不表示闭环配置处理组；CSV 按实际策略版本、配置、组别、执行路径及前后台状态来源细分，不能据此自动得出三种闭环策略的因果收益。操作见 [手机验证手册](11-手机验证操作手册与结果回传.md)。

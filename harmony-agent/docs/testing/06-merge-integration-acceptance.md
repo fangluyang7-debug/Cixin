@@ -2,6 +2,8 @@
 
 日期：2026-09-21。分支：`harmony/mobile-scheduler`。范围仅限 `harmony-agent`，不修改开发板主线或外层旧鸿蒙工作区。
 
+历史范围：本页对应第一次合并 `4e409af` 的 122 项回归与当时产物；新拉取 `cc12ad4` 的第二轮整合见 [当前验收](07-resource-experiment-integration.md)。共享 semantic-test-result.txt 随最新验证更新。
+
 ## 来源与要求
 
 用户要求：整合当前分支新拉取的文件并提交。本次继续已有 Git merge，不重新拣选、重置或覆盖任一分线历史。

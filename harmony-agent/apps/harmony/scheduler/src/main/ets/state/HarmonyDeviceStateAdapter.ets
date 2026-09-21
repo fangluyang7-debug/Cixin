@@ -1,3 +1,4 @@
+import { memoryKilobytesToMb } from './ResourceUnits';
 import { batteryInfo, BusinessError, commonEventManager, thermal } from '@kit.BasicServicesKit';
 import { hidebug } from '@kit.PerformanceAnalysisKit';
 import { Backend, MemoryPressure, RealDeviceStatePatch, ThermalLevel } from '../api/SchedulerTypes';
@@ -200,12 +201,7 @@ export class HarmonyDeviceStateAdapter {
   }
 
   private normalizeMemoryMb(value: number | bigint): number | null {
-    const numericValue: number = typeof value === 'bigint' ? Number(value) : value;
-    if (!Number.isFinite(numericValue) || numericValue < 0) {
-      return null;
-    }
-    // The installed HarmonyOS SDK declares SystemMemInfo fields in KB.
-    return Math.floor(numericValue / 1024);
+    return memoryKilobytesToMb(value);
   }
 
   private resolveMemoryPressure(availableMemoryMb: number | null, totalMemoryMb: number | null): MemoryPressure {

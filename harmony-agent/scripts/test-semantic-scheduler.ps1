@@ -15,3 +15,5 @@ if ($coupling) { throw 'Application-specific dependency found in the scheduler c
   Tee-Object -FilePath (Join-Path $evidenceRoot 'semantic-unit-build.log')
 $resultPath = Join-Path $appRoot 'scheduler/.test/default/intermediates/test/coverage_data/test_result.txt'
 Copy-Item -LiteralPath $resultPath -Destination (Join-Path $evidenceRoot 'semantic-test-result.txt')
+$entryResultPath = Join-Path $appRoot 'entry/.test/default/intermediates/test/coverage_data/test_result.txt'
+Copy-Item -LiteralPath $entryResultPath -Destination (Join-Path $evidenceRoot 'entry-test-result.txt')

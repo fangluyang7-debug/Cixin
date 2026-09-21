@@ -50,6 +50,7 @@ class ProfileProbe implements WorkloadExecutor<string, string> {
   public calls: number = 0;
   public mismatch: boolean = false;
   public fail: boolean = false;
+  public executionPath: string = 'taskpool';
   public delayMs: number = 1;
   public unsupportedDefault: boolean = false;
   public chunkCount: number = 1;
@@ -65,6 +66,7 @@ class ProfileProbe implements WorkloadExecutor<string, string> {
     if (this.fail) { throw new Error('Synthetic failure'); }
     const profile = plan.executionProfile!;
     const actual: ExecutorTelemetry = { profileId: this.mismatch ? 'WRONG' : profile.id, actualBackend: Backend.CPU,
+      executionPath: this.executionPath,
       actualModelTier: profile.modelTier, workerCount: profile.workerCount, candidateCount: profile.candidateCount,
       batchSize: profile.batchSize, retrievalDimensions: profile.retrievalDimensions };
     if (this.afterSlice !== undefined) { this.afterSlice(); }
@@ -114,6 +116,24 @@ export default function constrainedPolicyTest(): void {
       expect(audit.baselineProfileId).assertEqual('DEFAULT'); expect(audit.shadowProfileId).assertEqual('FAST');
       expect(executor.plans[0].executionProfile!.id).assertEqual('DEFAULT');
       expect(audit.cohort).assertEqual('BASELINE');
+    });
+
+    it('legacyPolicyModesDoNotOverrideManifestObservationBaseline', 0, async () => {
+      register();
+      await service.setPolicyMode(PolicyMode.FIXED_POWER_SAVING);
+      expect((await run()).nodes[0].executionPlan.executionProfile!.id).assertEqual('DEFAULT');
+      await service.setPolicyMode(PolicyMode.FIXED_PERFORMANCE);
+      expect((await run()).nodes[0].executionPlan.executionProfile!.id).assertEqual('DEFAULT');
+    });
+
+    it('rejectsSerialFallbackEvenWhenReportedProfileFieldsMatch', 0, async () => {
+      register(); executor.executionPath = 'serial_fallback';
+      const result = await run();
+      expect(result.status).assertEqual(TaskStatus.FAILED);
+      expect(result.nodes[0].errorCode).assertEqual('EXECUTOR_PROFILE_MISMATCH');
+      expect(service.getRecentLogs(1)[0].telemetry!.actual!.executionPath).assertEqual('serial_fallback');
+      executor.executionPath = 'taskpool';
+      expect((await run()).nodes[0].executionPlan.executionProfile!.id).assertEqual('SAFE');
     });
 
     it('rejectsInvalidProfilesAndTransitions', 0, () => {

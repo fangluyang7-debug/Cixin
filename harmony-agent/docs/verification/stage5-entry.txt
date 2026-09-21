@@ -1,0 +1,23 @@
+class=localUnitTest
+test=assertContain
+result=Success
+class=RealWorkloadPureLogic
+test=enforcesBrandAndUpperPriceTogether
+result=Success
+test=honorsBothBoundsAndIncludesBoundaryPrices
+result=Success
+test=doesNotAcceptUnknownOrRangePricesForHardConstraints
+result=Success
+test=unconstrainedSearchDoesNotDropUnknownPrices
+result=Success
+test=rejectsInconsistentCheckpointWithoutChangingIt
+result=Success
+test=rejectsOldModelCheckpoint
+result=Success
+test=appendsOnlyCompleteValidChunks
+result=Success
+test=waitsForOtherWorkersBeforeAllowingFallback
+result=Success
+test=preservesAllSuccessfulPartitionScores
+result=Success
+Tests run: 10, Failure: 0, Error: 0, Pass: 10, Ignore: 0

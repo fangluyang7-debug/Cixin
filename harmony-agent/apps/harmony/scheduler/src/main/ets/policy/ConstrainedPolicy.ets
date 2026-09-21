@@ -234,7 +234,8 @@ export class ConstrainedPolicy {
   public matches(plan: ExecutionPlan, actual?: ExecutorTelemetry): boolean {
     const profile = plan.executionProfile;
     if (profile === undefined) { return true; }
-    return actual !== undefined && actual.profileId === profile.id && actual.actualModelTier === profile.modelTier &&
+    return actual !== undefined && actual.executionPath !== 'serial_fallback' &&
+      actual.profileId === profile.id && actual.actualModelTier === profile.modelTier &&
       actual.actualBackend === profile.backend && actual.workerCount === profile.workerCount &&
       (actual.actualThreads === undefined || actual.actualThreads === profile.workerCount) &&
       (profile.candidateCount === undefined || actual.candidateCount === profile.candidateCount) &&

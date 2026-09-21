@@ -27,24 +27,26 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'HAR build failed' }
   }
   if ($Task -ne 'build') {
-    $testStarted = Get-Date
-    & $node $hvigor --mode module -p module=scheduler@default -p product=default test --no-daemon
-    if ($LASTEXITCODE -ne 0) { throw 'Native unit tests failed' }
-    $report = Join-Path $projectRoot 'scheduler/.test/default/intermediates/test/coverage_data/test_result.txt'
-    if (-not (Test-Path -LiteralPath $report)) { throw 'Scheduler test report missing' }
-    if ((Get-Item -LiteralPath $report).LastWriteTime -lt $testStarted) { throw 'Scheduler test report is stale' }
-    $results = Get-Content -LiteralPath $report -Raw
-    $declaredCases = 0
-    Get-ChildItem -LiteralPath (Join-Path $projectRoot 'scheduler/src/test') -Filter '*.ets' | ForEach-Object {
-      $declaredCases += [regex]::Matches((Get-Content -LiteralPath $_.FullName -Raw), '(?m)^\s*it\(').Count
+    foreach ($module in @('scheduler', 'entry')) {
+      $testStarted = Get-Date
+      & $node $hvigor --mode module -p "module=$module@default" -p product=default test --no-daemon
+      if ($LASTEXITCODE -ne 0) { throw 'Native unit tests failed' }
+      $report = Join-Path $projectRoot "$module/.test/default/intermediates/test/coverage_data/test_result.txt"
+      if (-not (Test-Path -LiteralPath $report)) { throw "$module test report missing" }
+      if ((Get-Item -LiteralPath $report).LastWriteTime -lt $testStarted) { throw "$module test report is stale" }
+      $results = Get-Content -LiteralPath $report -Raw
+      $declaredCases = 0
+      Get-ChildItem -LiteralPath (Join-Path $projectRoot "$module/src/test") -Filter '*.ets' | ForEach-Object {
+        $declaredCases += [regex]::Matches((Get-Content -LiteralPath $_.FullName -Raw), '(?m)^\s*it\(').Count
+      }
+      $summary = [regex]::Match($results, 'Tests run: (\d+), Failure: (\d+), Error: (\d+), Pass: (\d+), Ignore: (\d+)')
+      if (-not $summary.Success -or $declaredCases -lt $(if ($module -eq 'scheduler') { 87 } else { 10 }) -or [int]$summary.Groups[1].Value -ne $declaredCases -or
+          [int]$summary.Groups[2].Value -ne 0 -or [int]$summary.Groups[3].Value -ne 0 -or
+          [int]$summary.Groups[4].Value -ne [int]$summary.Groups[1].Value -or [int]$summary.Groups[5].Value -ne 0) {
+        throw "$module cases did not all pass: $results"
+      }
+      Write-Output "$module $($summary.Value)"
     }
-    $summary = [regex]::Match($results, 'Tests run: (\d+), Failure: (\d+), Error: (\d+), Pass: (\d+), Ignore: (\d+)')
-    if (-not $summary.Success -or $declaredCases -lt 74 -or [int]$summary.Groups[1].Value -ne $declaredCases -or
-        [int]$summary.Groups[2].Value -ne 0 -or [int]$summary.Groups[3].Value -ne 0 -or
-        [int]$summary.Groups[4].Value -ne [int]$summary.Groups[1].Value -or [int]$summary.Groups[5].Value -ne 0) {
-      throw "Scheduler cases did not all pass: $results"
-    }
-    Write-Output $summary.Value
   }
 } finally {
   Pop-Location

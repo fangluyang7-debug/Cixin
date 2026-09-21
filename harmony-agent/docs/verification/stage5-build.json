@@ -1,0 +1,31 @@
+{
+  "stage": 5,
+  "verifiedAt": "2026-09-21T14:07:53.9373909+08:00",
+  "baseCommit": "a46d07e0b864987a1dac6d8f40e174afac0634b0",
+  "buildCommand": "./scripts/native-check.ps1 -StudioHome '<DevEco Studio>' -Task all",
+  "finalArtifactBuild": "-Task build after final UI wording change",
+  "build": "HAP and HAR successful",
+  "schedulerTests": 87,
+  "entryTests": 10,
+  "pythonSummaryTests": 4,
+  "failures": 0,
+  "errors": 0,
+  "ignored": 0,
+  "businessDependencyScan": "passed",
+  "signing": "unsigned",
+  "phoneValidation": "Pending collaborator execution; see docs/11",
+  "artifacts": [
+    {
+      "path": "apps/harmony/entry/build/default/outputs/default/entry-default-unsigned.hap",
+      "bytes": 11721818,
+      "sha256": "BB275D70A63F9D99A606CAA4F98DE3C13DE8B76B66C4D894C4DADA0134A3E0CE",
+      "modifiedAt": "2026-09-21T14:06:27.9050998+08:00"
+    },
+    {
+      "path": "apps/harmony/scheduler/build/default/outputs/default/scheduler.har",
+      "bytes": 117932,
+      "sha256": "DE7908314B4A069582CB4C08F52F831D53E4F2FF6D81005E3F1B6332F7393790",
+      "modifiedAt": "2026-09-21T14:06:42.8712016+08:00"
+    }
+  ]
+}

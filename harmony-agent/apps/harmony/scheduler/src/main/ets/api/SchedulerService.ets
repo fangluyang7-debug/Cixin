@@ -177,6 +177,7 @@ export class SchedulerService implements SchedulerRuntime {
   private static instance: SchedulerService | null = null;
 
   private initialized: boolean = false;
+  private freshnessTimer: number = -1;
   private policyMode: PolicyMode = PolicyMode.ADAPTIVE;
   private config: SchedulerConfig | null = null;
   private policy: SchedulerPolicy | null = null;
@@ -257,6 +258,7 @@ export class SchedulerService implements SchedulerRuntime {
     this.logHistory = [];
     this.policySwitchCount = 0;
     this.initialized = true;
+    this.freshnessTimer = setInterval(() => { if (this.initialized) { this.updateRealDeviceState({}); } }, 1000);
     this.notifyStateCallbacks();
   }
 
@@ -326,7 +328,17 @@ export class SchedulerService implements SchedulerRuntime {
       if (profile.template.manifest !== undefined) {
         return this.constrainedPolicy.evaluate(profile, stateSnapshot, this.semanticPolicy);
       }
-      return this.semanticPolicy.evaluate(profile, stateSnapshot, this.policyMode);
+      const candidate = this.semanticPolicy.evaluate(profile, stateSnapshot, this.policyMode);
+      if (candidate.inferenceLocation !== InferenceLocation.LOCAL_DEVICE || this.policyMode !== PolicyMode.ADAPTIVE ||
+        candidate.queueAction === QueueAction.REJECT || candidate.queueAction === QueueAction.PAUSE) { return candidate; }
+      const key: string = `semantic:${profile.capability}`;
+      const held = this.hysteresis.apply(candidate as LocalExecutionPlan, Date.now(), key);
+      if (held.modelTier === (candidate as LocalExecutionPlan).modelTier) { return candidate; }
+      // Re-evaluate declared levels instead of inventing thread counts or violating the quality floor.
+      const stable = this.semanticPolicy.evaluate(profile, stateSnapshot, this.policyMode, held.modelTier);
+      if (stable.queueAction === QueueAction.REJECT) { this.hysteresis.reset(key); return candidate; }
+      stable.reasonCodes.push('SEMANTIC_UPGRADE_STABILITY_WAIT');
+      return stable;
     }
     const candidate: ExecutionPlan = this.policy.evaluate(profile, stateSnapshot, this.policyMode);
     candidate.reasonCodes.push('SEMANTICS_UNSPECIFIED');
@@ -768,9 +780,6 @@ export class SchedulerService implements SchedulerRuntime {
     }
     if (this.requireStateController().applyDebugState(patch)) {
       this.protectRunningTask();
-      if (this.hysteresis !== null) {
-        this.hysteresis.reset();
-      }
       this.refreshQueuedPlans();
       this.notifyStateCallbacks();
       this.scheduleDrain();
@@ -780,9 +789,7 @@ export class SchedulerService implements SchedulerRuntime {
   public async clearDebugState(): Promise<void> {
     this.requireInitialized();
     if (this.requireStateController().clearDebugState()) {
-      if (this.hysteresis !== null) {
-        this.hysteresis.reset();
-      }
+      this.protectRunningTask();
       this.refreshQueuedPlans();
       this.notifyStateCallbacks();
       this.scheduleDrain();
@@ -857,6 +864,7 @@ export class SchedulerService implements SchedulerRuntime {
       return;
     }
     this.initialized = false;
+    clearInterval(this.freshnessTimer); this.freshnessTimer = -1;
 
     if (this.taskQueue !== null) {
       const queuedTasks: InternalTask[] = this.taskQueue.clear();
@@ -994,9 +1002,9 @@ export class SchedulerService implements SchedulerRuntime {
         return;
       }
       if (task.plan.policyAudit !== undefined) { task.plan.policyAudit.actualConfirmed = true; }
-      const matchesPlan: boolean = task.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE ||
+      const matchesPlan: boolean = actual?.executionPath !== 'serial_fallback' && (task.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE ||
         ((actual?.actualBackend === undefined || actual.actualBackend === (task.plan as LocalExecutionPlan).backend) &&
-          (actual?.actualThreads === undefined || actual.actualThreads === (task.plan as LocalExecutionPlan).threadCount));
+          (actual?.actualThreads === undefined || actual.actualThreads === (task.plan as LocalExecutionPlan).threadCount)));
       if (!matchesPlan) { task.plan.reasonCodes.push('EXECUTOR_SETTINGS_DIFFER_FROM_PLAN'); }
       if (task.executionState !== undefined && matchesPlan) {
         this.semanticPolicy.observe(task.profile, task.executionState, task.plan, task.lastSliceDurationMs);
@@ -1070,6 +1078,7 @@ export class SchedulerService implements SchedulerRuntime {
 
   private sanitizeTelemetry(actual: ExecutorTelemetry): ExecutorTelemetry {
     return { profileId: actual.profileId, actualModelTier: actual.actualModelTier,
+      executionPath: actual.executionPath,
       actualBackend: actual.actualBackend, actualThreads: actual.actualThreads, workerCount: actual.workerCount,
       retrievalDimensions: actual.retrievalDimensions, candidateCount: actual.candidateCount,
       batchSize: actual.batchSize, modelVersion: actual.modelVersion, modelSizeMb: actual.modelSizeMb,

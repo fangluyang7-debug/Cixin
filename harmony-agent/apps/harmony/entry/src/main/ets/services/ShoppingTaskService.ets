@@ -7,8 +7,8 @@ import {
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
 import { DataInitService } from './DataInitService';
-import { NeuralEmbeddingIndex, NormalizationProgress } from './NeuralEmbeddingIndex';
 import { encoderManifest, searchManifest, warmupManifest } from './ShoppingProfiles';
+import { NeuralEmbeddingIndex, NormalizationProgress, VectorSearchTelemetry } from './NeuralEmbeddingIndex';
 
 type CpuWork<TInput, TOutput> = (input: TInput, plan: LocalExecutionPlan,
   signal: CancellationSignal, checkpoint?: TaskCheckpoint) => Promise<ExecutorResult<TOutput>>;
@@ -102,11 +102,13 @@ export class ShoppingTaskService {
         const dimension: number = plan.executionProfile!.retrievalDimensions!;
         const count: number = NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0;
         if (count !== plan.executionProfile!.candidateCount) { throw new Error('Search profile does not match the loaded candidate set.'); }
+        const actual: VectorSearchTelemetry = { executionPath: 'not_started', configuredPartitions: 0, scannedCount: 0 };
         const found: EmbeddingSearchResult[] = await NeuralEmbeddingIndex.getInstance().searchVector(
-          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20, false);
+          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20, false, input.input, actual);
         return { output: found.map((item: EmbeddingSearchResult) => item.product),
           telemetry: { modelVersion: 'soleai-neural-char-v1', actualBackend: Backend.CPU,
-            workerCount: plan.threadCount, candidateCount: count, retrievalDimensions: dimension,
+            workerCount: actual.configuredPartitions, actualThreads: actual.configuredPartitions,
+            candidateCount: actual.scannedCount, retrievalDimensions: dimension, executionPath: actual.executionPath,
             profileId: plan.executionProfile!.id, actualModelTier: plan.modelTier } };
       }, retrieval.manifest.profiles));
     client.registerExecutor(new ShoppingCpuExecutor<string, number>('index_warmup',
@@ -131,13 +133,13 @@ export class ShoppingTaskService {
       targetLatencyMs: 500, softDeadlineMs: 1500,
       accuracyFloor: highQuality ? ModelTier.HIGH_ACCURACY : ModelTier.LIGHTWEIGHT,
       highQuality: highQuality, businessImportance: 0.8, inputTokens: Math.max(1, query.length),
-      candidateCount: 2700, deduplicationKey: 'search-page', networkAllowed: false
+      candidateCount: NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, deduplicationKey: 'search-page', networkAllowed: false
     });
   }
 
   public warmup(): WorkflowHandle<number> {
     const context: TaskContext = { userVisible: false, userWaiting: false, accuracyFloor: ModelTier.LIGHTWEIGHT,
-      businessImportance: 0.1, candidateCount: 2700, deduplicationKey: 'full-norm-cache-v1', networkAllowed: false };
+      businessImportance: 0.1, candidateCount: NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, deduplicationKey: 'full-norm-cache-v1', networkAllowed: false };
     return this.requireClient().submit<string, number>('index_warmup', 'norm-cache', context);
   }
 

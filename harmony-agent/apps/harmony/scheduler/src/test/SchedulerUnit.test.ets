@@ -348,6 +348,13 @@ export default function schedulerUnitTest(): void {
       expect(plan.priority).assertEqual(TaskPriority.CRITICAL);
     });
 
+    it('rejectsProtectedNonPausableBackgroundInsteadOfPretendingToThrottle', 0, () => {
+      const profile = createProfile(TaskType.BACKGROUND_BATCH);
+      profile.allowPause = false;
+      const plan = policy.evaluate(profile, createState(80, true, ThermalLevel.HOT), PolicyMode.ADAPTIVE);
+      expect(plan.queueAction).assertEqual(QueueAction.REJECT);
+    });
+
     it('pausesBackgroundWorkWhenHot', 0, () => {
       const plan: ExecutionPlan = policy.evaluate(
         createProfile(TaskType.BACKGROUND_BATCH),

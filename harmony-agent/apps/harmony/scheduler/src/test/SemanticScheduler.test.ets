@@ -70,6 +70,36 @@ export default function semanticSchedulerTest(): void {
     });
     afterEach(async () => { await client.dispose(); await service.shutdown(); });
 
+    it('holdsSemanticUpgradeButNeverViolatesAnExplicitQualityFloor', 0, async () => {
+      client.registerTemplate(template());
+      const executor = new ProbeExecutor(); client.registerExecutor(executor);
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT });
+      await client.submit<string, string>('generic', 'low', context()).result;
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.NORMAL });
+      const held = await client.submit<string, string>('generic', 'recovering', context()).result;
+      expect((held.nodes[0].executionPlan as LocalExecutionPlan).modelTier).assertEqual(ModelTier.LIGHTWEIGHT);
+      expect(held.nodes[0].executionPlan.reasonCodes.indexOf('SEMANTIC_UPGRADE_STABILITY_WAIT') >= 0).assertTrue();
+      const strict = context(); strict.highQuality = true;
+      const upgraded = await client.submit<string, string>('generic', 'quality', strict).result;
+      expect(upgraded.status).assertEqual(TaskStatus.SUCCEEDED);
+      expect((upgraded.nodes[0].executionPlan as LocalExecutionPlan).modelTier).assertEqual(ModelTier.HIGH_ACCURACY);
+    });
+
+    it('semanticHoldKeepsDeclaredThreadCountsAndPredictionMetadata', 0, async () => {
+      const declared = template();
+      declared.qualityLevels.forEach((level: QualityLevel) => { level.supportedThreadCounts = [1]; });
+      client.registerTemplate(declared);
+      const executor = new ProbeExecutor(); client.registerExecutor(executor);
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT });
+      await client.submit<string, string>('generic', 'low', context()).result;
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.NORMAL });
+      const result = await client.submit<string, string>('generic', 'recovering', context()).result;
+      const plan = result.nodes[0].executionPlan as LocalExecutionPlan;
+      expect(plan.threadCount).assertEqual(1);
+      expect(plan.prediction !== undefined).assertTrue();
+      expect(plan.qualityLevelId).assertEqual(ModelTier.LIGHTWEIGHT);
+    });
+
     it('registersImmutableTemplateAndDeliversOpaqueInput', 0, async () => {
       const declared: TaskTemplate = template();
       client.registerTemplate(declared);
@@ -307,6 +337,20 @@ export default function semanticSchedulerTest(): void {
       const result = await handle.result;
       expect(result.output === null).assertTrue();
       expect(result.nodes[0].errorCode).assertEqual('QUALITY_CONSTRAINT_CHANGED');
+    });
+
+    it('clearingOverlayImmediatelyRestoresRealDeviceProtection', 0, async () => {
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.CRITICAL });
+      await service.injectDebugState({ thermalLevel: ThermalLevel.NORMAL });
+      client.registerTemplate(template());
+      const executor = new ProbeExecutor(); executor.delayMs = 30; client.registerExecutor(executor);
+      const handle = client.submit<string, string>('generic', 'input', context());
+      await sleep(5);
+      expect(executor.calls).assertEqual(1);
+      await service.clearDebugState();
+      const result = await handle.result;
+      expect(result.nodes[0].errorCode).assertEqual('DEVICE_PROTECTION');
+      expect(result.output === null).assertTrue();
     });
 
     it('requestsStopAtCriticalDeviceState', 0, async () => {

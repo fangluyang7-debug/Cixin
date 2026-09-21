@@ -249,6 +249,7 @@ export interface DeviceState {
   freeMemoryMb: number | null;
   availableMemoryMb: number | null;
   availableBackends: Backend[];
+  sampledAt?: Record<string, number>;
   source: DeviceStateSource;
   capturedAt: number;
 }
@@ -446,6 +447,7 @@ export interface ExecutorTelemetry {
   modelSizeMb?: number;
   actualBackend?: Backend;
   actualThreads?: number;
+  executionPath?: string;
   peakMemoryMb?: number;
   inputTokens?: number;
   inputShape?: number[];
