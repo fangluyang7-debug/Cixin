@@ -1,4 +1,5 @@
 import { promptAction, router } from '@kit.ArkUI';
+import { ConstrainedPolicyMode, PolicyMetricsGroup } from 'scheduler';
 import {
   AccuracyPreference,
   AppVisibility,
@@ -53,6 +54,11 @@ struct SchedulerPanelPage {
   private metricsRefreshTimerId: number = -1;
 
   @State isReady: boolean = false;
+  @State closedLoopMode: ConstrainedPolicyMode = ConstrainedPolicyMode.OBSERVE;
+  @State closedLoopVersion: string = '';
+  @State localFeedbackEnabled: boolean = false;
+  @State policyStorageStatus: string = '';
+  @State profileMetrics: PolicyMetricsGroup[] = [];
   @State isBusy: boolean = false;
   @State feedbackText: string = '';
   @State deviceState: DeviceState | null = null;
@@ -174,6 +180,12 @@ struct SchedulerPanelPage {
       return;
     }
     this.metrics = this.schedulerService.getMetricsSnapshot();
+    const policy = this.schedulerService.getConstrainedPolicy();
+    this.closedLoopMode = policy.mode;
+    this.closedLoopVersion = policy.version;
+    this.localFeedbackEnabled = this.schedulerService.isFeedbackEnabled();
+    this.policyStorageStatus = this.schedulerService.getPolicyStorageStatus();
+    this.profileMetrics = this.schedulerService.getPolicyMetrics();
     this.logs = this.schedulerService.getRecentLogs(20).slice().reverse();
     this.metricsRefreshTick++;
   }
@@ -1497,6 +1509,17 @@ struct SchedulerPanelPage {
         .fontColor('#667085')
         .width('100%')
 
+      if (entry.executionPlan.policyAudit !== undefined) {
+        Text(`${entry.executionPlan.policyAudit.mode} / ${entry.executionPlan.policyAudit.version}`)
+          .fontSize(11).width('100%').fontColor('#344054')
+        Text(`基线 ${entry.executionPlan.policyAudit.baselineProfileId} · 影子 ${entry.executionPlan.policyAudit.shadowProfileId ?? '-'} · 执行 ${entry.executionPlan.policyAudit.actualProfileId}`)
+          .fontSize(11).width('100%').fontColor('#344054')
+        Text(`预测 ${Math.round(entry.executionPlan.prediction?.latencyMs ?? 0)} ms · 实际 ${entry.executionDurationMs ?? '-'} ms · 配置确认 ${entry.executionPlan.policyAudit.actualConfirmed === true ? '是' : '否'}`)
+          .fontSize(11).width('100%').fontColor('#475467')
+        Text(`回退 ${entry.executionPlan.policyAudit.fallbackReason ?? '无'} · 反馈 ${entry.telemetry?.userFeedback?.option ?? '无'}`)
+          .fontSize(11).width('100%').fontColor('#475467')
+      }
+
       if (entry.executionPlan.reasonCodes.length > 0) {
         Text(entry.executionPlan.reasonCodes.join(' / '))
           .fontSize(10)
@@ -1535,7 +1558,7 @@ struct SchedulerPanelPage {
             .fontSize(21)
             .fontWeight(FontWeight.Bold)
             .fontColor('#172B4D')
-          Text('多后端硬件异构 (NPU/CPU/GPU) · 动态感知调度')
+          Text('本地 CPU 任务 · 资源状态 · 受约束策略')
             .fontSize(11)
             .fontColor('#667085')
         }
@@ -1585,6 +1608,41 @@ struct SchedulerPanelPage {
                 .backgroundColor('#EEF4FF')
                 .borderRadius(8)
             }
+
+            Column({ space: 10 }) {
+              Text('策略闭环').fontSize(17).fontWeight(FontWeight.Bold).width('100%')
+              Select([{ value: 'OBSERVE' }, { value: 'SHADOW' }])
+                .selected(this.closedLoopMode === ConstrainedPolicyMode.SHADOW ? 1 : 0)
+                .value(this.closedLoopMode)
+                .onSelect((index: number) => {
+                  const policy = this.schedulerService.getConstrainedPolicy();
+                  policy.version = `panel-${Date.now()}`;
+                  policy.mode = index === 1 ? ConstrainedPolicyMode.SHADOW : ConstrainedPolicyMode.OBSERVE;
+                  policy.rules = [{ capability: 'vector_retrieve',
+                    allowedProfileIds: ['SEARCH_HIGH', 'SEARCH_SAFE', 'SEARCH_BALANCED', 'SEARCH_FAST'],
+                    preferredProfileId: 'SEARCH_BALANCED' }];
+                  policy.rolloutPercent = 0;
+                  this.schedulerService.configureConstrainedPolicy(policy);
+                  this.refreshMetricsAndLogs();
+                })
+              Text(`${this.closedLoopVersion} · ${this.policyStorageStatus}`).fontSize(11).width('100%')
+              Text('CANARY / ACTIVE：待真机基线与质量验收').fontSize(12).fontColor('#667085').width('100%')
+              Button('停用策略优化').fontSize(12).onClick(() => {
+                this.schedulerService.disablePolicyOptimization(); this.refreshMetricsAndLogs();
+              })
+              Row() {
+                Text('本地体验反馈').fontSize(14).layoutWeight(1)
+                Toggle({ type: ToggleType.Switch, isOn: this.localFeedbackEnabled }).onChange((enabled: boolean) => {
+                  this.schedulerService.setFeedbackEnabled(enabled); this.localFeedbackEnabled = enabled;
+                })
+              }.width('100%')
+              Text('选项答案仅用于本机分析，不采集搜索词、图片或商品结果，不上传云端。')
+                .fontSize(11).fontColor('#667085').width('100%')
+              ForEach(this.profileMetrics.slice(-8), (group: PolicyMetricsGroup) => {
+                Text(`${group.profileId} / ${group.cohort} / n=${group.count}\nP50 ${Math.round(group.p50Ms)} ms · P95 ${Math.round(group.p95Ms)} ms · 成功 ${Math.round(group.successRate * 100)}% · 回退 ${group.fallbackCount}`)
+                  .fontSize(11).width('100%')
+              })
+            }.width('100%').alignItems(HorizontalAlign.Start)
 
             this.sectionTitle('设备状态 & 可用硬件后端', '感知端侧硬件能力与系统温度、电量')
             if (this.deviceState !== null) {

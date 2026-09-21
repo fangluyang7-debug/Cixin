@@ -101,7 +101,7 @@ export class NeuralEmbeddingIndex {
   }
 
   public async searchVector(queryVector: Float32Array, requestedDimension: number,
-    requestedPartitions: number, topK: number): Promise<EmbeddingSearchResult[]> {
+    requestedPartitions: number, topK: number, allowSerialFallback: boolean = true): Promise<EmbeddingSearchResult[]> {
     await this.waitUntilReady();
     if (this.artifact === null || this.products.length === 0) {
       return [];
@@ -163,6 +163,7 @@ export class NeuralEmbeddingIndex {
       }
       return this.selectTopResults(scores, topK);
     } catch (error) {
+      if (!allowSerialFallback) { throw new Error('Declared TaskPool search profile failed.'); }
       hilog.error(
         0x0000,
         'NeuralEmbeddingIndex',

@@ -63,3 +63,9 @@ export {
   DuplicatePolicy, PrivacyPolicy, DependencyFailurePolicy, WorkflowNode, WorkflowInput,
   WorkflowResult, WorkflowHandle
 } from './src/main/ets/api/SchedulerTypes';
+export {
+  ExecutionProfile, TaskCapabilityManifest, ProfileTransition, ConstrainedPolicyMode,
+  ConstrainedPolicyConfig, CapabilityPolicyRule, NonInferiorityThresholds, PolicyDecisionAudit,
+  UtilityComponents, FeedbackKind, FeedbackOption, FeedbackRequest, UserFeedback,
+  StateObservation, PolicyStateStore, PolicyMetricsGroup
+} from './src/main/ets/api/SchedulerTypes';

@@ -2,12 +2,13 @@ import {
   Backend, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan, ExecutorResult,
   InferenceLocation, Interruptibility, LocalExecutionPlan, ModelTier, PrivacyPolicy, QualityLevel,
   SchedulerClient, SchedulerRuntime, TaskCheckpoint, TaskContext, TaskTemplate, TaskType,
-  WorkflowHandle, WorkflowInput, WorkloadExecutor
+  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest
 } from 'scheduler';
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
 import { DataInitService } from './DataInitService';
 import { NeuralEmbeddingIndex, NormalizationProgress } from './NeuralEmbeddingIndex';
+import { encoderManifest, searchManifest, warmupManifest } from './ShoppingProfiles';
 
 type CpuWork<TInput, TOutput> = (input: TInput, plan: LocalExecutionPlan,
   signal: CancellationSignal, checkpoint?: TaskCheckpoint) => Promise<ExecutorResult<TOutput>>;
@@ -16,9 +17,17 @@ class ShoppingCpuExecutor<TInput, TOutput> implements WorkloadExecutor<TInput, T
   public readonly inferenceLocation: InferenceLocation = InferenceLocation.LOCAL_DEVICE;
   public readonly capability: string;
   private readonly work: CpuWork<TInput, TOutput>;
-  constructor(capability: string, work: CpuWork<TInput, TOutput>) { this.capability = capability; this.work = work; }
+  private readonly profiles: ExecutionProfile[];
+  constructor(capability: string, work: CpuWork<TInput, TOutput>, profiles: ExecutionProfile[] = []) {
+    this.capability = capability; this.work = work;
+    this.profiles = JSON.parse(JSON.stringify(profiles)) as ExecutionProfile[];
+  }
   public supports(plan: ExecutionPlan): boolean {
-    return plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE && (plan as LocalExecutionPlan).backend === Backend.CPU;
+    if (plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE || (plan as LocalExecutionPlan).backend !== Backend.CPU) { return false; }
+    if (this.profiles.length === 0) { return plan.executionProfile === undefined; }
+    const declared = this.profiles.find((item: ExecutionProfile) => item.id === plan.executionProfile?.id);
+    return declared !== undefined && JSON.stringify(declared) === JSON.stringify(plan.executionProfile) &&
+      (plan as LocalExecutionPlan).threadCount === declared.workerCount && (plan as LocalExecutionPlan).modelTier === declared.modelTier;
   }
   public execute(input: TInput, plan: ExecutionPlan, signal: CancellationSignal,
     checkpoint?: TaskCheckpoint): Promise<ExecutorResult<TOutput>> {
@@ -44,10 +53,14 @@ export class ShoppingTaskService {
     const prepare: TaskTemplate = this.leaf('query_prepare', TaskType.USER_INITIATED, 2, 'text-normalize-v1');
     prepare.qualityLevels.forEach((level: QualityLevel) => { level.supportedThreadCounts = [1]; });
     client.registerTemplate(prepare);
-    client.registerTemplate(this.leaf('text_encode', TaskType.USER_INITIATED, 40, 'soleai-neural-char-v1'));
+    const encoder = this.leaf('text_encode', TaskType.USER_INITIATED, 40, 'soleai-neural-char-v1');
+    encoder.interruptibility = Interruptibility.NON_INTERRUPTIBLE;
+    encoder.manifest = encoderManifest();
+    client.registerTemplate(encoder);
     const retrieval: TaskTemplate = this.leaf('vector_retrieve', TaskType.USER_INITIATED, 35, 'soleai-neural-char-v1');
     retrieval.qualityLevels[1].estimatedLatencyMs = 15;
     retrieval.qualityLevels[2].estimatedLatencyMs = 8;
+    retrieval.manifest = searchManifest();
     client.registerTemplate(retrieval);
     const search: TaskTemplate = this.leaf('product_search', TaskType.USER_INITIATED, 100, 'search-workflow-v1');
     search.duplicatePolicy = DuplicatePolicy.KEEP_LATEST;
@@ -66,6 +79,7 @@ export class ShoppingTaskService {
       estimatedLatencyMs: 8, estimatedMemoryMb: 8, relativeEnergyCost: 0.2,
       supportedBackends: [Backend.CPU], supportedThreadCounts: [1] }];
     background.timeoutMs = 30000;
+    background.manifest = warmupManifest();
     client.registerTemplate(background);
     const preview: TaskTemplate = this.leaf('preview_placeholder', TaskType.FOREGROUND_REALTIME, 1, 'placeholder-v1');
     preview.duplicatePolicy = DuplicatePolicy.KEEP_LATEST;
@@ -80,28 +94,33 @@ export class ShoppingTaskService {
       async (input: WorkflowInput<string>, plan: LocalExecutionPlan): Promise<ExecutorResult<Float32Array>> => {
         const vector: Float32Array = await NeuralEmbeddingIndex.getInstance().encodeQuery(input.outputs['prepare'] as string, plan.threadCount);
         return { output: vector, telemetry: { modelVersion: 'soleai-neural-char-v1', modelSizeMb: 5.51,
-          actualBackend: Backend.CPU, actualThreads: plan.threadCount } };
-      }));
+          actualBackend: Backend.CPU, actualThreads: plan.threadCount, workerCount: plan.threadCount,
+          profileId: plan.executionProfile!.id, actualModelTier: ModelTier.HIGH_ACCURACY } };
+      }, encoder.manifest.profiles));
     client.registerExecutor(new ShoppingCpuExecutor<WorkflowInput<string>, Product[]>('vector_retrieve',
       async (input: WorkflowInput<string>, plan: LocalExecutionPlan): Promise<ExecutorResult<Product[]>> => {
-        const dimension: number = plan.modelTier === ModelTier.HIGH_ACCURACY ? 256 : plan.modelTier === ModelTier.BALANCED ? 64 : 16;
+        const dimension: number = plan.executionProfile!.retrievalDimensions!;
+        const count: number = NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0;
+        if (count !== plan.executionProfile!.candidateCount) { throw new Error('Search profile does not match the loaded candidate set.'); }
         const found: EmbeddingSearchResult[] = await NeuralEmbeddingIndex.getInstance().searchVector(
-          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20);
+          input.outputs['encode'] as Float32Array, dimension, plan.threadCount, 20, false);
         return { output: found.map((item: EmbeddingSearchResult) => item.product),
           telemetry: { modelVersion: 'soleai-neural-char-v1', actualBackend: Backend.CPU,
-            actualThreads: plan.threadCount, candidateCount: 2700 } };
-      }));
+            workerCount: plan.threadCount, candidateCount: count, retrievalDimensions: dimension,
+            profileId: plan.executionProfile!.id, actualModelTier: plan.modelTier } };
+      }, retrieval.manifest.profiles));
     client.registerExecutor(new ShoppingCpuExecutor<string, number>('index_warmup',
-      async (_input: string, _plan: LocalExecutionPlan, signal: CancellationSignal,
+      async (_input: string, plan: LocalExecutionPlan, signal: CancellationSignal,
         checkpoint?: TaskCheckpoint): Promise<ExecutorResult<number>> => {
         const progress: NormalizationProgress = await NeuralEmbeddingIndex.getInstance().rebuildNormalizationChunk(
-          checkpoint === undefined ? undefined : checkpoint.data as NormalizationProgress, signal);
+          checkpoint === undefined ? undefined : checkpoint.data as NormalizationProgress, signal, plan.executionProfile!.batchSize!);
         const total: number = NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0;
         return { output: progress.cursor, completed: progress.cursor >= total,
           checkpoint: { cursor: progress.cursor, data: progress },
-          telemetry: { modelVersion: progress.modelVersion, actualBackend: Backend.CPU, actualThreads: 1,
-            candidateCount: Math.min(128, total - (checkpoint?.cursor ?? 0)) } };
-      }));
+          telemetry: { modelVersion: progress.modelVersion, actualBackend: Backend.CPU, workerCount: 1,
+            profileId: plan.executionProfile!.id, actualModelTier: ModelTier.LIGHTWEIGHT,
+            batchSize: plan.executionProfile!.batchSize!, candidateCount: progress.cursor - (checkpoint?.cursor ?? 0) } };
+      }, background.manifest.profiles));
     client.registerExecutor(new ShoppingCpuExecutor<string, string>('preview_placeholder',
       async (input: string): Promise<ExecutorResult<string>> => ({ output: input })));
   }
@@ -109,6 +128,7 @@ export class ShoppingTaskService {
   public search(query: string, highQuality: boolean = false): WorkflowHandle<Product[]> {
     return this.requireClient().submit<string, Product[]>('product_search', query, {
       deadlineMs: 3000, freshnessMs: 4000, userVisible: true, userWaiting: true,
+      targetLatencyMs: 500, softDeadlineMs: 1500,
       accuracyFloor: highQuality ? ModelTier.HIGH_ACCURACY : ModelTier.LIGHTWEIGHT,
       highQuality: highQuality, businessImportance: 0.8, inputTokens: Math.max(1, query.length),
       candidateCount: 2700, deduplicationKey: 'search-page', networkAllowed: false
@@ -131,6 +151,8 @@ export class ShoppingTaskService {
   public async dispose(): Promise<void> {
     if (this.client !== null) { await this.client.dispose(); this.client = null; }
   }
+
+  public feedbackRequest(workflowId: string): FeedbackRequest | null { return this.requireClient().getFeedbackRequest(workflowId); }
 
   private requireClient(): SchedulerClient {
     if (this.client === null) { throw new Error('Shopping task client is not initialized.'); }

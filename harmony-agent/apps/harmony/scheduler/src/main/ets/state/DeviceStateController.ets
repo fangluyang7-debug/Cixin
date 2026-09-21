@@ -6,6 +6,7 @@ import {
   DeviceStateSource,
   MemoryPressure,
   RealDeviceStatePatch,
+  StateObservation,
   ThermalLevel
 } from '../api/SchedulerTypes';
 import { SchedulerError, SchedulerErrorCode } from '../api/SchedulerError';
@@ -13,6 +14,7 @@ import { SchedulerError, SchedulerErrorCode } from '../api/SchedulerError';
 export class DeviceStateController {
   private realState: DeviceState;
   private debugPatch: DebugStatePatch | null = null;
+  private debugObservations: StateObservation[] = [];
   private effectiveState: DeviceState;
 
   constructor() {
@@ -36,6 +38,7 @@ export class DeviceStateController {
     this.validatePatch(patch);
     const previous: DeviceState = this.effectiveState;
     this.debugPatch = this.mergeDebugPatch(this.debugPatch, patch);
+    this.debugObservations = this.observations(this.debugObservations, patch, capturedAt, 'DEBUG_INJECTION');
     this.effectiveState = this.composeEffectiveState(capturedAt);
     return !this.hasSameValues(previous, this.effectiveState);
   }
@@ -46,12 +49,14 @@ export class DeviceStateController {
     }
     const previous: DeviceState = this.effectiveState;
     this.debugPatch = null;
+    this.debugObservations = [];
     this.effectiveState = this.composeEffectiveState(capturedAt);
     return !this.hasSameValues(previous, this.effectiveState);
   }
 
   private mergeRealState(current: DeviceState, patch: RealDeviceStatePatch, capturedAt: number): DeviceState {
     return {
+      observations: this.observations(current.observations ?? [], patch, capturedAt, 'HOST_ADAPTER'),
       batteryPercent: patch.batteryPercent === undefined ? current.batteryPercent : patch.batteryPercent,
       isCharging: patch.isCharging === undefined ? current.isCharging : patch.isCharging,
       thermalLevel: patch.thermalLevel === undefined ? current.thermalLevel : patch.thermalLevel,
@@ -101,6 +106,8 @@ export class DeviceStateController {
 
     const patch: DebugStatePatch = this.debugPatch;
     return {
+      observations: (this.realState.observations ?? []).filter((item: StateObservation) =>
+        !this.debugObservations.some((debug: StateObservation) => debug.field === item.field)).concat(this.debugObservations),
       batteryPercent: patch.batteryPercent === undefined ? this.realState.batteryPercent : patch.batteryPercent,
       isCharging: patch.isCharging === undefined ? this.realState.isCharging : patch.isCharging,
       thermalLevel: patch.thermalLevel === undefined ? this.realState.thermalLevel : patch.thermalLevel,
@@ -208,6 +215,7 @@ export class DeviceStateController {
 
   private cloneState(state: DeviceState): DeviceState {
     return {
+      observations: JSON.parse(JSON.stringify(state.observations ?? [])) as StateObservation[],
       batteryPercent: state.batteryPercent,
       isCharging: state.isCharging,
       thermalLevel: state.thermalLevel,
@@ -228,6 +236,7 @@ export class DeviceStateController {
 
   private createDefaultState(): DeviceState {
     return {
+      observations: [],
       batteryPercent: null,
       isCharging: null,
       thermalLevel: ThermalLevel.UNKNOWN,
@@ -244,5 +253,26 @@ export class DeviceStateController {
       source: DeviceStateSource.REAL,
       capturedAt: Date.now()
     };
+  }
+
+  private observations(previous: StateObservation[], patch: RealDeviceStatePatch | DebugStatePatch,
+    now: number, source: string): StateObservation[] {
+    const changes: StateObservation[] = [];
+    if (patch.batteryPercent !== undefined || patch.isCharging !== undefined) {
+      changes.push({ field: 'battery', source: source, observedAtMs: now, known: patch.batteryPercent !== null && patch.isCharging !== null });
+    }
+    if (patch.thermalLevel !== undefined) {
+      changes.push({ field: 'thermal', source: source, observedAtMs: now, known: patch.thermalLevel !== ThermalLevel.UNKNOWN });
+    }
+    if (patch.memoryPressure !== undefined || patch.availableMemoryMb !== undefined) {
+      changes.push({ field: 'memory', source: source, observedAtMs: now,
+        known: patch.memoryPressure !== MemoryPressure.UNKNOWN && patch.availableMemoryMb !== null });
+    }
+    if (patch.systemCpuUsage !== undefined) { changes.push({ field: 'cpu', source: source, observedAtMs: now, known: patch.systemCpuUsage !== null }); }
+    if (patch.appVisibility !== undefined) { changes.push({ field: 'visibility', source: source, observedAtMs: now, known: true }); }
+    if (patch.availableBackends !== undefined) { changes.push({ field: 'backends', source: source, observedAtMs: now, known: true }); }
+    const supplied = (patch as RealDeviceStatePatch).observations ?? [];
+    const merged = changes.filter((item: StateObservation) => !supplied.some((other: StateObservation) => other.field === item.field)).concat(supplied);
+    return previous.filter((item: StateObservation) => !merged.some((other: StateObservation) => other.field === item.field)).concat(merged);
   }
 }

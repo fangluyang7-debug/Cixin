@@ -30,6 +30,11 @@ import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 import { ExecutorTelemetry, Interruptibility, MemoryPressure, TaskCheckpoint, TaskSignal, TaskSignalType, TaskTelemetry, ThermalLevel } from './SchedulerTypes';
 import { qualityRank, SemanticPolicy } from '../policy/SemanticPolicy';
 import { SchedulerRuntime } from './SchedulerClient';
+import { ConstrainedPolicyConfig, FeedbackRequest, PolicyMetricsGroup, TaskContext, TaskTemplate } from './SchedulerTypes';
+import { ConstrainedPolicy } from '../policy/ConstrainedPolicy';
+import { FeedbackController } from '../policy/FeedbackController';
+import { policyMetrics } from '../policy/PolicyMetrics';
+import { validateManifest } from '../policy/ProfileContract';
 import { HysteresisController } from '../policy/HysteresisController';
 import { SchedulerPolicy } from '../policy/SchedulerPolicy';
 import { DeviceStateController } from '../state/DeviceStateController';
@@ -47,6 +52,10 @@ type CancelCallback = () => Promise<boolean>;
 type StatusCallback = () => TaskStatus;
 
 interface InternalTask extends QueueItem {
+  firstExecutionKey?: string;
+  mixedExecution: boolean;
+  executedProfileIds: string[];
+  cancellationWatchdog: number;
   capability: string;
   profile: TaskProfile;
   plan: ExecutionPlan;
@@ -68,6 +77,13 @@ interface InternalTask extends QueueItem {
   executionState?: DeviceState;
   manualPriority?: TaskPriority;
   lastSliceDurationMs: number;
+}
+
+interface LocalPolicySnapshot {
+  schema: number;
+  policy: string;
+  feedback: string;
+  feedbackEnabled: boolean;
 }
 
 class TaskDeferred<TOutput> {
@@ -144,7 +160,7 @@ class FunctionWorkloadExecutor<TInput, TOutput> implements WorkloadExecutor<TInp
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task was cancelled before execution.');
     }
-    const output: TOutput = await this.callback(input, plan);
+    const output: TOutput = await this.callback(input, plan, signal);
     if (signal.isCancellationRequested) {
       throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task result was discarded after cancellation.');
     }
@@ -163,6 +179,11 @@ export class SchedulerService implements SchedulerRuntime {
   private config: SchedulerConfig | null = null;
   private policy: SchedulerPolicy | null = null;
   private semanticPolicy: SemanticPolicy = new SemanticPolicy();
+  private constrainedPolicy: ConstrainedPolicy = new ConstrainedPolicy();
+  private feedbackController: FeedbackController = new FeedbackController();
+  private persistence: Promise<void> = Promise.resolve();
+  private persistTimer: number = -1;
+  private storageStatus: string = 'MEMORY_ONLY';
   private hysteresis: HysteresisController | null = null;
   private stateController: DeviceStateController | null = null;
   private executorRegistry: ExecutorRegistry | null = null;
@@ -201,6 +222,23 @@ export class SchedulerService implements SchedulerRuntime {
     this.policyMode = config.defaultPolicyMode;
     this.policy = new SchedulerPolicy();
     this.semanticPolicy = new SemanticPolicy();
+    this.constrainedPolicy = new ConstrainedPolicy();
+    this.feedbackController = new FeedbackController();
+    if (config.constrainedPolicy !== undefined) { this.constrainedPolicy.configure(config.constrainedPolicy); }
+    if (config.policyStateStore !== undefined) {
+      try {
+        const raw: string | null = await config.policyStateStore.load();
+        if (raw !== null) {
+          if (raw.length > 80000) { throw new Error('Policy snapshot too large.'); }
+          const snapshot = JSON.parse(raw) as LocalPolicySnapshot;
+          if (snapshot.schema !== 1 || typeof snapshot.policy !== 'string' || typeof snapshot.feedback !== 'string' ||
+            typeof snapshot.feedbackEnabled !== 'boolean' || !this.constrainedPolicy.restoreState(snapshot.policy) ||
+            !this.feedbackController.restoreState(snapshot.feedback)) { throw new Error('Invalid local policy snapshot.'); }
+          this.feedbackController.setEnabled(snapshot.feedbackEnabled);
+        }
+        this.storageStatus = 'LOCAL_PRIVATE_STORE';
+      } catch (_) { this.storageStatus = 'STORE_INVALID_OR_UNAVAILABLE'; this.constrainedPolicy.disable(); }
+    }
     this.hysteresis = new HysteresisController(
       config.upgradeStableDurationMs,
       config.minimumTierHoldMs
@@ -282,6 +320,9 @@ export class SchedulerService implements SchedulerRuntime {
     this.evaluationCount++;
     const stateSnapshot: DeviceState = state === undefined ? this.getDeviceState() : state;
     if (profile.template !== undefined && profile.context !== undefined) {
+      if (profile.template.manifest !== undefined) {
+        return this.constrainedPolicy.evaluate(profile, stateSnapshot, this.semanticPolicy);
+      }
       return this.semanticPolicy.evaluate(profile, stateSnapshot, this.policyMode);
     }
     const candidate: ExecutionPlan = this.policy.evaluate(profile, stateSnapshot, this.policyMode);
@@ -360,7 +401,7 @@ export class SchedulerService implements SchedulerRuntime {
 
     const profile: TaskProfile = this.createTaskProfile(request);
     const deviceState: DeviceState = this.getDeviceState();
-    const plan: ExecutionPlan = this.evaluate(profile, deviceState);
+    let plan: ExecutionPlan = this.evaluate(profile, deviceState);
     const queuedAt: number = Date.now();
     if (plan.queueAction === QueueAction.REJECT && request.template === undefined) {
       throw new SchedulerError(
@@ -369,8 +410,16 @@ export class SchedulerService implements SchedulerRuntime {
       );
     }
 
-    const executor: WorkloadExecutor<TInput, TOutput> | null =
+    let executor: WorkloadExecutor<TInput, TOutput> | null =
       this.requireExecutorRegistry().find<TInput, TOutput>(request.capability, plan);
+    if (executor === null && request.template?.manifest !== undefined && plan.queueAction !== QueueAction.REJECT &&
+      plan.queueAction !== QueueAction.PAUSE) {
+      this.constrainedPolicy.trip(request.template.capability, plan, 'EXECUTOR_UNSUPPORTED_CIRCUIT');
+      this.queuePolicySave();
+      plan = this.evaluate(profile, deviceState);
+      executor = this.requireExecutorRegistry().find<TInput, TOutput>(request.capability, plan);
+      if (executor === null) { plan.queueAction = QueueAction.REJECT; plan.reasonCodes.push('FALLBACK_EXECUTOR_UNAVAILABLE'); }
+    }
     if (executor === null && plan.queueAction !== QueueAction.REJECT && plan.queueAction !== QueueAction.PAUSE) {
       throw new SchedulerError(
         SchedulerErrorCode.CAPABILITY_UNAVAILABLE,
@@ -381,18 +430,19 @@ export class SchedulerService implements SchedulerRuntime {
     const deferred: TaskDeferred<TOutput> = new TaskDeferred<TOutput>();
     const execute: InternalExecute = async (currentPlan: ExecutionPlan, signal: CancellationSignal,
       checkpoint?: TaskCheckpoint): Promise<ExecutorResult<Object>> => {
-      const currentExecutor: WorkloadExecutor<TInput, TOutput> | null = executor ??
+      const currentExecutor: WorkloadExecutor<TInput, TOutput> | null =
         this.requireExecutorRegistry().find<TInput, TOutput>(request.capability, currentPlan);
       if (currentExecutor === null || !currentExecutor.supports(currentPlan)) {
         throw new SchedulerError(SchedulerErrorCode.CAPABILITY_UNAVAILABLE, 'Executor does not support refreshed plan.');
       }
-      if (checkpoint === undefined && currentExecutor.warmup !== undefined) {
-        await currentExecutor.warmup(currentPlan);
+      if (checkpoint === undefined && currentExecutor.warmup !== undefined && currentPlan.executionProfile?.allowWarmup !== false) {
+        await currentExecutor.warmup(JSON.parse(JSON.stringify(currentPlan)) as ExecutionPlan);
       }
       if (signal.isCancellationRequested) {
         throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task stopped during warmup.');
       }
-      const executorResult: ExecutorResult<TOutput> = await currentExecutor.execute(request.input, currentPlan, signal, checkpoint);
+      const executorResult: ExecutorResult<TOutput> = await currentExecutor.execute(request.input,
+        JSON.parse(JSON.stringify(currentPlan)) as ExecutionPlan, signal, checkpoint);
       return { output: executorResult.output as Object, completed: executorResult.completed,
         checkpoint: executorResult.checkpoint, telemetry: executorResult.telemetry };
     };
@@ -426,6 +476,9 @@ export class SchedulerService implements SchedulerRuntime {
       startedAt: null,
       complete: complete,
       manualPaused: false,
+      cancellationWatchdog: -1,
+      mixedExecution: false,
+      executedProfileIds: [],
       checkpointCount: 0,
       activeDurationMs: 0,
       queueDurationMs: 0,
@@ -490,6 +543,7 @@ export class SchedulerService implements SchedulerRuntime {
     }
 
     if (task.status === TaskStatus.RUNNING) {
+      this.armCancellationWatchdog(task);
       return task.cancellation.cancel();
     }
     return false;
@@ -516,7 +570,6 @@ export class SchedulerService implements SchedulerRuntime {
     if (signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.PAGE_LEFT ||
       signal.type === TaskSignalType.INPUT_REPLACED) {
       await this.stopTask(taskId, signal.type);
-      return;
     }
     if (task !== undefined && task.profile.context !== undefined) {
       if (signal.type === TaskSignalType.WAITING_CHANGED) { task.profile.context.userWaiting = signal.value === true; }
@@ -526,7 +579,24 @@ export class SchedulerService implements SchedulerRuntime {
     for (let i: number = this.logHistory.length - 1; i >= 0; i--) {
       const log: SchedulerLogEntry = this.logHistory[i];
       if (log.taskId === taskId && log.telemetry !== undefined) {
+        if (signal.type === TaskSignalType.USER_FEEDBACK) {
+          if (signal.feedback !== undefined && this.feedbackController.accept(log, signal.feedback)) {
+            this.constrainedPolicy.feedback(log.capability.replace(/^client-\d+:/, ''), log);
+            this.queuePolicySave();
+          }
+          break;
+        }
         log.telemetry.signal = signal.type;
+        const signals = log.telemetry.signals ?? [];
+        if (signals.indexOf(signal.type) < 0) { signals.push(signal.type); }
+        log.telemetry.signals = signals;
+        if (signal.type === TaskSignalType.RESULT_DISPLAYED && log.status === TaskStatus.SUCCEEDED) {
+          log.telemetry.resultDisplayed = true;
+        }
+        if (signal.type === TaskSignalType.PAGE_LEFT || signal.type === TaskSignalType.INPUT_REPLACED) {
+          log.telemetry.feedbackRequest = undefined;
+          log.telemetry.resultDisplayed = false;
+        }
         if (signal.type === TaskSignalType.RESULT_CONSUMED || signal.type === TaskSignalType.RESULT_IGNORED) {
           this.semanticPolicy.observeConsumption(log.capability, signal.type === TaskSignalType.RESULT_CONSUMED,
             log.telemetry.resultConsumed);
@@ -541,6 +611,49 @@ export class SchedulerService implements SchedulerRuntime {
   public exportAudit(): string {
     this.requireInitialized();
     return JSON.stringify(this.logHistory);
+  }
+
+  public getConstrainedPolicy(): ConstrainedPolicyConfig { this.requireInitialized(); return this.constrainedPolicy.getConfig(); }
+  public configureConstrainedPolicy(config: ConstrainedPolicyConfig): void {
+    this.requireInitialized(); this.constrainedPolicy.configure(config); this.queuePolicySave(); this.scheduleDrain();
+  }
+  public disablePolicyOptimization(): void {
+    this.requireInitialized(); this.constrainedPolicy.disable(); this.queuePolicySave(); this.scheduleDrain();
+  }
+  public setFeedbackEnabled(enabled: boolean): void {
+    this.requireInitialized(); this.feedbackController.setEnabled(enabled); this.queuePolicySave();
+  }
+  public isFeedbackEnabled(): boolean { return this.feedbackController.isEnabled(); }
+  public getPolicyStorageStatus(): string { return this.storageStatus; }
+  public getFeedbackRequest(taskId: string): FeedbackRequest | null {
+    this.requireInitialized();
+    if (this.getDeviceState().appVisibility !== 'FOREGROUND') { return null; }
+    const log = this.logHistory.slice().reverse().find((entry: SchedulerLogEntry) => entry.taskId === taskId && entry.finishedAt !== null);
+    if (log === undefined) { return null; }
+    const request = this.feedbackController.request(log);
+    if (request !== null) { this.queuePolicySave(); }
+    return request;
+  }
+  public getPolicyMetrics(): PolicyMetricsGroup[] { this.requireInitialized(); return policyMetrics(this.getTerminalLogEntries()); }
+
+  public async flushPolicyState(): Promise<void> {
+    clearTimeout(this.persistTimer); this.persistTimer = -1;
+    const store = this.config?.policyStateStore;
+    if (store !== undefined) {
+      const snapshot: LocalPolicySnapshot = { schema: 1, policy: this.constrainedPolicy.exportState(),
+        feedback: this.feedbackController.exportState(), feedbackEnabled: this.feedbackController.isEnabled() };
+      const raw: string = JSON.stringify(snapshot);
+      this.persistence = this.persistence.then(async () => {
+        try { await store.save(raw); this.storageStatus = 'LOCAL_PRIVATE_STORE'; }
+        catch (_) { this.storageStatus = 'STORE_WRITE_FAILED'; this.constrainedPolicy.disable(); }
+      });
+    }
+    await this.persistence;
+  }
+
+  private queuePolicySave(): void {
+    if (this.config?.policyStateStore === undefined || this.persistTimer >= 0) { return; }
+    this.persistTimer = setTimeout(() => { this.persistTimer = -1; this.flushPolicyState(); }, 100);
   }
 
   public async setTaskPriority(taskId: string, priority: TaskPriority): Promise<void> {
@@ -675,8 +788,8 @@ export class SchedulerService implements SchedulerRuntime {
     this.requireInitialized();
     const terminalLogs: SchedulerLogEntry[] = this.getTerminalLogEntries();
     const latencyValues: number[] = terminalLogs
-      .filter((entry: SchedulerLogEntry) => entry.executionDurationMs !== null)
-      .map((entry: SchedulerLogEntry) => entry.executionDurationMs as number)
+      .filter((entry: SchedulerLogEntry) => entry.totalDurationMs !== null)
+      .map((entry: SchedulerLogEntry) => entry.totalDurationMs as number)
       .sort((left: number, right: number) => left - right);
     const queueValues: number[] = terminalLogs
       .filter((entry: SchedulerLogEntry) => entry.queueDurationMs !== null)
@@ -736,6 +849,8 @@ export class SchedulerService implements SchedulerRuntime {
       await this.executorRegistry.disposeAll();
     }
 
+    await this.flushPolicyState();
+
     this.config = null;
     this.policy = null;
     this.hysteresis = null;
@@ -777,6 +892,9 @@ export class SchedulerService implements SchedulerRuntime {
     if (state.thermalLevel === ThermalLevel.CRITICAL || state.memoryPressure === MemoryPressure.CRITICAL ||
       (state.availableMemoryMb !== null && state.availableMemoryMb < 192)) {
       task.stopReason = task.stopReason ?? 'DEVICE_PROTECTION';
+      this.constrainedPolicy.trip(task.profile.template.capability, task.plan, 'DEVICE_PROTECTION_CIRCUIT');
+      this.queuePolicySave();
+      this.armCancellationWatchdog(task);
       task.cancellation.cancel();
     }
   }
@@ -796,6 +914,16 @@ export class SchedulerService implements SchedulerRuntime {
   }
 
   private async executeTask(task: InternalTask): Promise<void> {
+    this.constrainedPolicy.started(task.profile, task.plan);
+    const audit = task.plan.policyAudit;
+    if (audit !== undefined) {
+      const key: string = `${audit.version}:${audit.actualProfileId}:${audit.cohort}:${audit.stateBucket}`;
+      task.mixedExecution = task.mixedExecution || (task.firstExecutionKey !== undefined && task.firstExecutionKey !== key);
+      task.firstExecutionKey = task.firstExecutionKey ?? key;
+      if (task.executedProfileIds.indexOf(audit.actualProfileId) < 0 && task.executedProfileIds.length < 16) {
+        task.executedProfileIds.push(audit.actualProfileId);
+      }
+    }
     task.status = TaskStatus.RUNNING;
     const sliceStartedAt: number = Date.now();
     const activeBefore: number = task.activeDurationMs;
@@ -811,13 +939,14 @@ export class SchedulerService implements SchedulerRuntime {
     const timeoutId: number = setTimeout(() => {
       task.stopReason = task.stopReason ?? SchedulerErrorCode.TASK_TIMEOUT;
       task.cancellation.cancel();
+      this.armCancellationWatchdog(task);
     }, Math.max(1, task.profile.timeoutMs - task.activeDurationMs));
     try {
       // A timeout requests a stop; the slot remains occupied until the executor settles.
       const result: ExecutorResult<Object> = await task.execute(task.plan, task.cancellation.signal, task.checkpoint);
       task.lastSliceDurationMs = Date.now() - sliceStartedAt;
       task.activeDurationMs = activeBefore + task.lastSliceDurationMs;
-      task.actual = result.telemetry ?? task.actual;
+      task.actual = result.telemetry === undefined ? task.actual : this.sanitizeTelemetry(result.telemetry);
       const expired: string | undefined = this.expiryReason(task);
       if (expired !== undefined) { task.stopReason = task.stopReason ?? expired; task.cancellation.cancel(); }
       if (task.activeDurationMs >= task.profile.timeoutMs) {
@@ -830,12 +959,19 @@ export class SchedulerService implements SchedulerRuntime {
         return;
       }
       if (task.profile.context !== undefined && task.plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE &&
-        qualityRank((task.plan as LocalExecutionPlan).modelTier) <
+        qualityRank(task.plan.executionProfile?.estimatedQualityLevel ?? (task.plan as LocalExecutionPlan).modelTier) <
         (task.profile.context.highQuality ? 2 : qualityRank(task.profile.context.accuracyFloor))) {
         this.finishTask(task, TaskStatus.FAILED, null, 'QUALITY_CONSTRAINT_CHANGED');
         return;
       }
       const actual: ExecutorTelemetry | undefined = result.telemetry;
+      if (!this.constrainedPolicy.matches(task.plan, actual)) {
+        this.constrainedPolicy.trip(task.profile.template!.capability, task.plan, 'EXECUTOR_PROFILE_MISMATCH');
+        this.queuePolicySave();
+        this.finishTask(task, TaskStatus.FAILED, null, 'EXECUTOR_PROFILE_MISMATCH');
+        return;
+      }
+      if (task.plan.policyAudit !== undefined) { task.plan.policyAudit.actualConfirmed = true; }
       const matchesPlan: boolean = task.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE ||
         ((actual?.actualBackend === undefined || actual.actualBackend === (task.plan as LocalExecutionPlan).backend) &&
           (actual?.actualThreads === undefined || actual.actualThreads === (task.plan as LocalExecutionPlan).threadCount));
@@ -874,6 +1010,10 @@ export class SchedulerService implements SchedulerRuntime {
       task.lastSliceDurationMs = Date.now() - sliceStartedAt;
       task.activeDurationMs = activeBefore + task.lastSliceDurationMs;
       const schedulerError: SchedulerError | null = error instanceof SchedulerError ? error : null;
+      if (schedulerError?.code === SchedulerErrorCode.CAPABILITY_UNAVAILABLE && task.profile.template !== undefined) {
+        this.constrainedPolicy.trip(task.profile.template.capability, task.plan, 'EXECUTOR_UNSUPPORTED_CIRCUIT');
+        this.queuePolicySave();
+      }
       if (task.stopReason === SchedulerErrorCode.TASK_TIMEOUT ||
         (schedulerError !== null && schedulerError.code === SchedulerErrorCode.TASK_TIMEOUT)) {
         task.cancellation.cancel();
@@ -887,7 +1027,31 @@ export class SchedulerService implements SchedulerRuntime {
       }
     } finally {
       clearTimeout(timeoutId);
+      clearTimeout(task.cancellationWatchdog);
     }
+  }
+
+  private armCancellationWatchdog(task: InternalTask): void {
+    if (task.cancellationWatchdog >= 0 || task.plan.executionProfile === undefined) { return; }
+    task.cancellationWatchdog = setTimeout(() => {
+      if (!this.tasks.has(task.taskId) || task.status !== TaskStatus.RUNNING) { return; }
+      this.constrainedPolicy.trip(task.profile.template!.capability, task.plan, 'CANCELLATION_NOT_ACKNOWLEDGED');
+      this.queuePolicySave();
+      // Keep the slot occupied. An uninterruptible call has not actually stopped.
+      this.appendLogEntry({ taskId: task.taskId, taskType: task.taskType, capability: task.capability,
+        deviceState: this.getDeviceState(), executionPlan: task.plan, status: TaskStatus.RUNNING,
+        queuedAt: task.queuedAt, startedAt: task.startedAt, finishedAt: null,
+        queueDurationMs: task.queueDurationMs, executionDurationMs: null, totalDurationMs: null,
+        errorCode: 'CANCELLATION_NOT_ACKNOWLEDGED' });
+    }, 2000);
+  }
+
+  private sanitizeTelemetry(actual: ExecutorTelemetry): ExecutorTelemetry {
+    return { profileId: actual.profileId, actualModelTier: actual.actualModelTier,
+      actualBackend: actual.actualBackend, actualThreads: actual.actualThreads, workerCount: actual.workerCount,
+      retrievalDimensions: actual.retrievalDimensions, candidateCount: actual.candidateCount,
+      batchSize: actual.batchSize, modelVersion: actual.modelVersion, modelSizeMb: actual.modelSizeMb,
+      peakMemoryMb: actual.peakMemoryMb, inputTokens: actual.inputTokens, inputShape: actual.inputShape?.slice() };
   }
 
   private refreshQueuedPlans(): void {
@@ -953,10 +1117,16 @@ export class SchedulerService implements SchedulerRuntime {
     }
     const finishedAt: number = Date.now();
     clearTimeout(task.expiryTimer);
+    clearTimeout(task.cancellationWatchdog);
     const queueDurationMs: number = task.queueDurationMs +
       (task.status === TaskStatus.QUEUED ? finishedAt - task.lastEnqueuedAt : 0);
     const executionDurationMs: number = task.activeDurationMs;
     const telemetry: TaskTelemetry = {
+      mixedExecution: task.mixedExecution, executedProfileIds: task.executedProfileIds.slice(),
+      taskRunId: task.taskId,
+      endToEndDurationMs: finishedAt - (task.profile.submittedAt ?? task.queuedAt),
+      softDeadlineMissed: task.profile.context?.softDeadlineMs === undefined ? undefined :
+        finishedAt - (task.profile.submittedAt ?? task.queuedAt) > task.profile.context.softDeadlineMs,
       prediction: task.plan.prediction, actual: task.actual, checkpointCount: task.checkpointCount,
       sliceDurationMs: task.lastSliceDurationMs,
       predictionErrorMs: task.plan.prediction === undefined || task.startedAt === null ? undefined :
@@ -977,6 +1147,14 @@ export class SchedulerService implements SchedulerRuntime {
       errorCode: errorCode
     };
     this.tasks.delete(task.taskId);
+    this.constrainedPolicy.observe(task.profile, {
+      taskId: task.taskId, taskType: task.taskType, capability: task.capability,
+      deviceState: task.executionState ?? this.requireStateController().getSnapshot(), executionPlan: task.plan,
+      status: status, queuedAt: task.queuedAt, startedAt: task.startedAt, finishedAt: finishedAt,
+      queueDurationMs: queueDurationMs, executionDurationMs: executionDurationMs,
+      totalDurationMs: finishedAt - task.queuedAt, errorCode: errorCode, telemetry: telemetry
+    });
+    this.queuePolicySave();
     this.appendLogEntry({
       taskId: task.taskId,
       taskType: task.taskType,
@@ -1017,7 +1195,7 @@ export class SchedulerService implements SchedulerRuntime {
     }
     this.logCallbacks.forEach((callback: SchedulerLogCallback) => {
       try {
-        callback(entry);
+        callback(JSON.parse(JSON.stringify(entry)) as SchedulerLogEntry);
       } catch (error) {
         // A consumer callback must never interrupt task processing.
       }
@@ -1080,6 +1258,7 @@ export class SchedulerService implements SchedulerRuntime {
   }
 
   private validateTaskRequest<TInput>(request: TaskRequest<TInput>): void {
+    if (request.template !== undefined) { validateManifest(request.template); }
     if (request.capability.trim().length === 0) {
       throw new SchedulerError(SchedulerErrorCode.INVALID_TASK, 'Task capability must not be empty.');
     }
@@ -1124,8 +1303,8 @@ export class SchedulerService implements SchedulerRuntime {
       allowPause: request.allowPause,
       timeoutMs: request.timeoutMs,
       remoteOptions: request.remoteOptions,
-      template: request.template,
-      context: request.context,
+      template: request.template === undefined ? undefined : JSON.parse(JSON.stringify(request.template)) as TaskTemplate,
+      context: request.context === undefined ? undefined : JSON.parse(JSON.stringify(request.context)) as TaskContext,
       submittedAt: request.submittedAt ?? Date.now(),
       metadata: request.metadata
     };

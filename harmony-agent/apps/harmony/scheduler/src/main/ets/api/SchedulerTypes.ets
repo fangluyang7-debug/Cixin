@@ -117,6 +117,8 @@ export interface RemoteExecutionOptions {
 }
 
 export interface SchedulerConfig {
+  constrainedPolicy?: ConstrainedPolicyConfig;
+  policyStateStore?: PolicyStateStore;
   defaultPolicyMode: PolicyMode;
   enableDebugInjection: boolean;
   metricsWindowSize: number;
@@ -178,6 +180,8 @@ export interface TaskHandle<TOutput> {
 }
 
 export interface BaseExecutionPlan {
+  executionProfile?: ExecutionProfile;
+  policyAudit?: PolicyDecisionAudit;
   inferenceLocation: InferenceLocation;
   priority: TaskPriority;
   queueAction: QueueAction;
@@ -229,6 +233,7 @@ export interface WorkloadExecutor<TInput, TOutput> {
 }
 
 export interface DeviceState {
+  observations?: StateObservation[];
   batteryPercent: number | null;
   isCharging: boolean | null;
   thermalLevel: ThermalLevel;
@@ -247,6 +252,7 @@ export interface DeviceState {
 }
 
 export interface RealDeviceStatePatch {
+  observations?: StateObservation[];
   batteryPercent?: number | null;
   isCharging?: boolean | null;
   thermalLevel?: ThermalLevel;
@@ -314,7 +320,7 @@ export interface MetricsSnapshot {
 export type Unsubscribe = () => void;
 export type StateCallback = (state: DeviceState, mode: PolicyMode) => void;
 export type SchedulerLogCallback = (entry: SchedulerLogEntry) => void;
-export type TaskExecutor<TInput, TOutput> = (input: TInput, plan: ExecutionPlan) => Promise<TOutput>;
+export type TaskExecutor<TInput, TOutput> = (input: TInput, plan: ExecutionPlan, signal: CancellationSignal) => Promise<TOutput>;
 
 export enum Interruptibility {
   NON_INTERRUPTIBLE = 'NON_INTERRUPTIBLE',
@@ -367,6 +373,7 @@ export interface WorkflowNode {
 }
 
 export interface TaskTemplate {
+  manifest?: TaskCapabilityManifest;
   capability: string;
   taskType: TaskType;
   inferenceLocation: InferenceLocation;
@@ -382,6 +389,8 @@ export interface TaskTemplate {
 }
 
 export interface TaskContext {
+  targetLatencyMs?: number;
+  softDeadlineMs?: number;
   deadlineMs?: number;
   freshnessMs?: number;
   userVisible: boolean;
@@ -403,6 +412,7 @@ export interface TaskContext {
 }
 
 export enum TaskSignalType {
+  USER_FEEDBACK = 'USER_FEEDBACK',
   PAGE_LEFT = 'PAGE_LEFT',
   INPUT_REPLACED = 'INPUT_REPLACED',
   CANCEL = 'CANCEL',
@@ -416,6 +426,7 @@ export enum TaskSignalType {
 export interface TaskSignal {
   type: TaskSignalType;
   value?: boolean;
+  feedback?: UserFeedback;
 }
 
 export interface TaskCheckpoint {
@@ -424,6 +435,10 @@ export interface TaskCheckpoint {
 }
 
 export interface ExecutorTelemetry {
+  profileId?: string;
+  actualModelTier?: ModelTier;
+  retrievalDimensions?: number;
+  workerCount?: number;
   modelVersion?: string;
   modelSizeMb?: number;
   actualBackend?: Backend;
@@ -436,6 +451,8 @@ export interface ExecutorTelemetry {
 }
 
 export interface ResourcePrediction {
+  p50LatencyMs?: number;
+  p95LatencyMs?: number;
   latencyMs: number;
   memoryMb: number | null;
   relativeEnergyCost: number;
@@ -447,6 +464,15 @@ export interface ResourcePrediction {
 }
 
 export interface TaskTelemetry {
+  mixedExecution?: boolean;
+  executedProfileIds?: string[];
+  taskRunId?: string;
+  endToEndDurationMs?: number;
+  softDeadlineMissed?: boolean;
+  feedbackRequest?: FeedbackRequest;
+  userFeedback?: UserFeedback;
+  resultDisplayed?: boolean;
+  signals?: TaskSignalType[];
   prediction?: ResourcePrediction;
   actual?: ExecutorTelemetry;
   predictionErrorMs?: number;
@@ -477,4 +503,174 @@ export interface WorkflowHandle<TOutput> {
   result: Promise<WorkflowResult<TOutput>>;
   cancel(): Promise<boolean>;
   signal(signal: TaskSignal): Promise<void>;
+}
+
+export enum ConstrainedPolicyMode {
+  OBSERVE = 'OBSERVE',
+  SHADOW = 'SHADOW',
+  CANARY = 'CANARY',
+  ACTIVE = 'ACTIVE'
+}
+
+// workerCount denotes executor partitions/concurrency, not OS thread ownership.
+export interface ExecutionProfile {
+  id: string;
+  qualityLevelId: string;
+  modelTier: ModelTier;
+  backend: Backend;
+  workerCount: ThreadCount;
+  candidateCount?: number;
+  retrievalDimensions?: number;
+  batchSize?: number;
+  allowWarmup: boolean;
+  supportsForeground: boolean;
+  supportsBackground: boolean;
+  estimatedQualityLevel: ModelTier;
+  safeUnderPressure: boolean;
+  qualityValidated: boolean;
+  lowRisk: boolean;
+}
+
+export interface ProfileTransition {
+  from: string;
+  to: string;
+}
+
+export interface TaskCapabilityManifest {
+  profiles: ExecutionProfile[];
+  defaultProfileId: string;
+  fallbackProfileId: string;
+  profileTransitions: ProfileTransition[];
+}
+
+export interface NonInferiorityThresholds {
+  latencyRatio: number;
+  failureRateDelta: number;
+  negativeFeedbackRateDelta: number;
+  cancellationRateDelta: number;
+}
+
+export interface CapabilityPolicyRule {
+  capability: string;
+  allowedProfileIds: string[];
+  preferredProfileId: string;
+}
+
+export interface ConstrainedPolicyConfig {
+  version: string;
+  mode: ConstrainedPolicyMode;
+  expiresAtMs: number;
+  rolloutPercent: number;
+  minimumSampleCount: number;
+  cooldownMs: number;
+  observationWindowSize: number;
+  consecutiveFailureLimit: number;
+  experimentStartedAtMs?: number;
+  maximumExperimentDurationMs?: number;
+  thresholds?: NonInferiorityThresholds;
+  activeValidated?: boolean;
+  rules: CapabilityPolicyRule[];
+}
+
+export interface UtilityComponents {
+  waiting: number;
+  visibility: number;
+  importance: number;
+  targetPressure: number;
+  freshnessRisk: number;
+  qualityLoss: number;
+  energyCost: number;
+  thermalRisk: number;
+  memoryRisk: number;
+  feedbackPenalty: number;
+}
+
+export interface PolicyDecisionAudit {
+  contractId: string;
+  mode: ConstrainedPolicyMode;
+  version: string;
+  baselineProfileId: string;
+  shadowProfileId?: string;
+  actualProfileId: string;
+  cohort: 'BASELINE' | 'TREATMENT';
+  stateBucket: string;
+  inputSizeBucket: number;
+  fallbackReason?: string;
+  shadowReasonCodes?: string[];
+  baselinePrediction?: ResourcePrediction;
+  shadowPrediction?: ResourcePrediction;
+  utility?: UtilityComponents;
+  actualConfirmed?: boolean;
+}
+
+export enum FeedbackKind {
+  RESPONSE_TIME = 'RESPONSE_TIME',
+  RESULT_UTILITY = 'RESULT_UTILITY',
+  DEVICE_COMFORT = 'DEVICE_COMFORT'
+}
+
+export enum FeedbackOption {
+  FAST = 'FAST',
+  ACCEPTABLE = 'ACCEPTABLE',
+  SLOW = 'SLOW',
+  NO_RESULT = 'NO_RESULT',
+  USEFUL = 'USEFUL',
+  INACCURATE = 'INACCURATE',
+  IRRELEVANT = 'IRRELEVANT',
+  COMFORTABLE = 'COMFORTABLE',
+  TOO_HOT = 'TOO_HOT'
+}
+
+export interface FeedbackRequest {
+  taskRunId: string;
+  kind: FeedbackKind;
+  suggestedAfter: 'RESULT_DISPLAYED' | 'PAGE_EXIT' | 'NEXT_IDLE';
+  options: FeedbackOption[];
+  expiresAtMs: number;
+}
+
+export interface UserFeedback {
+  taskRunId: string;
+  kind: FeedbackKind;
+  option: FeedbackOption;
+}
+
+export interface StateObservation {
+  field: 'battery' | 'thermal' | 'memory' | 'cpu' | 'visibility' | 'backends';
+  source: string;
+  observedAtMs: number;
+  known: boolean;
+}
+
+// Implemented by the host App; the HAR has no network or UI dependency.
+export interface PolicyStateStore {
+  load(): Promise<string | null>;
+  save(snapshot: string): Promise<void>;
+}
+
+export interface PolicyMetricsGroup {
+  mixedExecution: boolean;
+  contractId: string;
+  inputSizeBucket: number;
+  speedFeedbackCount: number;
+  qualityFeedbackCount: number;
+  policyVersion: string;
+  profileId: string;
+  capability: string;
+  taskType: TaskType;
+  stateBucket: string;
+  cohort: string;
+  count: number;
+  p50Ms: number;
+  p95Ms: number;
+  averageQueueMs: number;
+  averageExecutionMs: number;
+  successRate: number;
+  failureRate: number;
+  timeoutRate: number;
+  cancellationRate: number;
+  consumedCount: number;
+  feedbackCount: number;
+  negativeFeedbackCount: number;
+  fallbackCount: number;
 }

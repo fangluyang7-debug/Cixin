@@ -2,6 +2,7 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { DataInitService } from '../services/DataInitService';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
+import { LocalPolicyStore } from '../services/LocalPolicyStore';
 import { window } from '@kit.ArkUI';
 import {
   AppVisibility,
@@ -38,6 +39,7 @@ export default class EntryAbility extends UIAbility {
     DataInitService.checkAndInitData(this.context);
 
     const schedulerConfig: SchedulerConfig = {
+      policyStateStore: new LocalPolicyStore(this.context),
       defaultPolicyMode: PolicyMode.ADAPTIVE,
       enableDebugInjection: true,
       metricsWindowSize: 100,
@@ -120,6 +122,7 @@ export default class EntryAbility extends UIAbility {
     this.appVisibility = AppVisibility.BACKGROUND;
     if (this.schedulerService.isInitialized()) {
       this.schedulerService.updateRealDeviceState({ appVisibility: this.appVisibility });
+      this.schedulerService.flushPolicyState();
     }
   }
 

@@ -58,6 +58,14 @@ export class HarmonyDeviceStateAdapter {
     }
 
     this.refreshResourceState(patch);
+    const now: number = Date.now();
+    patch.observations = [
+      { field: 'battery', source: 'batteryInfo', observedAtMs: now, known: patch.batteryPercent !== null && patch.isCharging !== null },
+      { field: 'thermal', source: 'thermal.getLevel', observedAtMs: now, known: patch.thermalLevel !== ThermalLevel.UNKNOWN },
+      { field: 'memory', source: 'hidebug.getSystemMemInfo(KB)', observedAtMs: now, known: patch.availableMemoryMb !== null },
+      { field: 'cpu', source: 'hidebug.getSystemCpuUsage', observedAtMs: now, known: patch.systemCpuUsage !== null },
+      { field: 'backends', source: 'APP_VERIFIED_CPU_ONLY', observedAtMs: now, known: true }
+    ];
     this.callback(patch);
   }
 
@@ -124,9 +132,7 @@ export class HarmonyDeviceStateAdapter {
       if (!this.started) {
         return;
       }
-      const patch: RealDeviceStatePatch = {};
-      this.refreshResourceState(patch);
-      this.callback(patch);
+      this.refresh();
     }, 1000);
   }
 
@@ -198,13 +204,8 @@ export class HarmonyDeviceStateAdapter {
     if (!Number.isFinite(numericValue) || numericValue < 0) {
       return null;
     }
-    if (numericValue > 64 * 1024 * 1024) {
-      return Math.round(numericValue / 1024 / 1024);
-    }
-    if (numericValue > 64 * 1024) {
-      return Math.round(numericValue / 1024);
-    }
-    return Math.round(numericValue);
+    // The installed HarmonyOS SDK declares SystemMemInfo fields in KB.
+    return Math.floor(numericValue / 1024);
   }
 
   private resolveMemoryPressure(availableMemoryMb: number | null, totalMemoryMb: number | null): MemoryPressure {

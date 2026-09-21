@@ -1,6 +1,6 @@
 import { StoreManager } from '../database/StoreManager';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
-import { TaskSignalType, WorkflowHandle, WorkflowResult } from 'scheduler';
+import { TaskSignalType, WorkflowHandle, WorkflowResult, FeedbackRequest, FeedbackKind, FeedbackOption } from 'scheduler';
 import { Product } from '../models/Product';
 import { DataInitService } from '../services/DataInitService';
 import hilog from '@ohos.hilog';
@@ -73,6 +73,8 @@ struct Index {
   @State productsCount: number = 0;
   @State products: Product[] = [];
   @State isLoading: boolean = false;
+  @State experienceFeedback: FeedbackRequest | null = null;
+  private feedbackExpiryTimer: number = -1;
   @State showDrawer: boolean = false;
   @State showProfile: boolean = false;
   @State schedulerText: string = '调度层准备中';
@@ -225,6 +227,8 @@ struct Index {
   }
 
   private invalidateSearch(type: TaskSignalType = TaskSignalType.INPUT_REPLACED): void {
+    this.experienceFeedback = null;
+    clearTimeout(this.feedbackExpiryTimer);
     this.searchGeneration++;
     if (this.activeSearch !== null) {
       this.activeSearch.signal({ type: type });
@@ -270,6 +274,13 @@ struct Index {
       this.lastModelSearchSource = 'local_semantic_workflow';
       this.assistantText = `找到 ${this.products.length} 件本地候选商品。`;
       await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED });
+      if (generation === this.searchGeneration) {
+        this.experienceFeedback = this.shoppingTasks.feedbackRequest(handle.workflowId);
+        if (this.experienceFeedback !== null) {
+          this.feedbackExpiryTimer = setTimeout(() => { this.experienceFeedback = null; },
+            Math.max(1, this.experienceFeedback.expiresAtMs - Date.now()));
+        }
+      }
     } catch (error) {
       if (generation === this.searchGeneration) {
         this.assistantText = '搜索暂时不可用，请稍后重试。';
@@ -374,6 +385,46 @@ struct Index {
     }
     const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
     return `端侧 · ${localPlan.backend} · ${localPlan.threadCount}线程 · ${localPlan.modelTier}`;
+  }
+
+  private feedbackLabel(option: FeedbackOption): string {
+    switch (option) {
+      case FeedbackOption.FAST: return '很快';
+      case FeedbackOption.ACCEPTABLE: return '可接受';
+      case FeedbackOption.SLOW: return '偏慢';
+      case FeedbackOption.NO_RESULT: return '未得到结果';
+      case FeedbackOption.USEFUL: return '有用';
+      case FeedbackOption.INACCURATE: return '不够准确';
+      case FeedbackOption.IRRELEVANT: return '无关';
+      default: return option;
+    }
+  }
+
+  private async answerExperience(option: FeedbackOption): Promise<void> {
+    const request = this.experienceFeedback;
+    this.experienceFeedback = null;
+    clearTimeout(this.feedbackExpiryTimer);
+    if (request === null || this.activeSearch === null || request.expiresAtMs <= Date.now()) { return; }
+    await this.activeSearch.signal({ type: TaskSignalType.USER_FEEDBACK,
+      feedback: { taskRunId: request.taskRunId, kind: request.kind, option: option } });
+  }
+
+  @Builder
+  private ExperienceFeedback() {
+    if (this.experienceFeedback !== null && !this.isLoading) {
+      Column({ space: 8 }) {
+        Text(this.experienceFeedback.kind === FeedbackKind.RESPONSE_TIME ? '这次搜索的响应速度如何？' : '这次结果对你有帮助吗？')
+          .fontSize(13).fontColor('#344054').width('100%')
+        Flex({ wrap: FlexWrap.Wrap }) {
+          ForEach(this.experienceFeedback.options, (option: FeedbackOption) => {
+            Button(this.feedbackLabel(option)).fontSize(12).height(32).margin({ right: 8, bottom: 6 })
+              .onClick(() => { this.answerExperience(option); })
+          })
+          Button('忽略').fontSize(12).height(32).backgroundColor('#F2F4F7').fontColor('#475467')
+            .onClick(() => { this.experienceFeedback = null; })
+        }.width('100%')
+      }.width('100%').padding({ top: 12, bottom: 12 })
+    }
   }
 
   private formatPlanReasonText(plan: ExecutionPlan): string {
@@ -652,6 +703,7 @@ struct Index {
             .width('100%')
           }
 
+          this.ExperienceFeedback()
           if (!this.isLoading && this.products.length > 0) {
             Grid() {
               ForEach(this.products.slice(0, 6), (item: Product) => {

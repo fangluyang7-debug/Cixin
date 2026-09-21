@@ -3,7 +3,7 @@ import {
   AccuracyPreference, CancellationSignal, ExecutionPlan, ExecutorResult,
   InferenceLocation, LocalExecutionPlan, PolicyMode, SchedulerConfig,
   SchedulerErrorCode, SchedulerService, TaskRequest, TaskStatus, TaskType,
-  ThermalLevel, WorkloadExecutor
+  ThermalLevel, WorkloadExecutor, MemoryPressure
 } from '../../Index';
 
 class Gate {
@@ -64,6 +64,12 @@ function request(id: string, background: boolean = false): TaskRequest<string> {
   };
 }
 
+async function initialize(service: SchedulerService): Promise<void> {
+  await service.initialize(config());
+  service.updateRealDeviceState({ batteryPercent: 80, isCharging: true, thermalLevel: ThermalLevel.NORMAL,
+    memoryPressure: MemoryPressure.NORMAL, availableMemoryMb: 2048 });
+}
+
 export default function executionSafetyUnitTest(): void {
   describe('ExecutionSafety', () => {
     const service = SchedulerService.getInstance();
@@ -75,13 +81,13 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('executesRefreshedPlanInsteadOfCapturedSubmissionPlan', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       executor.release.open();
       service.registerExecutor(executor);
       await service.pause();
       const handle = await service.submitTask<string, string>(request('refreshed'));
-      service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT });
+      service.updateRealDeviceState({ batteryPercent: 10, isCharging: false, thermalLevel: ThermalLevel.HOT });
       await service.resume();
       const result = await handle.result;
       expect(result.output).assertEqual('1');
@@ -89,7 +95,7 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('rejectsQueuedNonDegradableTaskAfterThermalChange', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       service.registerExecutor(executor);
       await service.pause();
@@ -97,14 +103,15 @@ export default function executionSafetyUnitTest(): void {
       input.allowDegrade = false;
       const handle = await service.submitTask<string, string>(input);
       service.updateRealDeviceState({ thermalLevel: ThermalLevel.CRITICAL });
+      await service.resume();
       const result = await handle.result;
-      expect(result.errorCode).assertEqual(SchedulerErrorCode.THERMAL_PROTECTION);
+      expect(result.errorCode).assertEqual(SchedulerErrorCode.POLICY_REJECTED);
       expect(result.status).assertEqual(TaskStatus.FAILED);
       expect(executor.calls).assertEqual(0);
     });
 
     it('automaticallyResumesPolicyPausedTaskAfterRecovery', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       executor.release.open();
       service.registerExecutor(executor);
@@ -118,7 +125,7 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('keepsManualPauseAcrossStateUpdates', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       executor.release.open();
       service.registerExecutor(executor);
@@ -133,19 +140,20 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('rechecksExecutorSupportAfterPlanChange', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       executor.onlyFourThreads = true;
       service.registerExecutor(executor);
       await service.pause();
       const handle = await service.submitTask<string, string>(request('unsupported'));
       service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT });
+      await service.resume();
       expect((await handle.result).errorCode).assertEqual(SchedulerErrorCode.CAPABILITY_UNAVAILABLE);
       expect(executor.calls).assertEqual(0);
     });
 
     it('holdsSlotAfterTimeoutUntilActualExecutorSettlement', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       service.registerExecutor(executor);
       const firstRequest = request('timeout-first');
@@ -154,20 +162,20 @@ export default function executionSafetyUnitTest(): void {
       await executor.started.promise;
       const second = await service.submitTask<string, string>(request('timeout-second'));
       await executor.stopped.promise;
-      expect(first.getStatus()).assertEqual(TaskStatus.STOP_REQUESTED);
+      expect(first.getStatus()).assertEqual(TaskStatus.RUNNING);
       expect(second.getStatus()).assertEqual(TaskStatus.QUEUED);
       expect(executor.calls).assertEqual(1);
       executor.release.open();
       const result = await first.result;
       expect(result.status).assertEqual(TaskStatus.TIMED_OUT);
       expect(result.output === null).assertTrue();
-      expect(result.stopRequestedAt !== undefined).assertTrue();
+      expect(result.errorCode).assertEqual(SchedulerErrorCode.TASK_TIMEOUT);
       expect((await second.result).status).assertEqual(TaskStatus.SUCCEEDED);
       expect(service.getMetricsSnapshot().p95LatencyMs >= result.totalDurationMs).assertTrue();
     });
 
     it('holdsSlotOnUserCancelAndDiscardsLateResult', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       service.registerExecutor(executor);
       const first = await service.submitTask<string, string>(request('cancel-first'));
@@ -175,7 +183,7 @@ export default function executionSafetyUnitTest(): void {
       const second = await service.submitTask<string, string>(request('cancel-second'));
       expect(await first.cancel()).assertTrue();
       expect(await first.cancel()).assertFalse();
-      expect(first.getStatus()).assertEqual(TaskStatus.STOP_REQUESTED);
+      expect(first.getStatus()).assertEqual(TaskStatus.RUNNING);
       expect(executor.calls).assertEqual(1);
       executor.release.open();
       const result = await first.result;
@@ -185,7 +193,7 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('doesNotStartInferenceWhenCancelledDuringWarmup', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       executor = new ControlledExecutor();
       executor.holdWarmup = true;
       service.registerExecutor(executor);
@@ -198,7 +206,7 @@ export default function executionSafetyUnitTest(): void {
     });
 
     it('passesCancellationSignalToFunctionExecutor', 0, async () => {
-      await service.initialize(config());
+      await initialize(service);
       const started = new Gate();
       const resultPromise = service.runTask<string, string>(request('callback-signal'),
         async (_input: string, _plan: ExecutionPlan, signal: CancellationSignal): Promise<string> => {

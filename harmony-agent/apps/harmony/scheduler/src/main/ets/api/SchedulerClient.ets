@@ -4,6 +4,8 @@ import {
   TaskContext, TaskHandle, TaskRequest, TaskResult, TaskSignal, TaskSignalType, TaskStatus,
   TaskTemplate, WorkflowHandle, WorkflowInput, WorkflowNode, WorkflowResult, WorkloadExecutor
 } from './SchedulerTypes';
+import { FeedbackRequest } from './SchedulerTypes';
+import { validateManifest } from '../policy/ProfileContract';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 
 export interface SchedulerRuntime {
@@ -12,6 +14,7 @@ export interface SchedulerRuntime {
   submitTask<TInput, TOutput>(request: TaskRequest<TInput>): Promise<TaskHandle<TOutput>>;
   signalTask(taskId: string, signal: TaskSignal): Promise<void>;
   exportAudit(): string;
+  getFeedbackRequest?(taskId: string): FeedbackRequest | null;
 }
 
 interface ActiveWorkflow {
@@ -23,6 +26,7 @@ interface ActiveWorkflow {
   finished: boolean;
   reason?: string;
   taskIds: string[];
+  outputTaskId: string;
   handle: WorkflowHandle<Object>;
 }
 
@@ -134,7 +138,8 @@ export class SchedulerClient {
     );
     const run: ActiveWorkflow = {
       id: id, key: key, context: snapshot, submittedAt: Date.now(), cancelled: false,
-      finished: false, taskIds: [], handle: handle as WorkflowHandle<Object>
+      finished: false, taskIds: [], outputTaskId: `${id}:${template.outputNodeId ?? 'task'}`,
+      handle: handle as WorkflowHandle<Object>
     };
     this.workflows.set(id, run);
     this.execute<TInput, TOutput>(run, template, input).then((value: WorkflowResult<TOutput>) => {
@@ -151,6 +156,12 @@ export class SchedulerClient {
   }
 
   public exportAudit(): string { return this.runtime.exportAudit(); }
+
+  public getFeedbackRequest(workflowId: string): FeedbackRequest | null {
+    const run = this.workflows.get(workflowId);
+    if (run === undefined || !run.finished || run.cancelled || this.runtime.getFeedbackRequest === undefined) { return null; }
+    return this.runtime.getFeedbackRequest(run.outputTaskId);
+  }
 
   public async dispose(): Promise<void> {
     if (this.disposed) { return; }
@@ -246,6 +257,12 @@ export class SchedulerClient {
   }
 
   private async applySignal(run: ActiveWorkflow, signal: TaskSignal): Promise<void> {
+    if (signal.type === TaskSignalType.USER_FEEDBACK) {
+      if (signal.feedback?.taskRunId === run.outputTaskId) {
+        await this.runtime.signalTask(run.outputTaskId, signal);
+      }
+      return;
+    }
     if (signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.PAGE_LEFT ||
       signal.type === TaskSignalType.INPUT_REPLACED) {
       run.cancelled = true;
@@ -254,6 +271,7 @@ export class SchedulerClient {
     if (signal.type === TaskSignalType.WAITING_CHANGED) { run.context.userWaiting = signal.value === true; }
     if (signal.type === TaskSignalType.QUALITY_REQUIRED) { run.context.highQuality = signal.value !== false; }
     for (let i: number = 0; i < run.taskIds.length; i++) {
+      if (signal.type === TaskSignalType.RESULT_DISPLAYED && run.taskIds[i] !== run.outputTaskId) { continue; }
       await this.runtime.signalTask(run.taskIds[i], signal);
     }
   }
@@ -322,6 +340,7 @@ export class SchedulerClient {
       if (nodeIds.indexOf(template.outputNodeId ?? '') < 0) { this.invalid('Workflow needs a valid outputNodeId.'); }
       this.orderNodes(template.workflow);
     }
+    validateManifest(template);
   }
 
   private validateContext(context: TaskContext): void {
@@ -329,6 +348,12 @@ export class SchedulerClient {
       this.invalid('Visibility and waiting state must be explicit booleans.');
     }
     this.positive(context.deadlineMs, 'deadlineMs');
+    this.positive(context.targetLatencyMs, 'targetLatencyMs');
+    this.positive(context.softDeadlineMs, 'softDeadlineMs');
+    if ((context.targetLatencyMs ?? 0) > (context.softDeadlineMs ?? context.deadlineMs ?? Infinity) ||
+      (context.softDeadlineMs ?? 0) > (context.deadlineMs ?? Infinity)) {
+      this.invalid('Experience targets must not exceed the hard deadline.');
+    }
     this.positive(context.freshnessMs, 'freshnessMs');
     this.positive(context.inputTokens, 'inputTokens');
     this.positive(context.candidateCount, 'candidateCount');
@@ -345,6 +370,7 @@ export class SchedulerClient {
 
   private equivalentContext(left: TaskContext, right: TaskContext): boolean {
     return left.deadlineMs === right.deadlineMs && left.freshnessMs === right.freshnessMs &&
+      left.targetLatencyMs === right.targetLatencyMs && left.softDeadlineMs === right.softDeadlineMs &&
       left.userVisible === right.userVisible && left.userWaiting === right.userWaiting &&
       left.accuracyFloor === right.accuracyFloor && left.highQuality === right.highQuality &&
       left.businessImportance === right.businessImportance && left.inputTokens === right.inputTokens &&

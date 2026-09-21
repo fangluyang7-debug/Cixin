@@ -1,13 +1,14 @@
 import {
   AppVisibility, Backend, DeviceState, ExecutionPlan, InferenceLocation, LocalExecutionPlan, MemoryPressure,
   ModelTier, PolicyMode, PrivacyPolicy, QualityLevel, QueueAction, ResourcePrediction,
-  TaskContext, TaskPriority, TaskProfile, TaskType, ThermalLevel, ThreadCount
+  TaskContext, TaskPriority, TaskProfile, TaskType, ThermalLevel, ThreadCount, ExecutionProfile
 } from '../api/SchedulerTypes';
 
 interface CostObservation {
   meanMs: number;
   deviationMs: number;
   count: number;
+  samples: number[];
 }
 
 interface ConsumptionObservation {
@@ -149,17 +150,19 @@ export class SemanticPolicy {
 
   public observe(profile: TaskProfile, state: DeviceState, plan: ExecutionPlan, durationMs: number): void {
     if (profile.template === undefined || plan.prediction === undefined || durationMs < 0) { return; }
-    const key: string = this.key(profile, state, plan.qualityLevelId ?? '',
+    const key: string = this.key(profile, state, plan.executionProfile?.id ?? plan.qualityLevelId ?? '',
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).backend : Backend.CPU,
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).threadCount : 1);
     const previous: CostObservation | undefined = this.observations.get(key);
     if (previous === undefined) {
       if (this.observations.size >= 256) { this.observations.delete(Array.from(this.observations.keys())[0]); }
-      this.observations.set(key, { meanMs: Math.max(1, durationMs), deviationMs: 0, count: 1 });
+      this.observations.set(key, { meanMs: Math.max(1, durationMs), deviationMs: 0, count: 1, samples: [durationMs] });
     } else {
       previous.deviationMs = previous.deviationMs * 0.75 + Math.abs(durationMs - previous.meanMs) * 0.25;
       previous.meanMs = previous.meanMs * 0.75 + Math.max(1, durationMs) * 0.25;
       previous.count++;
+      previous.samples.push(durationMs);
+      if (previous.samples.length > 50) { previous.samples.shift(); }
     }
   }
 
@@ -175,17 +178,27 @@ export class SemanticPolicy {
     observation.consumed = Math.max(0, Math.min(observation.total, observation.consumed));
   }
 
+  public predictProfile(profile: TaskProfile, state: DeviceState, execution: ExecutionProfile): ResourcePrediction {
+    const level = profile.template!.qualityLevels.find((item: QualityLevel) => item.id === execution.qualityLevelId)!;
+    const deadline: number = (profile.context!.deadlineMs ?? Infinity) -
+      Math.max(0, Date.now() - (profile.submittedAt ?? Date.now()));
+    return this.predict(profile, state, level, execution.backend, execution.workerCount, deadline, execution.id);
+  }
+
   private predict(profile: TaskProfile, state: DeviceState, level: QualityLevel,
-    backend: Backend, threads: ThreadCount, deadline: number): ResourcePrediction {
-    const observation = this.observations.get(this.key(profile, state, level.id, backend, threads));
+    backend: Backend, threads: ThreadCount, deadline: number, profileId?: string): ResourcePrediction {
+    const observation = this.observations.get(this.key(profile, state, profileId ?? level.id, backend, threads));
     const scale: number = this.inputScale(profile);
     const load: number = state.systemCpuUsage === null ? 1.2 : 1 + Math.max(0, state.systemCpuUsage) / 100;
     const heat: number = state.thermalLevel === ThermalLevel.HOT ? 1.8 :
       state.thermalLevel === ThermalLevel.WARM ? 1.2 : 1;
     const latency: number = observation === undefined ? level.estimatedLatencyMs * scale * load * heat * 1.5 :
       observation.meanMs + Math.max(observation.deviationMs * 2, observation.meanMs * 0.15);
+    const sorted: number[] = observation === undefined ? [] : observation.samples.slice().sort((a: number, b: number) => a - b);
+    const p50: number = sorted.length < 5 ? latency / 1.5 : sorted[Math.ceil(sorted.length * 0.5) - 1];
+    const p95: number = sorted.length < 5 ? latency : sorted[Math.ceil(sorted.length * 0.95) - 1];
     return {
-      latencyMs: Math.max(1, latency),
+      latencyMs: Math.max(1, latency, p95), p50LatencyMs: p50, p95LatencyMs: p95,
       memoryMb: level.estimatedMemoryMb ?? profile.template!.resourceHints.expectedMemoryMb ?? null,
       relativeEnergyCost: (level.relativeEnergyCost ?? 1) * scale * heat,
       thermalRisk: state.thermalLevel === ThermalLevel.HOT ? 0.8 :
@@ -210,6 +223,8 @@ export class SemanticPolicy {
   private key(profile: TaskProfile, state: DeviceState, level: string, backend: Backend, threads: number): string {
     return `${profile.capability}:${profile.template!.resourceHints.modelVersion}:${level}:${backend}:${threads}:` +
       `${Math.round(Math.log2(this.inputScale(profile)))}:${state.thermalLevel}:` +
-      `${state.systemCpuUsage === null ? 'unknown' : Math.floor(state.systemCpuUsage / 25)}`;
+      `${state.systemCpuUsage === null ? 'unknown' : Math.floor(state.systemCpuUsage / 25)}:` +
+      `${state.source}:${state.memoryPressure}:${state.appVisibility}:` +
+      `${state.batteryPercent === null ? 'unknown' : Math.floor(state.batteryPercent / 20)}`;
   }
 }

@@ -1,6 +1,6 @@
 # AI 任务语义调度 SDK：接入与实现
 
-更新日期：2026-09-19。需求来源：[07-AI任务语义调度件工作要求](07-AI任务语义调度件工作要求.md)。
+更新日期：2026-09-21。需求来源：[07-AI任务语义调度件工作要求](07-AI任务语义调度件工作要求.md)、[09-受约束策略闭环](09-HarmonyOS受约束策略闭环实施方案.md)。
 
 本文说明本轮实际代码及边界。旧 API 文档和历史功能介绍中的购物能力名称硬编码、整批索引预热、固定任务类型优先级，不能代表新 `SchedulerClient` 路径。
 
@@ -139,3 +139,26 @@ query_prepare：等待本地数据就绪，整理文本
 原 `runTask/submitTask/evaluate` 保留为低层兼容 API，缺少新契约时日志标注 `SEMANTICS_UNSPECIFIED`；不应把低层兼容调用当作已获得全部新语义能力。新应用以 `SchedulerClient` 为入口。
 
 测试与仍待验收的部分见 [语义调度验收记录](testing/04-semantic-scheduler-acceptance.md)。
+
+## 9. 可选的受约束配置闭环
+
+为本地叶子 `TaskTemplate` 增加 `manifest`，即可启用新路径；工作流根模板继续描述 DAG，不承担各节点参数。`ExecutionProfile` 必须指定质量级 ID、后端、workerCount、估计质量、前后台支持、保护状态支持、质量验证与低风险标记，可选候选数/维度/批次。所有字段联动执行，不由 HAR 拼装独立数值。应用修改配置语义时必须同时更新模型/契约版本，避免混入旧样本。
+
+宿主通过 `SchedulerService.configureConstrainedPolicy()` 安装可信本地 `ConstrainedPolicyConfig`。同一版本内容不可改变；版本过期、能力不匹配、熔断或用户停用时使用合法 fallback，fallback 也不能突破质量和设备约束。没有可行配置则拒绝；后台资源压力可暂停。学习路径的一跳约束不阻止紧急保护直接回退。
+
+- `OBSERVE`：执行合法基线，采集实际样本，不应用优化建议。硬保护与已声明时限仍生效。
+- `SHADOW`：记录合法相邻建议、预测和效用分项，执行配置仍与基线一致。
+- `CANARY`：仅对声明为低风险且可检查点的后台任务开放；需要显式窗口/阈值/分流比例、同类基线样本与冷却条件。
+- `ACTIVE`：还要求宿主设置 `activeValidated`，各配置仍须 `qualityValidated`。该标记代表宿主提供的验收结论，HAR 不能自行证明质量。
+
+默认策略为 `local-observe-v1`，购物 App 控制台只开放 OBSERVE/SHADOW。API 的 `PolicyMode.ADAPTIVE` 等旧选项与新闭环模式是不同概念：旧模式用于兼容模板，不能覆盖配置包硬约束。
+
+执行器返回遥测必须确认 `profileId`、`actualModelTier`、`actualBackend`、`workerCount` 和配置要求的候选数、维度、批次。`actualThreads` 只用于确知的推理线程配置；TaskPool 上报 `workerCount` 分区数。未确认配置不算成功；调度器也不会在不可中断调用中强改参数。取消后超过 2 秒未返回会触发局部熔断审计，执行槽仍保留到真实返回。
+
+`targetLatencyMs` 是体验目标，`softDeadlineMs` 超出后只标记体验风险；`deadlineMs`/`freshnessMs` 仍按工作流提交时间起算。自动信号不会被当作主观评价，也不会自动放宽目标时延。
+
+宿主显式启用本地反馈后，在 `RESULT_DISPLAYED` 后调用 `client.getFeedbackRequest(handle.workflowId)`，拿到可忽略的单题建议。通过 `handle.signal({ type: TaskSignalType.USER_FEEDBACK, feedback: ... })` 回传请求中允许的枚举。SDK 校验关联 ID、选项、有效期和去重；工作流反馈只关联输出节点，不向每个中间节点复制答案。
+
+`getPolicyMetrics()` 按版本、能力/模型版本、任务类型、输入规模、设备状态、配置、组别输出有界窗口统计；`exportAudit()` 保留预测、实际、反馈与回退原因。P50/P95 预测的冷启动值是声明先验，经验分位数也不是因果收益；热风险/置信度不是概率。
+
+`PolicyStateStore` 由宿主实现，当前 App 使用私有 Preferences。启动读取和后台异步保存熔断/停用/同意/限频摘要，不保存原始任务数据；预测样本和检查点不跨进程恢复。默认不提供网络 Provider；未经验证的远端 JSON 不能直接传给本地策略入口。完整实现调整、测试与真机步骤见 [本轮验收记录](testing/05-constrained-policy-acceptance.md)。

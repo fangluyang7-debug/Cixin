@@ -14,7 +14,33 @@ interface HysteresisState {
   pendingUpgradeSince: number;
 }
 
+interface ProfileHold {
+  id: string;
+  version: string;
+  changedAt: number;
+}
+
 export class HysteresisController {
+  private readonly profileHolds: Map<string, ProfileHold> = new Map<string, ProfileHold>();
+
+  public currentProfile(key: string, version: string, baseline: string): string {
+    const state = this.profileHolds.get(key);
+    return state !== undefined && state.version === version ? state.id : baseline;
+  }
+
+  public profileCooling(key: string, version: string, now: number, cooldownMs: number): boolean {
+    const state = this.profileHolds.get(key);
+    return state !== undefined && (state.version !== version || now - state.changedAt < cooldownMs);
+  }
+
+  public commitProfile(key: string, version: string, id: string, now: number): void {
+    const state = this.profileHolds.get(key);
+    if (state !== undefined && state.version === version && state.id === id) { return; }
+    if (this.profileHolds.size >= 256 && state === undefined) {
+      this.profileHolds.delete(Array.from(this.profileHolds.keys())[0]);
+    }
+    this.profileHolds.set(key, { id: id, version: version, changedAt: now });
+  }
   private readonly upgradeStableDurationMs: number;
   private readonly minimumTierHoldMs: number;
   private readonly states: Map<string, HysteresisState> = new Map<string, HysteresisState>();
