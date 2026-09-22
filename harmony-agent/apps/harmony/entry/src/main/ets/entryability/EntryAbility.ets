@@ -3,6 +3,7 @@ import { hilog } from '@kit.PerformanceAnalysisKit';
 import { DataInitService } from '../services/DataInitService';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
 import { LocalPolicyStore } from '../services/LocalPolicyStore';
+import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher';
 import { window } from '@kit.ArkUI';
 import {
   AppVisibility,
@@ -20,6 +21,7 @@ const DOMAIN = 0x0000;
 
 export default class EntryAbility extends UIAbility {
   private readonly schedulerService: SchedulerService = SchedulerService.getInstance();
+  private readonly monitorPublisher: SchedulerMonitorPublisher = SchedulerMonitorPublisher.getInstance();
   private deviceStateAdapter: HarmonyDeviceStateAdapter | null = null;
   private schedulerStartup: Promise<void> | null = null;
   private destroyed: boolean = false;
@@ -82,6 +84,7 @@ export default class EntryAbility extends UIAbility {
 
   onDestroy(): void {
     this.destroyed = true;
+    this.monitorPublisher.stop();
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onDestroy');
     this.stopScheduler().catch((error: Error) => {
       hilog.error(DOMAIN, 'Scheduler', 'Scheduler shutdown failed: %{public}s', error.message);
@@ -109,6 +112,7 @@ export default class EntryAbility extends UIAbility {
   onForeground(): void {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onForeground');
     this.appVisibility = AppVisibility.FOREGROUND;
+    this.monitorPublisher.setForeground(true);
     if (this.schedulerService.isInitialized()) {
       this.schedulerService.updateRealDeviceState({ appVisibility: this.appVisibility });
     }
@@ -120,6 +124,7 @@ export default class EntryAbility extends UIAbility {
   onBackground(): void {
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onBackground');
     this.appVisibility = AppVisibility.BACKGROUND;
+    this.monitorPublisher.setForeground(false);
     if (this.schedulerService.isInitialized()) {
       this.schedulerService.updateRealDeviceState({ appVisibility: this.appVisibility });
       this.schedulerService.flushPolicyState();

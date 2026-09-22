@@ -2,7 +2,7 @@
   "name": "harmony-agent",
   "version": "0.1.0",
   "private": true,
-  "description": "Independent HarmonyOS competition workspace: reusable backend and web debugger; native adaptation pending.",
+  "description": "Independent HarmonyOS scheduling workspace with native app and desktop live monitor.",
   "packageManager": "npm@11.12.0",
   "engines": { "node": ">=22" },
   "workspaces": ["services/api-server", "apps/test-entry-web"],
@@ -17,6 +17,7 @@
     "api:smoke:conversation": "npm --workspace services/api-server run smoke:conversation",
     "web:dev": "npm --workspace apps/test-entry-web run dev",
     "web:build": "npm --workspace apps/test-entry-web run build",
+    "monitor:dev": "node apps/harmony/monitor/server.mjs",
     "image-worker:dev": "cd services/image-worker && node ../../scripts/with-root-env.mjs python -m app.main",
     "migration:verify": "node scripts/verify-migration.mjs"
   }

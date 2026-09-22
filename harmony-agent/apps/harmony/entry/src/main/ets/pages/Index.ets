@@ -1,6 +1,7 @@
 import { common } from '@kit.AbilityKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { FeedbackOption, FeedbackRequest, SchedulerService, TaskSignalType, TaskStatus, WorkflowHandle } from 'scheduler';
+import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher';
 import { StoreManager } from '../database/StoreManager';
 import { DataInitService } from '../services/DataInitService';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
@@ -10,7 +11,6 @@ import { SearchResults } from '../components/SearchResults';
 import { ProductDetail } from '../components/ProductDetail';
 import { ExperienceFeedback } from '../components/ExperienceFeedback';
 import { CommerceIconButton, ProductTile } from '../components/CommerceControls';
-import { SchedulerDashboard } from '../components/SchedulerDashboard';
 import { feedbackAvailabilityText } from '../services/FeedbackPresentation';
 import { feedbackReceiptText, numericPrice, platformLabel, productKey, safeProductUrl } from '../services/CommercePresentation';
 
@@ -21,6 +21,7 @@ enum CommerceTab { HOME, CATALOG, RADAR, SAVED, PROFILE }
 struct Index {
   private readonly scheduler: SchedulerService = SchedulerService.getInstance();
   private readonly tasks: ShoppingTaskService = ShoppingTaskService.getInstance();
+  private readonly monitor: SchedulerMonitorPublisher = SchedulerMonitorPublisher.getInstance();
   private activeSearch: WorkflowHandle<Product[]> | null = null;
   private generation: number = 0;
   private expiryTimer: number = -1;
@@ -28,7 +29,6 @@ struct Index {
   private photoGeneration: number = 0;
   private warming: boolean = false;
   private contentScroller: Scroller = new Scroller();
-  @State showDashboard: boolean = false;
   @State feedbackStatus: string = '等待本次任务完成';
   @State tab: CommerceTab = CommerceTab.HOME;
   @State ready: boolean = false;
@@ -53,13 +53,17 @@ struct Index {
   @State feedbackEnabled: boolean = false;
   @State receiptText: string = '';
   @State contentHeight: number = 500;
+  @State monitorEndpoint: string = '';
+  @State monitorPairingCode: string = '';
+  @State monitorEnabled: boolean = false;
+  @State monitorSettingsLoaded: boolean = false;
+  @State monitorStatus: string = '正在读取监控设置';
 
-  aboutToAppear(): void { this.loadCatalog(); this.watchReady(); }
+  aboutToAppear(): void { this.loadCatalog(); this.loadMonitorSettings(); this.watchReady(); }
   onPageShow(): void { this.watchReady(); }
-  onPageHide(): void { this.invalidate(TaskSignalType.PAGE_LEFT); this.showDashboard = false; clearInterval(this.readyTimer); }
+  onPageHide(): void { this.invalidate(TaskSignalType.PAGE_LEFT); clearInterval(this.readyTimer); }
   aboutToDisappear(): void { this.invalidate(TaskSignalType.PAGE_LEFT); clearInterval(this.readyTimer); this.photoGeneration++; }
   onBackPress(): boolean {
-    if (this.showDashboard) { this.showDashboard = false; return true; }
     if (this.selected !== null) { this.selected = null; return true; }
     if (this.showHistory) { this.showHistory = false; return true; }
     if (this.tab !== CommerceTab.HOME) { this.navigate(CommerceTab.HOME); return true; }
@@ -73,6 +77,9 @@ struct Index {
     this.ready = this.scheduler.isInitialized();
     if (!this.ready) { return; }
     this.feedbackEnabled = this.scheduler.isFeedbackEnabled();
+    if (this.monitorEnabled && this.monitorSettingsLoaded) {
+      this.monitor.start(this.monitorEndpoint, this.monitorPairingCode);
+    }
     if (!this.feedbackEnabled && this.feedback !== null) { this.clearFeedback(); }
     this.refreshFeedbackStatus();
     if (!this.warming) {
@@ -88,6 +95,42 @@ struct Index {
       this.catalog = await store.queryTopProducts(12);
       this.initialStatus = `本地 ${count} 件商品已就绪`;
     } catch (_) { this.initialStatus = '商品加载失败'; }
+  }
+  private async loadMonitorSettings(): Promise<void> {
+    this.monitor.setStatusListener((status: string) => { this.monitorStatus = status; });
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const settings = await SchedulerMonitorPublisher.loadSettings(context);
+      this.monitorEndpoint = settings.endpoint;
+      this.monitorPairingCode = settings.pairingCode;
+      this.monitorEnabled = settings.enabled;
+    } catch (_) { this.monitorStatus = '监控设置读取失败'; }
+    finally { this.monitorSettingsLoaded = true; }
+    if (this.monitorEnabled && this.ready) { this.monitor.start(this.monitorEndpoint, this.monitorPairingCode); }
+  }
+  private async saveMonitorSettings(enabled: boolean): Promise<void> {
+    const endpoint = this.monitorEndpoint.trim().replace(/\/$/, '');
+    const pairingCode = this.monitorPairingCode.trim();
+    if (enabled && (!SchedulerMonitorPublisher.isValidEndpoint(endpoint) ||
+      !SchedulerMonitorPublisher.isValidPairingCode(pairingCode))) {
+      this.monitorEnabled = false;
+      this.monitorStatus = '请填写有效的电脑地址和配对码';
+      this.notify('电脑地址或配对码格式不正确');
+      return;
+    }
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      await SchedulerMonitorPublisher.saveSettings(context, { endpoint: endpoint, pairingCode: pairingCode, enabled: enabled });
+      this.monitorEndpoint = endpoint;
+      this.monitorPairingCode = pairingCode;
+      this.monitorEnabled = enabled;
+      if (enabled) { this.monitor.start(endpoint, pairingCode); }
+      else { this.monitor.stop(); }
+    } catch (_) {
+      this.monitorEnabled = false;
+      this.monitorStatus = '监控设置保存失败';
+      this.notify('无法保存电脑监控设置');
+    }
   }
   private clearFeedback(): void {
     clearTimeout(this.expiryTimer); this.feedback = null; this.feedbackHidden = false;
@@ -213,9 +256,6 @@ struct Index {
     try { this.getUIContext().getPromptAction().showToast({ message: message }); }
     catch (_) { this.receiptText = message; }
   }
-  private openScheduler(): void {
-    this.showDashboard = !this.showDashboard;
-  }
   private openSchedulerSettings(): void {
     this.getUIContext().getRouter().pushUrl({ url: 'pages/SchedulerPanelPage' }).catch(() => this.notify('控制台打开失败'));
   }
@@ -235,13 +275,6 @@ struct Index {
         Text(this.selected !== null ? '商品详情' : 'SoleAI').fontSize(19).fontWeight(FontWeight.Bold).maxLines(1)
         Text(this.ready ? '端侧商品助手' : '正在初始化').fontSize(10).fontColor('#747878')
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
-      Button({ type: ButtonType.Normal }) {
-        Row({ space: 4 }) {
-          Image($r('sys.media.ohos_ic_public_more')).width(16).height(16).fillColor('#00513F')
-          Text('调度盘').fontSize(13).fontColor('#00513F')
-        }
-      }.width(88).height(42).backgroundColor('#D7F8ED').borderRadius(6)
-        .accessibilityText(this.showDashboard ? '收起调度盘' : '打开实时调度盘').onClick(() => this.openScheduler())
     }.width('100%').padding(8).backgroundColor('#FFFFFF').borderRadius(32)
   }
   @Builder
@@ -308,7 +341,24 @@ struct Index {
       Text('仅记录结构化答案和调度指标，不记录搜索原文或图片，不自动上传。可随时关闭。')
         .fontSize(13).fontColor('#747878').width('100%')
       Divider().color('#E2E2E2')
-      Button('打开实时调度盘').width('100%').backgroundColor('#111111').onClick(() => this.openScheduler())
+      Text('电脑实时监控').fontSize(18).fontWeight(FontWeight.Medium).width('100%')
+      Text('电脑和手机连接同一可信 Wi-Fi 后，运行电脑端监控服务，再填写电脑局域网地址与配对码。只推送调度状态、资源指标和任务事件，不包含搜索内容、图片或商品列表。')
+        .fontSize(12).fontColor('#747878').width('100%')
+      TextInput({ text: this.monitorEndpoint, placeholder: 'http://192.168.1.10:8765' }).width('100%').height(44)
+        .fontSize(13).backgroundColor('#FFFFFF').onChange((value: string) => { this.monitorEndpoint = value; })
+      TextInput({ text: this.monitorPairingCode, placeholder: '电脑终端显示的配对码' }).width('100%').height(44)
+        .fontSize(13).backgroundColor('#FFFFFF').type(InputType.Password)
+        .onChange((value: string) => { this.monitorPairingCode = value; })
+      Row() {
+        Text('向电脑推送实时遥测').fontSize(14).layoutWeight(1)
+        Toggle({ type: ToggleType.Switch, isOn: this.monitorEnabled }).selectedColor('#009576')
+          .enabled(this.ready && this.monitorSettingsLoaded).onChange((value: boolean) => this.saveMonitorSettings(value))
+      }.width('100%')
+      Text(this.monitorStatus).fontSize(12).fontColor('#00513F').width('100%')
+      Button('保存电脑连接信息').width('100%').backgroundColor('#E6F1EE').fontColor('#134E42')
+        .onClick(() => this.saveMonitorSettings(this.monitorEnabled))
+      Button('策略与实验控制台').width('100%').backgroundColor('#111111').fontColor('#FFFFFF')
+        .onClick(() => this.openSchedulerSettings())
       Text(this.receiptText || '暂无反馈回执').fontSize(13).fontColor('#444748').width('100%')
       Text('清单与对话历史仅保留在本次运行中').fontSize(12).fontColor('#747878').width('100%')
       Button('清空本次清单与历史').fontSize(13).backgroundColor('#EEEEEE').fontColor('#1A1C1C')
@@ -359,12 +409,6 @@ struct Index {
   build() {
     Column({ space: 8 }) {
       this.Header()
-      if (this.showDashboard) {
-        Column() {
-          SchedulerDashboard({ feedbackStatus: this.feedbackStatus, onClose: () => { this.showDashboard = false; },
-            onSettings: () => this.openSchedulerSettings() })
-        }.width('100%').height('38%')
-      }
       Stack({ alignContent: Alignment.Bottom }) {
         Scroll(this.contentScroller) {
           Column({ space: 16 }) {
@@ -379,7 +423,6 @@ struct Index {
               }
             }
             if (this.tab === CommerceTab.RADAR) {
-              if (this.showDashboard) { Text(this.feedbackStatus).fontSize(12).fontColor('#747878').width('100%') }
               if (!this.feedbackEnabled && this.ready) {
                 Row() {
                   Text('偶尔回答使用感受（可选）').fontSize(12).layoutWeight(1)
