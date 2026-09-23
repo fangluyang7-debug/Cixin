@@ -1,0 +1,7 @@
+{
+  "deviceId": "dev-host", "family": "host", "host": "127.0.0.1", "port": 3200,
+  "tokenEnv": "CIXIN_NODE_TOKEN", "dataDir": "../data/dev-host",
+  "mode": "LOCAL_ONLY", "minRemoteSamples": 3,
+  "maxConcurrentLocalTasks": 1, "cpuWorkerBudget": 2, "maxPendingTasks": 32,
+  "peers": [], "workers": []
+}

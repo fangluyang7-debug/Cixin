@@ -1,0 +1,122 @@
+{
+  "sourceBranch": "harmony/mobile-scheduler",
+  "sourceCommit": "b24497e4b4fa86ddd38f696ff0a92d968ac6b590",
+  "sourceTree": "572d28e83866885737cd2a7b73a606a3e004713b",
+  "files": [
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerClient.ets",
+      "target": "src/scheduler/api/SchedulerClient.ts",
+      "sourceSha256": "57168ccc176b351ffb99a55c0647a46ea2ebc174ae12d3bda255dc247382ce38"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerError.ets",
+      "target": "src/scheduler/api/SchedulerError.ts",
+      "sourceSha256": "fe3a15dd6f6749ce9c765756fba8a7e1a299f416f92d5038e15cfdccba2a31f4"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerService.ets",
+      "target": "src/scheduler/api/SchedulerService.ts",
+      "sourceSha256": "4d3d6f8c8bfca8ec49785f904d29c30d52d99998d77c284a732cdc0f6d320e17"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerTypes.ets",
+      "target": "src/scheduler/api/SchedulerTypes.ts",
+      "sourceSha256": "a8747ccc4aa421a41cb10f897f3641d6ead24e6569460bc99e7bc595742092c3"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/executor/CancellationController.ets",
+      "target": "src/scheduler/executor/CancellationController.ts",
+      "sourceSha256": "a555bb2078ab9f0c4980a53f45017754e82653166fc14deaa0c6ae3e3e4da47e"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/executor/ExecutorRegistry.ets",
+      "target": "src/scheduler/executor/ExecutorRegistry.ts",
+      "sourceSha256": "3e5a3d33369f23466f5f67640a0161cf100ceb781ba8b515f0d5d67ac7fe99cf"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/placement/PlacementPolicy.ets",
+      "target": "src/scheduler/placement/PlacementPolicy.ts",
+      "sourceSha256": "a8cf61d91fba5fd80b8be613a8de07fca5fc247197436a1dcb3485755ee11aa9"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/AdaptiveCostModel.ets",
+      "target": "src/scheduler/policy/AdaptiveCostModel.ts",
+      "sourceSha256": "7b6068714f21f13a24339024a7d59868e6c09b7905f307f007ac3237c08c83a4"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/ConstrainedPolicy.ets",
+      "target": "src/scheduler/policy/ConstrainedPolicy.ts",
+      "sourceSha256": "274c433481c93b740510baca0e28130d1cda7f85c865eaf566c5580a063dd301"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/FeedbackCalibration.ets",
+      "target": "src/scheduler/policy/FeedbackCalibration.ts",
+      "sourceSha256": "4dae939f3b72e23247de3d897dd7a5a8975f799bfd345b051ac5b33472a0783b"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/FeedbackController.ets",
+      "target": "src/scheduler/policy/FeedbackController.ts",
+      "sourceSha256": "01aa04861cf452c291ea12b2f55bf5d642f3d815b4fece20a73d15ab1fb29ee4"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/HysteresisController.ets",
+      "target": "src/scheduler/policy/HysteresisController.ts",
+      "sourceSha256": "1739f2995dd2bd5a18f614aa3904e4815fa51ee0b15fddae382173a11a70bd07"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/InterferenceModel.ets",
+      "target": "src/scheduler/policy/InterferenceModel.ts",
+      "sourceSha256": "dff8036de8613cdcfca3715d325421aca967b5dd6bb7d9a9f56ace3c2afd1ae5"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/MarginalAllocation.ets",
+      "target": "src/scheduler/policy/MarginalAllocation.ts",
+      "sourceSha256": "ec03d5bf8614296182564ac6ce5977492cec1d20629705f3f426b5ccf12bcd3e"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/PolicyMetrics.ets",
+      "target": "src/scheduler/policy/PolicyMetrics.ts",
+      "sourceSha256": "38131f5a1deb66bc393b4dda2809b3f3bce433f3b9ab4e0508874e39843496e1"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/ProfileContract.ets",
+      "target": "src/scheduler/policy/ProfileContract.ts",
+      "sourceSha256": "b37f902de9eccb9c194f0052c815f6f8fcf7fcfcfb527412b31e2450b3013c13"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/SchedulerPolicy.ets",
+      "target": "src/scheduler/policy/SchedulerPolicy.ts",
+      "sourceSha256": "7cc600ca446d4ac0a4653a23f96f59c2e0fd171f5537f104a9e64b0b17272eab"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/SchedulerReasonCode.ets",
+      "target": "src/scheduler/policy/SchedulerReasonCode.ts",
+      "sourceSha256": "36ccb6c488e4609cc066742fb12fd5cf9086d9c6d4841c7d0389e486bfe3f239"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/SemanticPolicy.ets",
+      "target": "src/scheduler/policy/SemanticPolicy.ts",
+      "sourceSha256": "5f1e5730267d7957de75facf1fb95f5814166d83e908a7552ea44c4a8d5ad82d"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/WorkflowPlanner.ets",
+      "target": "src/scheduler/policy/WorkflowPlanner.ts",
+      "sourceSha256": "daba3c20b3ce31d98f0a86c20cddbf4dc5f21c3ba02d5c6306823bd2bf6d68c6"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/queue/TaskQueue.ets",
+      "target": "src/scheduler/queue/TaskQueue.ts",
+      "sourceSha256": "49fea565a82b2013d1bcd5dce5a5896cb429ff68ecaca338b3eae47497c5a23b"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/state/DeviceStateController.ets",
+      "target": "src/scheduler/state/DeviceStateController.ts",
+      "sourceSha256": "4f7299317187009f83ccd4c90c0023825fdcf815d803064e146fb34501c8d57f"
+    },
+    {
+      "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/state/ResourceUnits.ets",
+      "target": "src/scheduler/state/ResourceUnits.ts",
+      "sourceSha256": "48cd63cd96ba4d84cf8963b547709ba693793ec6d32ee5ae69c8712b0771f397"
+    }
+  ]
+}

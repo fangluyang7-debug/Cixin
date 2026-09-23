@@ -1,0 +1,8 @@
+{
+  "toolId": "catalog.vector_search",
+  "input": { "query": [1, 0, 0], "vectors": [
+    { "id": "shoe-a", "values": [1, 0, 0] },
+    { "id": "shoe-b", "values": [0, 1, 0] }
+  ], "limit": 2 },
+  "constraints": { "privacy": "internal", "deadlineMs": 10000, "allowRemote": false }
+}

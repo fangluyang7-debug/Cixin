@@ -1,0 +1,7 @@
+{
+  "deviceId": "cix-p1-01", "family": "cix", "boardModel": "CIX P1",
+  "host": "127.0.0.1", "port": 3200, "tokenEnv": "CIXIN_NODE_TOKEN", "dataDir": "../data/cix-p1-01",
+  "mode": "SHADOW", "minRemoteSamples": 3,
+  "maxConcurrentLocalTasks": 1, "cpuWorkerBudget": 2, "maxPendingTasks": 32,
+  "peers": [], "workers": []
+}
