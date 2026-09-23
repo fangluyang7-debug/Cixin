@@ -36,6 +36,7 @@ import { FeedbackController } from '../policy/FeedbackController';
 import { policyMetrics } from '../policy/PolicyMetrics';
 import { validateManifest } from '../policy/ProfileContract';
 import { HysteresisController } from '../policy/HysteresisController';
+import { InterferenceModel } from '../policy/InterferenceModel';
 import { SchedulerPolicy } from '../policy/SchedulerPolicy';
 import { DeviceStateController } from '../state/DeviceStateController';
 import { CancellationController } from '../executor/CancellationController';
@@ -52,6 +53,10 @@ type CancelCallback = () => Promise<boolean>;
 type StatusCallback = () => TaskStatus;
 
 interface InternalTask extends QueueItem {
+  hadOverlap: boolean;
+  overlapWith: string[];
+  overlapStartedAt: number | null;
+  overlapDurationMs: number;
   firstExecutionKey?: string;
   mixedExecution: boolean;
   executedProfileIds: string[];
@@ -182,6 +187,7 @@ export class SchedulerService implements SchedulerRuntime {
   private config: SchedulerConfig | null = null;
   private policy: SchedulerPolicy | null = null;
   private semanticPolicy: SemanticPolicy = new SemanticPolicy();
+  private interferenceCosts: InterferenceModel = new InterferenceModel();
   private constrainedPolicy: ConstrainedPolicy = new ConstrainedPolicy();
   private feedbackController: FeedbackController = new FeedbackController();
   private persistence: Promise<void> = Promise.resolve();
@@ -192,8 +198,9 @@ export class SchedulerService implements SchedulerRuntime {
   private executorRegistry: ExecutorRegistry | null = null;
   private taskQueue: TaskQueue<InternalTask> | null = null;
   private tasks: Map<string, InternalTask> = new Map<string, InternalTask>();
-  private runningTask: InternalTask | null = null;
+  private runningTasks: Map<string, InternalTask> = new Map<string, InternalTask>();
   private processorPromise: Promise<void> | null = null;
+  private drainWake: (() => void) | null = null;
   private schedulerPaused: boolean = false;
   private nextTaskSequence: number = 0;
   private evaluationCount: number = 0;
@@ -225,6 +232,7 @@ export class SchedulerService implements SchedulerRuntime {
     this.policyMode = config.defaultPolicyMode;
     this.policy = new SchedulerPolicy();
     this.semanticPolicy = new SemanticPolicy();
+    this.interferenceCosts = new InterferenceModel();
     this.constrainedPolicy = new ConstrainedPolicy();
     this.feedbackController = new FeedbackController();
     if (config.constrainedPolicy !== undefined) { this.constrainedPolicy.configure(config.constrainedPolicy); }
@@ -250,8 +258,9 @@ export class SchedulerService implements SchedulerRuntime {
     this.executorRegistry = new ExecutorRegistry();
     this.taskQueue = new TaskQueue<InternalTask>();
     this.tasks = new Map<string, InternalTask>();
-    this.runningTask = null;
+    this.runningTasks.clear();
     this.processorPromise = null;
+    this.drainWake = null;
     this.schedulerPaused = false;
     this.nextTaskSequence = 0;
     this.evaluationCount = 0;
@@ -477,6 +486,10 @@ export class SchedulerService implements SchedulerRuntime {
     };
 
     const task: InternalTask = {
+      hadOverlap: false,
+      overlapWith: [],
+      overlapStartedAt: null,
+      overlapDurationMs: 0,
       taskId: taskId,
       taskType: request.taskType,
       priority: plan.priority,
@@ -859,7 +872,7 @@ export class SchedulerService implements SchedulerRuntime {
     return {
       evaluationCount: this.evaluationCount,
       taskCount: terminalLogs.length,
-      runningCount: this.runningTask === null ? 0 : 1,
+      runningCount: this.runningTasks.size,
       queuedCount: this.taskQueue === null ? 0 : this.taskQueue.getSize(),
       pausedCount: this.countPausedTasks(),
       averageLatencyMs: this.average(latencyValues),
@@ -912,9 +925,9 @@ export class SchedulerService implements SchedulerRuntime {
       });
       this.updateQueueDepth();
     }
-    if (this.runningTask !== null) {
-      this.requestStop(this.runningTask, SchedulerErrorCode.TASK_CANCELLED);
-    }
+    this.runningTasks.forEach((task: InternalTask) =>
+      this.requestStop(task, SchedulerErrorCode.TASK_CANCELLED));
+    if (this.drainWake !== null) { this.drainWake(); }
     if (this.processorPromise !== null) {
       await this.processorPromise;
     }
@@ -931,8 +944,9 @@ export class SchedulerService implements SchedulerRuntime {
     this.executorRegistry = null;
     this.taskQueue = null;
     this.tasks = new Map<string, InternalTask>();
-    this.runningTask = null;
+    this.runningTasks.clear();
     this.processorPromise = null;
+    this.drainWake = null;
     this.schedulerPaused = false;
     this.policyMode = PolicyMode.ADAPTIVE;
     this.evaluationCount = 0;
@@ -943,9 +957,10 @@ export class SchedulerService implements SchedulerRuntime {
   }
 
   private scheduleDrain(): void {
-    if (!this.initialized || this.schedulerPaused || this.processorPromise !== null) {
+    if (!this.initialized || this.schedulerPaused) {
       return;
     }
+    if (this.processorPromise !== null) { if (this.drainWake !== null) { this.drainWake(); } return; }
     this.processorPromise = this.drainQueue();
     this.processorPromise.then(() => {
       this.processorPromise = null;
@@ -959,29 +974,115 @@ export class SchedulerService implements SchedulerRuntime {
   }
 
   private protectRunningTask(): void {
-    const task: InternalTask | null = this.runningTask;
-    if (task === null || task.profile.template === undefined) { return; }
     const state: DeviceState = this.getDeviceState();
-    if (state.thermalLevel === ThermalLevel.CRITICAL || state.memoryPressure === MemoryPressure.CRITICAL ||
-      (state.availableMemoryMb !== null && state.availableMemoryMb < 192)) {
+    if (state.thermalLevel !== ThermalLevel.CRITICAL && state.memoryPressure !== MemoryPressure.CRITICAL &&
+      (state.availableMemoryMb === null || state.availableMemoryMb >= 192)) { return; }
+    this.runningTasks.forEach((task: InternalTask) => {
+      if (task.profile.template === undefined) { return; }
       this.constrainedPolicy.trip(task.profile.template.capability, task.plan, 'DEVICE_PROTECTION_CIRCUIT');
       this.queuePolicySave();
       this.requestStop(task, 'DEVICE_PROTECTION');
-    }
+    });
   }
 
   private async drainQueue(): Promise<void> {
+    const active: Map<string, Promise<void>> = new Map<string, Promise<void>>();
     while (this.initialized && !this.schedulerPaused && this.taskQueue !== null) {
       this.refreshQueuedPlans();
-      const task: InternalTask | null = this.taskQueue.dequeue();
-      if (task === null) {
-        return;
+      const limit: number = this.config?.maxConcurrentLocalTasks ?? 1;
+      if (active.size < limit) {
+        const admissionState: DeviceState | null = this.runningTasks.size === 0 ? null : this.getDeviceState();
+        const task: InternalTask | null = this.taskQueue.dequeueEligible((item: InternalTask): boolean =>
+          this.canRunAlongside(item, admissionState));
+        if (task !== null) {
+          this.updateQueueDepth();
+          task.hadOverlap = false;
+          task.overlapWith = [];
+          task.overlapStartedAt = null;
+          task.overlapDurationMs = 0;
+          this.runningTasks.forEach((running: InternalTask) => {
+            const overlapAt: number = Date.now();
+            task.hadOverlap = true;
+            running.hadOverlap = true;
+            task.overlapStartedAt = overlapAt;
+            if (running.overlapStartedAt === null) { running.overlapStartedAt = overlapAt; }
+            const currentKey: string = this.interferenceKey(task);
+            const runningKey: string = this.interferenceKey(running);
+            if (task.overlapWith.indexOf(runningKey) < 0) { task.overlapWith.push(runningKey); }
+            if (running.overlapWith.indexOf(currentKey) < 0) { running.overlapWith.push(currentKey); }
+          });
+          this.runningTasks.set(task.taskId, task);
+          const execution: Promise<void> = this.executeTask(task).catch(() => {
+            this.finishTask(task, TaskStatus.FAILED, null, SchedulerErrorCode.INTERNAL_ERROR);
+          }).then(() => {
+            const completedAt: number = Date.now();
+            if (task.overlapStartedAt !== null) {
+              task.overlapDurationMs += completedAt - task.overlapStartedAt;
+              task.overlapStartedAt = null;
+            }
+            this.runningTasks.forEach((running: InternalTask) => {
+              if (running.taskId !== task.taskId && running.overlapStartedAt !== null) {
+                running.overlapDurationMs += completedAt - running.overlapStartedAt;
+                running.overlapStartedAt = null;
+              }
+            });
+            if (task.hadOverlap && task.overlapWith.length === 1 && task.lastSliceDurationMs > 0 &&
+              task.overlapDurationMs / task.lastSliceDurationMs >= 0.5 &&
+              task.plan.policyAudit?.actualConfirmed === true && task.plan.prediction !== undefined &&
+              (task.status === TaskStatus.SUCCEEDED || task.status === TaskStatus.QUEUED)) {
+              task.overlapWith.forEach((other: string) => this.interferenceCosts.observe(
+                this.interferenceKey(task), other, task.lastSliceDurationMs,
+                task.plan.prediction!.latencyMs, task.plan.prediction!.sampleCount));
+            }
+          }).catch(() => {
+            // Statistics must not strand the execution coordinator.
+          }).finally(() => {
+            this.runningTasks.delete(task.taskId);
+            active.delete(task.taskId);
+            this.scheduleDrain();
+          });
+          active.set(task.taskId, execution);
+          continue;
+        }
       }
-      this.updateQueueDepth();
-      this.runningTask = task;
-      await this.executeTask(task);
-      this.runningTask = null;
+      if (active.size === 0) { return; }
+      const wake: Promise<void> = new Promise<void>((resolve) => { this.drainWake = resolve; });
+      await Promise.race(Array.from(active.values()).concat([wake]));
+      this.drainWake = null;
     }
+    await Promise.all(Array.from(active.values()));
+  }
+
+  private canRunAlongside(task: InternalTask, admissionState: DeviceState | null): boolean {
+    if (this.runningTasks.size >= (this.config?.maxConcurrentLocalTasks ?? 1)) { return false; }
+    if (this.runningTasks.size === 0) { return true; }
+    if ((this.config?.maxConcurrentLocalTasks ?? 1) < 2 || task.profile.template?.concurrentSafe !== true ||
+      task.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) { return false; }
+    const state: DeviceState = admissionState ?? this.getDeviceState();
+    if (state.thermalLevel === ThermalLevel.HOT || state.thermalLevel === ThermalLevel.CRITICAL ||
+      state.memoryPressure === MemoryPressure.HIGH || state.memoryPressure === MemoryPressure.CRITICAL ||
+      state.availableMemoryMb === null) { return false; }
+    let workers: number = (task.plan as LocalExecutionPlan).threadCount;
+    let memory: number = task.plan.prediction?.memoryMb ?? Infinity;
+    this.runningTasks.forEach((running: InternalTask) => {
+      if (running.profile.template?.concurrentSafe !== true ||
+        running.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) { workers = Infinity; }
+      else { workers += (running.plan as LocalExecutionPlan).threadCount; }
+      memory += running.plan.prediction?.memoryMb ?? Infinity;
+      const slowdown: number | null = this.interferenceCosts.slowdown(
+        this.interferenceKey(task), this.interferenceKey(running));
+      if (slowdown !== null && (slowdown >= 2 ||
+        slowdown > 1.3 && (task.profile.context?.userWaiting || running.profile.context?.userWaiting))) {
+        workers = Infinity;
+      }
+    });
+    return workers <= (this.config?.cpuWorkerBudget ?? 2) && memory <= state.availableMemoryMb * 0.5;
+  }
+
+  private interferenceKey(task: InternalTask): string {
+    return `${task.profile.template?.capability ?? task.capability}:` +
+      `${task.profile.template?.resourceHints.modelVersion ?? 'legacy'}:` +
+      `${task.plan.executionProfile?.id ?? task.plan.qualityLevelId ?? 'default'}`;
   }
 
   private async executeTask(task: InternalTask): Promise<void> {
@@ -1044,7 +1145,7 @@ export class SchedulerService implements SchedulerRuntime {
         ((actual?.actualBackend === undefined || actual.actualBackend === (task.plan as LocalExecutionPlan).backend) &&
           (actual?.actualThreads === undefined || actual.actualThreads === (task.plan as LocalExecutionPlan).threadCount)));
       if (!matchesPlan) { task.plan.reasonCodes.push('EXECUTOR_SETTINGS_DIFFER_FROM_PLAN'); }
-      if (task.executionState !== undefined && matchesPlan) {
+      if (task.executionState !== undefined && matchesPlan && !task.hadOverlap) {
         this.semanticPolicy.observe(task.profile, task.executionState, task.plan, task.lastSliceDurationMs);
       }
       if (result.completed === false) {
@@ -1421,6 +1522,14 @@ export class SchedulerService implements SchedulerRuntime {
   }
 
   private validateConfig(config: SchedulerConfig): void {
+    if (config.maxConcurrentLocalTasks !== undefined &&
+      config.maxConcurrentLocalTasks !== 1 && config.maxConcurrentLocalTasks !== 2) {
+      throw new SchedulerError(SchedulerErrorCode.INVALID_CONFIG, 'Local concurrency must be 1 or 2.');
+    }
+    if (config.cpuWorkerBudget !== undefined &&
+      (!Number.isSafeInteger(config.cpuWorkerBudget) || config.cpuWorkerBudget < 1 || config.cpuWorkerBudget > 8)) {
+      throw new SchedulerError(SchedulerErrorCode.INVALID_CONFIG, 'CPU worker budget must be 1..8.');
+    }
     if (config.metricsWindowSize <= 0) {
       throw new SchedulerError(
         SchedulerErrorCode.INVALID_CONFIG,

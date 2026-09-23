@@ -100,4 +100,20 @@ check('injected local state keeps a mock provenance label', () => {
   assert.equal(profile.source, placement.PlacementSource.MOCK);
   assert.deepEqual(profile.loadedModelVersions, []);
 });
+check('only confirmed real execution trains placement costs', () => {
+  const policy = new placement.GlobalPlacementPolicy();
+  const sample = { taskSignature: task().taskSignature, modelVersion: 'v1', deviceId: 'tablet',
+    modelWasLoaded: true, source: placement.PlacementSource.MOCK, actualConfirmed: true,
+    queueMs: 0, modelLoadMs: 0, computeMs: 10 };
+  for (let i = 0; i < 3; i++) policy.observe(sample);
+  let answer = policy.evaluate(task(), 'local', [device('local', true, 200),
+    device('tablet', false, 100)], [link()], placement.PlacementMode.SHADOW, now);
+  assert.equal(answer.estimates.find(item => item.deviceId === 'tablet').computeMs, 100);
+  sample.source = placement.PlacementSource.REAL;
+  for (let i = 0; i < 3; i++) policy.observe(sample);
+  answer = policy.evaluate(task(), 'local', [device('local', true, 200),
+    device('tablet', false, 100)], [link()], placement.PlacementMode.SHADOW, now);
+  assert.equal(answer.estimates.find(item => item.deviceId === 'tablet').computeMs, 10);
+  assert.equal(answer.dispatchAllowed, false);
+});
 process.stdout.write(`${count} placement checks passed\n`);

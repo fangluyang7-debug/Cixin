@@ -34,12 +34,17 @@ export class TaskQueue<TItem extends QueueItem> {
   }
 
   public dequeue(): TItem | null {
+    return this.dequeueEligible((_item: TItem): boolean => true);
+  }
+
+  public dequeueEligible(eligible: (item: TItem) => boolean): TItem | null {
     this.sortItems();
     // Grant the next free slot to the oldest runnable task waiting at least 30 seconds.
     const overdue = this.items.filter((entry: SequencedQueueItem<TItem>) =>
-      !entry.item.paused && this.clock() - entry.enqueuedAt >= QUEUE_AGING_INTERVAL_MS)
+      !entry.item.paused && eligible(entry.item) && this.clock() - entry.enqueuedAt >= QUEUE_AGING_INTERVAL_MS)
       .sort((left: SequencedQueueItem<TItem>, right: SequencedQueueItem<TItem>) => left.sequence - right.sequence);
-    const index: number = overdue.length > 0 ? this.items.indexOf(overdue[0]) : this.items.findIndex((entry: SequencedQueueItem<TItem>) => !entry.item.paused);
+    const index: number = overdue.length > 0 ? this.items.indexOf(overdue[0]) :
+      this.items.findIndex((entry: SequencedQueueItem<TItem>) => !entry.item.paused && eligible(entry.item));
     if (index < 0) {
       return null;
     }

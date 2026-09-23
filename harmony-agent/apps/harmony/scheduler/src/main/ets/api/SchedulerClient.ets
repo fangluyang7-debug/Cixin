@@ -6,6 +6,7 @@ import {
 } from './SchedulerTypes';
 import { FeedbackRequest, FeedbackReceipt, UserFeedback, FeedbackAvailability } from './SchedulerTypes';
 import { validateManifest } from '../policy/ProfileContract';
+import { planWorkflowCosts, WorkflowCostPlan } from '../policy/WorkflowPlanner';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 
 export interface SchedulerRuntime {
@@ -204,6 +205,16 @@ export class SchedulerClient {
     const nodes: WorkflowNode[] = template.workflow ?? [{ id: 'task', templateId: template.capability,
       dependsOn: [], failurePolicy: DependencyFailurePolicy.CANCEL_WORKFLOW }];
     const ordered: WorkflowNode[] = this.orderNodes(nodes);
+    const estimatedMs: Record<string, number> = {};
+    ordered.forEach((node: WorkflowNode) => {
+      const leaf: TaskTemplate = this.requireTemplate(node.templateId);
+      const defaultProfile = leaf.manifest?.profiles.find((item) => item.id === leaf.manifest!.defaultProfileId);
+      const level = leaf.qualityLevels.find((item) => item.id === defaultProfile?.qualityLevelId) ??
+        leaf.qualityLevels.find((item) => item.modelTier ===
+          (run.context.highQuality ? ModelTier.HIGH_ACCURACY : run.context.accuracyFloor)) ?? leaf.qualityLevels[0];
+      estimatedMs[node.id] = level.estimatedLatencyMs;
+    });
+    const workflowCosts: WorkflowCostPlan[] = planWorkflowCosts(ordered, estimatedMs);
     const results: TaskResult<Object>[] = [];
     const outputs: Record<string, Object> = {};
     const skipped: string[] = [];
@@ -229,6 +240,10 @@ export class SchedulerClient {
         leaf.privacyPolicy = PrivacyPolicy.SANITIZED_REMOTE;
       }
       const nodeContext: TaskContext = JSON.parse(JSON.stringify(run.context)) as TaskContext;
+      const remaining = workflowCosts.find((item: WorkflowCostPlan) => item.nodeId === node.id);
+      nodeContext.workflowCriticalPathMs = remaining?.criticalPathMs;
+      nodeContext.workflowRemainingSerialMs = remaining?.serialRemainingMs;
+      nodeContext.workflowCurrentNodeEstimateMs = estimatedMs[node.id];
       nodeContext.parentTaskId = run.id;
       nodeContext.dependencyTaskIds = node.dependsOn.map((dependency: string) => `${run.id}:${dependency}`);
       const taskId: string = `${run.id}:${node.id}`;
@@ -311,6 +326,9 @@ export class SchedulerClient {
   }
 
   private validateTemplate(template: TaskTemplate): void {
+    if (template.concurrentSafe !== undefined && typeof template.concurrentSafe !== 'boolean') {
+      this.invalid('Concurrent safety declaration must be a boolean.');
+    }
     if (template.capability.trim().length === 0 || template.resourceHints.modelVersion.trim().length === 0 ||
       template.qualityLevels.length === 0) { this.invalid('Template requires capability, model version and quality levels.'); }
     this.positive(template.timeoutMs, 'timeoutMs');

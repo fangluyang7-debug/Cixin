@@ -118,6 +118,8 @@ export interface RemoteExecutionOptions {
 }
 
 export interface SchedulerConfig {
+  maxConcurrentLocalTasks?: 1 | 2;
+  cpuWorkerBudget?: number;
   constrainedPolicy?: ConstrainedPolicyConfig;
   policyStateStore?: PolicyStateStore;
   defaultPolicyMode: PolicyMode;
@@ -377,6 +379,8 @@ export interface WorkflowNode {
 }
 
 export interface TaskTemplate {
+  // Explicit executor guarantee. Unspecified tasks remain exclusive.
+  concurrentSafe?: boolean;
   manifest?: TaskCapabilityManifest;
   capability: string;
   taskType: TaskType;
@@ -393,6 +397,10 @@ export interface TaskTemplate {
 }
 
 export interface TaskContext {
+  // Derived by SchedulerClient from its current serial workflow executor; not a new deadline.
+  workflowCriticalPathMs?: number;
+  workflowRemainingSerialMs?: number;
+  workflowCurrentNodeEstimateMs?: number;
   targetLatencyMs?: number;
   softDeadlineMs?: number;
   deadlineMs?: number;

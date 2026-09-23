@@ -66,6 +66,26 @@ export interface PlacementEstimate {
   uncertaintyMs: number;
 }
 
+export interface PlacementExecutionObservation {
+  taskSignature: string;
+  modelVersion: string;
+  deviceId: string;
+  modelWasLoaded: boolean;
+  source: PlacementSource;
+  actualConfirmed: boolean;
+  queueMs: number;
+  modelLoadMs: number;
+  computeMs: number;
+}
+
+interface PlacementCostSample {
+  count: number;
+  queueMs: number;
+  modelLoadMs: number;
+  computeMs: number;
+  deviationMs: number;
+}
+
 export interface PlacementDecision {
   mode: PlacementMode;
   actualDeviceId: string;
@@ -159,6 +179,31 @@ function linkFor(source: string, target: string, links: PlacementLinkProfile[], 
 }
 
 export class GlobalPlacementPolicy {
+  private readonly observed: Map<string, PlacementCostSample> = new Map<string, PlacementCostSample>();
+
+  // Shadow estimates are never training labels. Only confirmed real execution can update costs.
+  public observe(value: PlacementExecutionObservation): void {
+    if (!value.actualConfirmed || value.source !== PlacementSource.REAL ||
+      [value.queueMs, value.modelLoadMs, value.computeMs].some((amount: number) =>
+        !Number.isFinite(amount) || amount < 0 || amount > 86400000)) { return; }
+    const key: string = `${value.taskSignature}:${value.modelVersion}:${value.deviceId}:${value.modelWasLoaded}`;
+    let sample: PlacementCostSample | undefined = this.observed.get(key);
+    if (sample === undefined) {
+      if (this.observed.size >= 256) { this.observed.delete(Array.from(this.observed.keys())[0]); }
+      sample = { count: 0, queueMs: value.queueMs, modelLoadMs: value.modelLoadMs,
+        computeMs: value.computeMs, deviationMs: 0 };
+      this.observed.set(key, sample);
+    } else {
+      const oldTotal: number = sample.queueMs + sample.modelLoadMs + sample.computeMs;
+      const actualTotal: number = value.queueMs + value.modelLoadMs + value.computeMs;
+      sample.deviationMs = 0.75 * sample.deviationMs + 0.25 * Math.abs(actualTotal - oldTotal);
+      sample.queueMs = 0.75 * sample.queueMs + 0.25 * value.queueMs;
+      sample.modelLoadMs = 0.75 * sample.modelLoadMs + 0.25 * value.modelLoadMs;
+      sample.computeMs = 0.75 * sample.computeMs + 0.25 * value.computeMs;
+    }
+    sample.count++;
+  }
+
   public evaluate(task: ResolvedTaskProfile, localId: string, devices: PlacementDeviceProfile[],
     links: PlacementLinkProfile[], mode: PlacementMode, now: number = Date.now()): PlacementDecision {
     const estimates: PlacementEstimate[] = [];
@@ -171,8 +216,12 @@ export class GlobalPlacementPolicy {
         .forEach((item: PlacementDeviceProfile) => candidates.push(item));
     }
     candidates.forEach((device: PlacementDeviceProfile) => {
-      if (!eligible(task, device, now) || device.computeMs === null || device.computeMs < 0 ||
-        !Number.isFinite(device.computeMs) ||
+      const modelLoaded: boolean = device.loadedModelVersions.indexOf(task.modelVersion) >= 0;
+      const observed: PlacementCostSample | undefined = this.observed.get(
+        `${task.taskSignature}:${task.modelVersion}:${device.deviceId}:${modelLoaded}`);
+      const trained: boolean = observed !== undefined && observed.count >= 3;
+      if (!eligible(task, device, now) ||
+        (!trained && (device.computeMs === null || device.computeMs < 0 || !Number.isFinite(device.computeMs))) ||
         (device.queueWaitMs !== null && (!Number.isFinite(device.queueWaitMs) || device.queueWaitMs < 0)) ||
         (device.coldLoadMs !== null && (!Number.isFinite(device.coldLoadMs) || device.coldLoadMs < 0))) {
         rejected.push(device.deviceId); return;
@@ -185,13 +234,16 @@ export class GlobalPlacementPolicy {
         transfer = link.rttMs + link.protocolMs +
           (task.inputBytes + task.outputBytes) / link.bytesPerSecond * 1000;
       }
-      const cold: number = device.loadedModelVersions.indexOf(task.modelVersion) >= 0 ? 0 : device.coldLoadMs ?? Infinity;
-      const queue: number = device.queueWaitMs ?? (device.local ? 0 : Infinity);
-      const total: number = transfer + queue + cold + device.computeMs;
+      const cold: number = modelLoaded ? 0 :
+        trained ? observed!.modelLoadMs : device.coldLoadMs ?? Infinity;
+      const queue: number = device.queueWaitMs ?? (trained ? observed!.queueMs : device.local ? 0 : Infinity);
+      const compute: number = trained ? observed!.computeMs : device.computeMs ?? Infinity;
+      const total: number = transfer + queue + cold + compute;
       if (!Number.isFinite(total)) { rejected.push(device.deviceId); return; }
       estimates.push({ deviceId: device.deviceId, transferMs: transfer, queueMs: queue,
-        modelLoadMs: cold, computeMs: device.computeMs, totalMs: total,
-        uncertaintyMs: device.local ? 0 : Math.max(5, total * 0.2) });
+        modelLoadMs: cold, computeMs: compute, totalMs: total,
+        uncertaintyMs: trained ? Math.max(5, observed!.deviationMs * 2) :
+          device.local ? 0 : Math.max(5, total * 0.2) });
     });
     const localEstimate: PlacementEstimate | undefined = estimates.find((item: PlacementEstimate) => item.deviceId === localId);
     let suggested: string = localId;

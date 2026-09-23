@@ -59,7 +59,8 @@ export { SchedulerService } from './src/main/ets/api/SchedulerService';
 export { SchedulerClient, SchedulerRuntime } from './src/main/ets/api/SchedulerClient';
 export {
   PlacementSource, PlacementMode, ResolvedTaskProfile, PlacementDeviceProfile, PlacementLinkProfile,
-  PlacementEstimate, PlacementDecision, resolveTaskProfile, localDeviceProfile, GlobalPlacementPolicy
+  PlacementEstimate, PlacementExecutionObservation, PlacementDecision, resolveTaskProfile,
+  localDeviceProfile, GlobalPlacementPolicy
 } from './src/main/ets/placement/PlacementPolicy';
 export {
   TaskTemplate, TaskContext, TaskSignal, TaskSignalType, TaskTelemetry, AppExperienceObservation, ResourceHints,

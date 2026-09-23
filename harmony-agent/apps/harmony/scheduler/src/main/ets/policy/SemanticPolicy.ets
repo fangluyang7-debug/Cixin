@@ -3,6 +3,8 @@ import {
   ModelTier, PolicyMode, PrivacyPolicy, QualityLevel, QueueAction, ResourcePrediction,
   TaskContext, TaskPriority, TaskProfile, TaskType, ThermalLevel, ThreadCount, ExecutionProfile
 } from '../api/SchedulerTypes';
+import { AdaptiveCostModel } from './AdaptiveCostModel';
+import { estimatedWorkflowCompletion, workflowUrgencyBonus } from './WorkflowPlanner';
 
 interface CostObservation {
   meanMs: number;
@@ -23,6 +25,7 @@ export function qualityRank(tier: ModelTier): number {
 // Estimates are local priors plus EWMA feedback, not calibrated probabilities or joules.
 export class SemanticPolicy {
   private observations: Map<string, CostObservation> = new Map<string, CostObservation>();
+  private readonly profileCosts: AdaptiveCostModel = new AdaptiveCostModel();
   private consumption: Map<string, ConsumptionObservation> = new Map<string, ConsumptionObservation>();
 
   public evaluate(profile: TaskProfile, state: DeviceState, mode: PolicyMode, maximumTier?: ModelTier): ExecutionPlan {
@@ -89,7 +92,7 @@ export class SemanticPolicy {
       const estimate: ResourcePrediction = this.predict(profile, state, level, targetBackend, count, deadline);
       if (estimate.memoryMb !== null && state.availableMemoryMb !== null &&
         estimate.memoryMb > state.availableMemoryMb * 0.5) { continue; }
-      if (estimate.latencyMs > Math.min(deadline, freshness)) { continue; }
+      if (estimatedWorkflowCompletion(context, estimate.latencyMs) > Math.min(deadline, freshness)) { continue; }
       const qualityWeight: number = mode === PolicyMode.FIXED_PERFORMANCE ? 5 :
         mode === PolicyMode.FIXED_POWER_SAVING ? 0.3 : 2;
       const score: number = qualityRank(level.modelTier) * qualityWeight - estimate.relativeEnergyCost * 0.2 -
@@ -112,7 +115,8 @@ export class SemanticPolicy {
     const prior: number = profile.taskType === TaskType.FOREGROUND_REALTIME ? 15 :
       profile.taskType === TaskType.USER_INITIATED ? 10 : 0;
     const cost: number = prediction === undefined ? 100 : prediction.latencyMs;
-    const pressure: number = Number.isFinite(deadline) ? Math.min(30, cost / Math.max(1, deadline) * 30) : 0;
+    const pressure: number = workflowUrgencyBonus(context.deadlineMs, elapsed, cost,
+      estimatedWorkflowCompletion(context, cost));
     const freshnessPressure: number = Number.isFinite(freshness) ? Math.min(15, cost / Math.max(1, freshness) * 15) : 0;
     const consumption: ConsumptionObservation | undefined = this.consumption.get(profile.capability);
     const consumptionFactor: number = consumption !== undefined && consumption.total >= 5 &&
@@ -151,6 +155,10 @@ export class SemanticPolicy {
 
   public observe(profile: TaskProfile, state: DeviceState, plan: ExecutionPlan, durationMs: number): void {
     if (profile.template === undefined || plan.prediction === undefined || durationMs < 0) { return; }
+    if (plan.executionProfile !== undefined) {
+      this.profileCosts.observe(profile, state, plan.executionProfile, durationMs);
+      return;
+    }
     const key: string = this.key(profile, state, plan.executionProfile?.id ?? plan.qualityLevelId ?? '',
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).backend : Backend.CPU,
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).threadCount : 1);
@@ -181,9 +189,7 @@ export class SemanticPolicy {
 
   public predictProfile(profile: TaskProfile, state: DeviceState, execution: ExecutionProfile): ResourcePrediction {
     const level = profile.template!.qualityLevels.find((item: QualityLevel) => item.id === execution.qualityLevelId)!;
-    const deadline: number = (profile.context!.deadlineMs ?? Infinity) -
-      Math.max(0, Date.now() - (profile.submittedAt ?? Date.now()));
-    return this.predict(profile, state, level, execution.backend, execution.workerCount, deadline, execution.id);
+    return this.profileCosts.predict(profile, state, execution, level);
   }
 
   private predict(profile: TaskProfile, state: DeviceState, level: QualityLevel,

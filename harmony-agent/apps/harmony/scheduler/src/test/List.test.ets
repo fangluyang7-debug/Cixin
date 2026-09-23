@@ -6,6 +6,7 @@ import constrainedPolicyTest from './ConstrainedPolicy.test';
 import executionSafetyUnitTest from './ExecutionSafetyUnit.test';
 import feedbackCalibrationTests from './FeedbackCalibration.test';
 import placementPolicyTests from './PlacementPolicy.test';
+import localAlgorithmTests from './LocalAlgorithm.test';
 
 export default function testsuite(): void {
   resourceGapTests();
@@ -16,4 +17,5 @@ export default function testsuite(): void {
   executionSafetyUnitTest();
   feedbackCalibrationTests();
   placementPolicyTests();
+  localAlgorithmTests();
 }

@@ -9,6 +9,8 @@ import { defaultConstrainedPolicy, stablePolicyBucket, validatePolicy } from './
 import { qualityRank, SemanticPolicy } from './SemanticPolicy';
 import { HysteresisController } from './HysteresisController';
 import { calibrateFeedback } from './FeedbackCalibration';
+import { estimatedWorkflowCompletion, workflowUrgencyBonus } from './WorkflowPlanner';
+import { marginalAccelerationBonus } from './MarginalAllocation';
 
 interface Candidate {
   profile: ExecutionProfile;
@@ -116,7 +118,8 @@ export class ConstrainedPolicy {
         (state.appVisibility === AppVisibility.FOREGROUND ? !profile.supportsForeground : !profile.supportsBackground) ||
         (pressure && !profile.safeUnderPressure)) { return; }
       const prediction: ResourcePrediction = costs.predictProfile(task, state, profile);
-      if (prediction.latencyMs > Math.min(context.deadlineMs ?? Infinity, context.freshnessMs ?? Infinity) - elapsed ||
+      if (estimatedWorkflowCompletion(context, prediction.latencyMs) >
+        Math.min(context.deadlineMs ?? Infinity, context.freshnessMs ?? Infinity) - elapsed ||
         (prediction.memoryMb !== null && state.availableMemoryMb !== null && prediction.memoryMb > state.availableMemoryMb * 0.5)) { return; }
       const utility = this.utility(task, state, profile, prediction, elapsed, bucket);
       candidates.push({ profile: profile, prediction: prediction, utility: utility,
@@ -151,7 +154,11 @@ export class ConstrainedPolicy {
       const reachable = candidates.filter((candidate: Candidate) =>
         (candidate.profile.id === current || manifest.profileTransitions.some((edge) => edge.from === current && edge.to === candidate.profile.id)) &&
         (rule === undefined || rule.allowedProfileIds.indexOf(candidate.profile.id) >= 0));
-      reachable.sort((a: Candidate, b: Candidate) => b.score - a.score);
+      reachable.sort((a: Candidate, b: Candidate) =>
+        b.score + (baseline === undefined ? 0 : marginalAccelerationBonus(baseline.profile,
+          baseline.prediction, b.profile, b.prediction, context.targetLatencyMs)) -
+        a.score - (baseline === undefined ? 0 : marginalAccelerationBonus(baseline.profile,
+          baseline.prediction, a.profile, a.prediction, context.targetLatencyMs)));
       proposed = reachable.find((item: Candidate) => item.profile.id === rule?.preferredProfileId) ?? reachable[0] ?? baseline;
     }
     let actual: Candidate | undefined = baseline;
@@ -214,8 +221,11 @@ export class ConstrainedPolicy {
       actualConfirmed: false
     };
     const priorityScore: number = (context.userWaiting ? 30 : 0) + (context.userVisible ? 15 : 0) +
-      (context.businessImportance ?? 0.5) * 20 + (context.targetLatencyMs === undefined || actual === undefined ? 0 :
-        Math.min(20, (elapsed + actual.prediction.latencyMs) / context.targetLatencyMs * 5));
+      (context.businessImportance ?? 0.5) * 20 +
+      workflowUrgencyBonus(context.deadlineMs, elapsed, actual?.prediction.latencyMs ?? 1,
+        estimatedWorkflowCompletion(context, actual?.prediction.latencyMs ?? 1)) +
+      (context.targetLatencyMs === undefined || actual === undefined ? 0 :
+        Math.min(10, (elapsed + actual.prediction.latencyMs) / context.targetLatencyMs * 5));
     return {
       inferenceLocation: InferenceLocation.LOCAL_DEVICE, modelTier: selected.modelTier,
       backend: selected.backend, threadCount: selected.workerCount,
