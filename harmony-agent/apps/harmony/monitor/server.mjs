@@ -24,7 +24,7 @@ function send(response, status, body, headers = {}) {
   response.writeHead(status, {
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
-    'Content-Security-Policy': "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:",
+    'Content-Security-Policy': "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:",
     ...headers
   });
   response.end(body);
@@ -49,7 +49,7 @@ function safeReason(value) {
 }
 
 function safeCapability(value) {
-  return typeof value === 'string' && /^client-\d+:(query_prepare|text_encode|vector_retrieve|index_warmup|preview_placeholder)$/.test(value)
+  return typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,95}$/.test(value)
     ? value : undefined;
 }
 

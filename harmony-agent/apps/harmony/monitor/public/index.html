@@ -4,42 +4,188 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
-  <title>Harmony 调度器监控</title>
+  <title>HarmonyOS 手机调度控制台</title>
   <link rel="stylesheet" href="/style.css">
   <script src="/app.js" defer></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand"><span class="brand-mark">H</span><div><strong>Harmony Scheduler</strong><small>设备调度实时监控</small></div></div>
-    <div class="top-actions"><span id="connection" class="connection"><i></i><span>等待手机连接</span></span><button id="pairButton" class="quiet-button">配对设置</button></div>
+  <div class="top-rail" aria-hidden="true"></div>
+  <header class="rack-header">
+    <div class="header-brand">
+      <div class="device-mark"><span>HOS</span><b>MOBILE</b></div>
+      <div class="brand-copy">
+        <div class="title-line">
+          <h1>手机端 AI 调度控制台</h1>
+          <span class="header-tag">SCHEDULER / TELEMETRY</span>
+        </div>
+        <div class="header-subline">
+          <span>节点 <b>HarmonyOS Device</b></span>
+          <span class="divider">|</span>
+          <span>本地时间 <b id="clockTick">--:--:--</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="header-controls">
+      <div class="readout-control">
+        <span id="connection" class="connection"><i></i><b>等待手机遥测</b></span>
+        <span class="control-divider"></span>
+        <span class="sample-rate">采样 <b>750 ms</b></span>
+      </div>
+      <button id="pairButton" class="instrument-button" type="button">配对设置</button>
+      <div class="spec-readout"><span>模式</span><b id="headerMode">--</b></div>
+    </div>
   </header>
-  <main>
-    <section class="page-heading"><div><h1>调度运行状态</h1><p id="lastSeen">尚未收到设备遥测</p></div><span id="mode" class="mode">--</span></section>
-    <section class="metric-strip" aria-label="设备状态">
-      <article><span>系统 CPU</span><strong id="cpu">--</strong><small id="cpuSource">等待数据</small></article>
-      <article><span>应用 CPU</span><strong id="appCpu">--</strong><small>App CPU</small></article>
-      <article><span>可用内存</span><strong id="memory">--</strong><small id="memoryState">--</small></article>
-      <article><span>热状态</span><strong id="thermal">--</strong><small id="battery">电量 --</small></article>
-      <article><span>运行 / 排队</span><strong id="queue">-- / --</strong><small id="paused">暂停 --</small></article>
-      <article><span>窗口 P95</span><strong id="p95">--</strong><small id="taskCount">终态样本 --</small></article>
+
+  <main class="console-shell">
+    <section class="instrument-strip" aria-label="实时调度指标">
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge gold">BAT</span><span>电池状态</span><i id="batteryLed" class="lens-led off"></i></div>
+        <div class="instrument-value"><strong id="metricBattery">--</strong><span>%</span></div>
+        <div class="meter-track"><div id="batteryBar" class="meter-fill meter-green is-unknown"></div></div>
+        <div id="batteryState" class="instrument-foot">等待采样</div>
+      </article>
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge amber">TMP</span><span>系统热状态</span><i id="thermalLed" class="lens-led off"></i></div>
+        <div class="instrument-value"><strong id="metricThermal" class="value-status">UNKNOWN</strong></div>
+        <div class="meter-track"><div id="thermalBar" class="meter-fill meter-amber is-unknown"></div></div>
+        <div id="thermalNote" class="instrument-foot">温度值未接入</div>
+      </article>
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge dark">CPU</span><span>系统负载</span><span id="cpuSource" class="instrument-code">--</span></div>
+        <div class="instrument-value"><strong id="metricCpu">--</strong><span>%</span></div>
+        <div class="meter-track"><div id="cpuBar" class="meter-fill meter-amber is-unknown"></div></div>
+        <div id="cpuSub" class="instrument-foot">App CPU --</div>
+      </article>
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge gold">RAM</span><span>可用内存</span><span id="memoryPressure" class="instrument-code">UNKNOWN</span></div>
+        <div class="instrument-value"><strong id="metricMemory">--</strong><span>MB</span></div>
+        <div class="meter-track"><div id="memoryBar" class="meter-fill meter-gold is-unknown"></div></div>
+        <div id="memoryInfo" class="instrument-foot">总量 -- · 来源 --</div>
+      </article>
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge amber">QUEUE</span><span>运行 / 排队</span><i id="queueLed" class="lens-led off"></i></div>
+        <div class="instrument-value"><strong id="metricQueue">-- / --</strong></div>
+        <div class="instrument-rule"><i id="queueIndicator" class="lens-led off"></i><span id="queueActivity">读取队列状态</span></div>
+        <div id="queueSub" class="instrument-foot">暂停 -- · 深度 --</div>
+      </article>
+      <article class="rack-panel instrument-card">
+        <div class="instrument-label"><span class="spec-badge amber">P95</span><span>窗口延迟</span><i class="latency-mark"></i></div>
+        <div class="instrument-value"><strong id="metricP95">--</strong><span>ms</span></div>
+        <div class="instrument-rule"><i id="latencyIndicator" class="lens-led off"></i><span>窗口统计值</span></div>
+        <div id="latencyInfo" class="instrument-foot">终态样本 -- · 平均 --</div>
+      </article>
     </section>
-    <section class="section-block">
-      <div class="section-heading"><div><h2>活动任务</h2><span id="activeCount">0 项</span></div><span class="muted">只展示调度字段，不含任务原文</span></div>
-      <div class="table-wrap"><table><thead><tr><th>任务</th><th>状态</th><th>执行方案</th><th>资源参数</th><th>目标 / 截止</th></tr></thead><tbody id="activeTasks"><tr><td colspan="5" class="empty">等待手机连接</td></tr></tbody></table></div>
+
+    <section class="workbench">
+      <div class="bay-column">
+        <section class="rack-panel bay-panel task-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">01 / EXECUTION QUEUE</span><h2>活动任务调度</h2></div>
+            <span id="activeCount" class="spec-badge gold">0 ACTIVE</span>
+          </div>
+          <div id="activeTasks" class="task-list"><div class="empty-state">等待调度器快照</div></div>
+          <div class="panel-footline"><span>只读任务观察</span><span id="queueDepthLabel">QUEUE DEPTH --</span></div>
+        </section>
+
+        <section class="rack-panel bay-panel source-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">02 / DEVICE STATE</span><h2>设备与执行环境</h2></div>
+            <span id="visibilityBadge" class="state-badge">--</span>
+          </div>
+          <div class="source-grid">
+            <div class="source-cell"><span>数据来源</span><b id="sourceValue">--</b></div>
+            <div class="source-cell"><span>采样时间</span><b id="sampleTime">--</b></div>
+            <div class="source-cell"><span>热级</span><b id="sourceThermal">--</b></div>
+            <div class="source-cell"><span>内存压力</span><b id="sourceMemory">--</b></div>
+          </div>
+          <div class="bus-line"><span class="bus-label">AVAILABLE BACKENDS</span><div id="backendList" class="backend-list"><span class="muted-code">等待设备状态</span></div></div>
+          <div class="panel-footline"><span>来源字段沿用设备状态标记</span><span id="stateCaptured">CAPTURED --</span></div>
+        </section>
+      </div>
+
+      <div class="bay-column">
+        <section class="rack-panel bay-panel policy-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">03 / POLICY ENGINE</span><h2>调度策略与窗口统计</h2></div>
+            <span id="policyLed" class="lens-led off" aria-label="策略状态"></span>
+          </div>
+          <div class="policy-readout">
+            <div class="policy-mode"><span>ACTIVE POLICY</span><strong id="policyMode">--</strong><small id="policyVersion">VERSION --</small></div>
+            <div class="policy-identity"><span>快照序列</span><b id="sequence">--</b><span>接收时刻</span><b id="receivedTime">--</b></div>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-cell"><span>策略评估</span><b id="statEvaluations">--</b></div>
+            <div class="stat-cell"><span>终态任务</span><b id="statTasks">--</b></div>
+            <div class="stat-cell"><span>平均耗时</span><b id="statAverage">--</b></div>
+            <div class="stat-cell"><span>平均排队</span><b id="statQueueWait">--</b></div>
+            <div class="stat-cell"><span>降级次数</span><b id="statDegrades">--</b></div>
+            <div class="stat-cell"><span>失败 / 取消</span><b id="statFailures">-- / --</b></div>
+          </div>
+          <div class="policy-footer"><span>策略模式 <b id="policyModeFoot">--</b></span><span>切换 <b id="statSwitches">--</b></span></div>
+        </section>
+
+        <section class="rack-panel bay-panel events-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">04 / SCHEDULER EVENT BUS</span><h2>系统调度与任务事件</h2></div>
+            <span id="eventCount" class="spec-badge green">0 LOGS</span>
+          </div>
+          <div id="events" class="event-list log-scroll"><div class="empty-state">尚无调度事件</div></div>
+          <div class="panel-footline"><span>最近设备事件 · 最新在上</span><span>BUFFER 24</span></div>
+        </section>
+      </div>
+
+      <div class="bay-column">
+        <section class="rack-panel bay-panel decision-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">05 / PLAN VS ACTUAL</span><h2>最近一次调度决策</h2></div>
+            <span id="latestStatus" class="state-badge">等待事件</span>
+          </div>
+          <div id="latestEmpty" class="empty-state decision-empty">完成任务后显示计划与执行遥测</div>
+          <div id="latestDecision" class="decision-content" hidden>
+            <div id="latestTaskTitle" class="decision-title">--</div>
+            <div id="latestTaskMeta" class="decision-meta">--</div>
+            <div class="compare-grid">
+              <div class="compare-cell"><span class="compare-label">计划 PROFILE</span><b id="plannedProfile">--</b><small id="plannedConfig">--</small></div>
+              <div class="compare-cell actual-cell"><span class="compare-label">实际 EXECUTOR</span><b id="actualProfile">--</b><small id="actualConfig">--</small></div>
+            </div>
+            <div class="reason-register"><span>策略依据 / 保护回退</span><b id="decisionReason">--</b></div>
+            <div id="decisionFlags" class="decision-flags"></div>
+          </div>
+          <div class="panel-footline"><span>未经执行器确认的配置不标记为实际值</span><span id="decisionTime">TIME --</span></div>
+        </section>
+
+        <section class="rack-panel bay-panel status-panel">
+          <div class="panel-heading">
+            <div><span class="panel-kicker">06 / SCHEDULER HEALTH</span><h2>调度器运行指标</h2></div>
+            <span class="spec-badge dark">LIVE WINDOW</span>
+          </div>
+          <div class="health-registers">
+            <div class="health-row"><span>系统 CPU</span><b id="healthCpu">--</b><span id="healthCpuHint">--</span></div>
+            <div class="health-row"><span>应用 CPU</span><b id="healthAppCpu">--</b><span>APP PROCESS</span></div>
+            <div class="health-row"><span>可用内存</span><b id="healthMemory">--</b><span id="healthMemoryHint">--</span></div>
+            <div class="health-row"><span>设备电量</span><b id="healthBattery">--</b><span id="healthCharging">--</span></div>
+            <div class="health-row"><span>端侧后端</span><b id="healthBackends">--</b><span>AVAILABLE</span></div>
+            <div class="health-row"><span>反馈授权</span><b id="healthFeedback">--</b><span>LOCAL CONSENT</span></div>
+          </div>
+          <div class="health-note"><i class="lens-led cyan"></i><span>仅呈现手机调度件实际提供的状态，不补造温度、功耗、NPU 利用率或云端 RTT。</span></div>
+        </section>
+      </div>
     </section>
-    <section class="section-block">
-      <div class="section-heading"><div><h2>最近调度事件</h2><span id="eventCount">0 条</span></div><span class="muted">来自设备最近保留的事件</span></div>
-      <div class="table-wrap"><table><thead><tr><th>时间</th><th>任务 / 能力</th><th>状态</th><th>耗时</th><th>计划 / 实际</th><th>策略与原因</th></tr></thead><tbody id="events"><tr><td colspan="6" class="empty">尚无事件</td></tr></tbody></table></div>
-    </section>
-    <footer><span>只读遥测 · 本机内存暂存 · 停止服务即清除</span><span id="sequence">序列 --</span></footer>
   </main>
-  <dialog id="pairDialog">
+
+  <footer class="chassis-footer">
+    <div class="footer-left"><span class="footer-link"><i id="footerLed" class="lens-led off"></i><b id="footerConnection">等待手机</b></span><span class="footer-divider">|</span><span>SCHEDULER <b>READ ONLY</b></span></div>
+    <div class="footer-right"><span id="lastSeen">尚未收到设备遥测</span><span class="footer-divider">|</span><span>序列 <b id="footerSequence">--</b></span></div>
+  </footer>
+
+  <dialog id="pairDialog" class="pair-dialog">
     <form method="dialog" id="pairForm">
+      <div class="dialog-heading"><span class="spec-badge amber">PAIR / 01</span><button class="dialog-close" value="cancel" aria-label="关闭">×</button></div>
       <h2>连接电脑监控服务</h2>
-      <p>输入电脑终端显示的配对码。遥测只在本地网络中传输。</p>
+      <p>输入启动服务时显示的配对码。手机与电脑应处于可信局域网。</p>
       <label for="pairCode">配对码</label>
       <input id="pairCode" autocomplete="off" spellcheck="false" required minlength="12" maxlength="64">
-      <div class="dialog-actions"><button value="cancel" class="quiet-button">取消</button><button id="connectButton" value="connect" class="primary-button">连接</button></div>
+      <div class="dialog-actions"><button value="cancel" class="instrument-button secondary-button">取消</button><button id="connectButton" value="connect" class="instrument-button primary-button">建立连接</button></div>
       <p id="pairError" class="error" role="alert"></p>
     </form>
   </dialog>
