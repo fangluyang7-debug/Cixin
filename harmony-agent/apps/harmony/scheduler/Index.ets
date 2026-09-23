@@ -58,6 +58,10 @@ export { QueueItem, TaskQueue } from './src/main/ets/queue/TaskQueue';
 export { SchedulerService } from './src/main/ets/api/SchedulerService';
 export { SchedulerClient, SchedulerRuntime } from './src/main/ets/api/SchedulerClient';
 export {
+  PlacementSource, PlacementMode, ResolvedTaskProfile, PlacementDeviceProfile, PlacementLinkProfile,
+  PlacementEstimate, PlacementDecision, resolveTaskProfile, localDeviceProfile, GlobalPlacementPolicy
+} from './src/main/ets/placement/PlacementPolicy';
+export {
   TaskTemplate, TaskContext, TaskSignal, TaskSignalType, TaskTelemetry, AppExperienceObservation, ResourceHints,
   QualityLevel, ResourcePrediction, ExecutorTelemetry, TaskCheckpoint, Interruptibility,
   DuplicatePolicy, PrivacyPolicy, DependencyFailurePolicy, WorkflowNode, WorkflowInput,

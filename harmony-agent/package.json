@@ -19,6 +19,7 @@
     "web:build": "npm --workspace apps/test-entry-web run build",
     "monitor:dev": "node apps/harmony/monitor/server.mjs",
     "image-worker:dev": "cd services/image-worker && node ../../scripts/with-root-env.mjs python -m app.main",
-    "migration:verify": "node scripts/verify-migration.mjs"
+    "migration:verify": "node scripts/verify-migration.mjs",
+    "placement:test": "node scripts/test-placement.mjs"
   }
 }

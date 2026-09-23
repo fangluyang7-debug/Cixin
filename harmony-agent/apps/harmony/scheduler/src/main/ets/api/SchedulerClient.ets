@@ -1,6 +1,6 @@
 import {
   AccuracyPreference, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan,
-  ExecutorResult, InferenceLocation, Interruptibility, ModelTier, PrivacyPolicy, TaskCheckpoint,
+  DeviceState, ExecutorResult, InferenceLocation, Interruptibility, ModelTier, PrivacyPolicy, TaskCheckpoint,
   TaskContext, TaskHandle, TaskRequest, TaskResult, TaskSignal, TaskSignalType, TaskStatus,
   TaskTemplate, WorkflowHandle, WorkflowInput, WorkflowNode, WorkflowResult, WorkloadExecutor
 } from './SchedulerTypes';
@@ -9,6 +9,7 @@ import { validateManifest } from '../policy/ProfileContract';
 import { SchedulerError, SchedulerErrorCode } from './SchedulerError';
 
 export interface SchedulerRuntime {
+  getDeviceState?(): DeviceState;
   registerExecutor<TInput, TOutput>(executor: WorkloadExecutor<TInput, TOutput>): void;
   unregisterExecutor(capability: string): Promise<number>;
   submitTask<TInput, TOutput>(request: TaskRequest<TInput>): Promise<TaskHandle<TOutput>>;

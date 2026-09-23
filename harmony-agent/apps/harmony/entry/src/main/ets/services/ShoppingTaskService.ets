@@ -2,7 +2,9 @@ import {
   Backend, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan, ExecutorResult,
   InferenceLocation, Interruptibility, LocalExecutionPlan, ModelTier, PrivacyPolicy, QualityLevel,
   SchedulerClient, SchedulerRuntime, TaskCheckpoint, TaskContext, TaskTemplate, TaskType,
-  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest, FeedbackReceipt, UserFeedback, FeedbackAvailability
+  WorkflowHandle, WorkflowInput, WorkloadExecutor, ExecutionProfile, FeedbackRequest, FeedbackReceipt, UserFeedback, FeedbackAvailability,
+  GlobalPlacementPolicy, PlacementDecision, PlacementDeviceProfile, PlacementLinkProfile, PlacementMode,
+  PlacementSource, resolveTaskProfile, localDeviceProfile
 } from 'scheduler';
 import { Product } from '../models/Product';
 import { EmbeddingSearchResult } from '../models/EmbeddingModel';
@@ -41,6 +43,12 @@ class ShoppingCpuExecutor<TInput, TOutput> implements WorkloadExecutor<TInput, T
 export class ShoppingTaskService {
   private static instance: ShoppingTaskService | null = null;
   private client: SchedulerClient | null = null;
+  private runtime: SchedulerRuntime | null = null;
+  private encoderTemplate: TaskTemplate | null = null;
+  private readonly placementPolicy: GlobalPlacementPolicy = new GlobalPlacementPolicy();
+  private shadowDevices: PlacementDeviceProfile[] = [];
+  private shadowLinks: PlacementLinkProfile[] = [];
+  private lastPlacement: PlacementDecision | null = null;
 
   public static getInstance(): ShoppingTaskService {
     if (ShoppingTaskService.instance === null) { ShoppingTaskService.instance = new ShoppingTaskService(); }
@@ -51,12 +59,14 @@ export class ShoppingTaskService {
     if (this.client !== null) { return; }
     const client: SchedulerClient = new SchedulerClient(runtime);
     this.client = client;
+    this.runtime = runtime;
     const prepare: TaskTemplate = this.leaf('query_prepare', TaskType.USER_INITIATED, 2, 'text-normalize-v1');
     prepare.qualityLevels.forEach((level: QualityLevel) => { level.supportedThreadCounts = [1]; });
     client.registerTemplate(prepare);
     const encoder = this.leaf('text_encode', TaskType.USER_INITIATED, 40, 'soleai-neural-char-v1');
     encoder.interruptibility = Interruptibility.NON_INTERRUPTIBLE;
     encoder.manifest = encoderManifest();
+    this.encoderTemplate = encoder;
     client.registerTemplate(encoder);
     const retrieval: TaskTemplate = this.leaf('vector_retrieve', TaskType.USER_INITIATED, 35, 'soleai-neural-char-v1');
     retrieval.qualityLevels[1].estimatedLatencyMs = 15;
@@ -130,8 +140,37 @@ export class ShoppingTaskService {
 
   public search(query: string, highQuality: boolean = false,
     preference: SearchPreference = SearchPreference.BALANCED): WorkflowHandle<Product[]> {
-    return this.requireClient().submit<string, Product[]>('product_search', query,
-      searchContext(query.length, NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, preference, highQuality));
+    const context: TaskContext = searchContext(query.length,
+      NeuralEmbeddingIndex.getInstance().getModelInfo()?.productCount ?? 0, preference, highQuality);
+    // Placement remains observational: existing local workflow is always submitted unchanged.
+    if (this.runtime?.getDeviceState !== undefined && this.encoderTemplate !== null) {
+      try {
+        const state = this.runtime.getDeviceState();
+        const modelVersion: string = this.encoderTemplate.resourceHints.modelVersion;
+        const loadedModels: string[] = NeuralEmbeddingIndex.getInstance().getModelInfo() === null ? [] : [modelVersion];
+        const local = localDeviceProfile('local', state, [modelVersion], loadedModels, 40, null, Date.now());
+        this.lastPlacement = this.placementPolicy.evaluate(resolveTaskProfile(this.encoderTemplate, context,
+          Backend.CPU, query.length * 3, 1024), 'local', [local].concat(this.shadowDevices),
+          this.shadowLinks, this.shadowDevices.length === 0 ? PlacementMode.LOCAL_ONLY : PlacementMode.SHADOW);
+      } catch (_) { this.lastPlacement = null; }
+    }
+    return this.requireClient().submit<string, Product[]>('product_search', query, context);
+  }
+
+  // Simulator input is explicit and cannot be used as a real dispatch target.
+  public setShadowPlacement(devices: PlacementDeviceProfile[], links: PlacementLinkProfile[]): void {
+    if (devices.length > 3 || links.length > 3 || devices.some((item: PlacementDeviceProfile) =>
+      item.source !== PlacementSource.MOCK || item.local || item.deviceId === 'local') ||
+      devices.some((item: PlacementDeviceProfile, index: number) =>
+        devices.findIndex((other: PlacementDeviceProfile) => other.deviceId === item.deviceId) !== index)) {
+      throw new Error('Shadow placement accepts remote MOCK devices only.');
+    }
+    this.shadowDevices = JSON.parse(JSON.stringify(devices)) as PlacementDeviceProfile[];
+    this.shadowLinks = JSON.parse(JSON.stringify(links)) as PlacementLinkProfile[];
+  }
+
+  public getLastPlacementDecision(): PlacementDecision | null {
+    return this.lastPlacement === null ? null : JSON.parse(JSON.stringify(this.lastPlacement)) as PlacementDecision;
   }
 
   public warmup(): WorkflowHandle<number> {
@@ -149,6 +188,7 @@ export class ShoppingTaskService {
 
   public async dispose(): Promise<void> {
     if (this.client !== null) { await this.client.dispose(); this.client = null; }
+    this.runtime = null; this.encoderTemplate = null; this.lastPlacement = null;
   }
 
   public feedbackRequest(workflowId: string): FeedbackRequest | null { return this.requireClient().getFeedbackRequest(workflowId); }
