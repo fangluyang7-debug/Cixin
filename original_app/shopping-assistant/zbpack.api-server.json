@@ -1,0 +1,7 @@
+{
+  "app_dir": "/",
+  "install_command": "npm ci --include=dev",
+  "build_command": "npm --workspace services/api-server run prisma:generate && npm run api:build",
+  "start_command": "npm --workspace services/api-server run db:init && npm --workspace services/api-server run start",
+  "cache_dependencies": false
+}

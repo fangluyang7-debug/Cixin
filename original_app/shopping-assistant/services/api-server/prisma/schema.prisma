@@ -1,0 +1,483 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ImageAsset {
+  id                        String         @id
+  assetGroupId              String
+  variantType               String
+  isPrimaryRecognitionAsset Boolean        @default(false)
+  sourceType                String?
+  bucketGroup               String
+  objectKey                 String
+  uploadStatus              String
+  createdAt                 DateTime       @default(now())
+  sessions                  QuerySession[]
+  queryImagePreprocessSnapshots QueryImagePreprocessSnapshot[]
+
+  @@index([bucketGroup, objectKey])
+  @@index([assetGroupId, variantType])
+}
+
+model User {
+  id              String               @id
+  email           String               @unique
+  displayName     String?
+  status          String               @default("active")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  credential      UserCredential?
+  sessions        QuerySession[]
+  profileBlocks   UserProfileBlock[]
+  profileIndexes  UserProfileIndex[]
+  memoryProposals UserMemoryProposal[]
+  auditLogs       UserMemoryAuditLog[]
+}
+
+model UserCredential {
+  id           String   @id
+  userId       String   @unique
+  passwordHash String
+  passwordSalt String
+  algorithm    String   @default("scrypt")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model QuerySession {
+  id                 String                   @id
+  assetId            String
+  userId             String?
+  status             String
+  stage              String
+  entrySource        String
+  categoryHint       String?
+  currentTurnIndex   Int                      @default(0)
+  degraded           Boolean                  @default(false)
+  startedAt          DateTime                 @default(now())
+  lastActiveAt       DateTime                 @updatedAt
+  imageAsset         ImageAsset               @relation(fields: [assetId], references: [id])
+  user               User?                    @relation(fields: [userId], references: [id])
+  profileSnapshot    ProductProfileSnapshot?
+  turns              SessionTurn[]
+  filterSnapshots    FilterSnapshot[]
+  candidateSnapshots CandidateSnapshot[]
+  fallbackSnapshots  FallbackSnapshot[]
+  conversationMessages ConversationMessage[]
+  conversationSummaries ConversationSummary[]
+  memoryProposals      UserMemoryProposal[]
+  queryImagePreprocessSnapshots QueryImagePreprocessSnapshot[]
+  candidatePaginationCursors CandidatePaginationCursor[]
+  cartItems          SessionCartItem[]
+
+  @@index([userId])
+}
+
+model QueryImagePreprocessSnapshot {
+  id                  String       @id
+  sessionId           String
+  assetId             String
+  selectedBoxJson     String       @default("{}")
+  detectedBoxesJson   String       @default("[]")
+  selectionSource     String
+  status              String
+  imageWidth          Int?
+  imageHeight         Int?
+  embeddingProvider   String?
+  embeddingModel      String?
+  embeddingDimension  Int?
+  embeddingVectorHash String?
+  embeddingVectorJson String       @default("[]")
+  cropImageRefJson    String       @default("{}")
+  rawJson             String       @default("{}")
+  createdAt           DateTime     @default(now())
+  session             QuerySession @relation(fields: [sessionId], references: [id])
+  asset               ImageAsset   @relation(fields: [assetId], references: [id])
+
+  @@index([sessionId, createdAt])
+  @@index([sessionId, status, createdAt])
+  @@index([assetId])
+}
+
+model ProductProfileSnapshot {
+  id          String       @id
+  sessionId   String       @unique
+  category    String
+  brand       String?
+  size        String?
+  color       String?
+  keywordsJson String      @default("[]")
+  styleTagsJson String     @default("[]")
+  sceneTagsJson String     @default("[]")
+  confidence  Float?
+  rawJson     String       @default("{}")
+  createdAt   DateTime     @default(now())
+  session     QuerySession @relation(fields: [sessionId], references: [id])
+}
+
+model SessionTurn {
+  id               String       @id
+  sessionId        String
+  turnIndex        Int
+  message          String
+  parsedFilterJson String       @default("{}")
+  createdAt        DateTime     @default(now())
+  session          QuerySession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, turnIndex])
+}
+
+model ConversationMessage {
+  id           String       @id
+  sessionId    String
+  turnIndex    Int
+  role         String
+  content      String
+  metadataJson String       @default("{}")
+  createdAt    DateTime     @default(now())
+  session      QuerySession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, turnIndex])
+  @@index([sessionId, createdAt])
+}
+
+model ConversationSummary {
+  id               String       @id
+  sessionId        String
+  summaryText      String
+  summaryJson      String       @default("{}")
+  coveredTurnIndex Int
+  createdAt        DateTime     @default(now())
+  session          QuerySession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, coveredTurnIndex])
+}
+
+model UserProfileBlock {
+  id            String             @id
+  userId        String
+  blockType     String
+  scope         String             @default("global")
+  payloadJson   String             @default("{}")
+  source        String
+  confidence    Float              @default(1)
+  sensitivity   String             @default("low")
+  schemaVersion String
+  status        String             @default("active")
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  user          User               @relation(fields: [userId], references: [id])
+  indexes       UserProfileIndex[]
+
+  @@index([userId, blockType])
+  @@index([userId, scope, status])
+}
+
+model UserProfileIndex {
+  id        String           @id
+  userId    String
+  blockId   String
+  key       String
+  value     String
+  scope     String           @default("global")
+  blockType String
+  createdAt DateTime         @default(now())
+  user      User             @relation(fields: [userId], references: [id])
+  block     UserProfileBlock @relation(fields: [blockId], references: [id])
+
+  @@index([userId, key, value])
+  @@index([blockId])
+}
+
+model UserMemoryProposal {
+  id            String        @id
+  userId        String
+  sessionId     String?
+  turnIndex     Int?
+  blockType     String
+  scope         String        @default("global")
+  payloadJson   String        @default("{}")
+  sourceText    String?
+  reason        String?
+  status        String        @default("pending")
+  confidence    Float         @default(0.7)
+  sensitivity   String        @default("low")
+  schemaVersion String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id])
+  session       QuerySession? @relation(fields: [sessionId], references: [id])
+
+  @@index([userId, status])
+  @@index([sessionId])
+}
+
+model UserMemoryAuditLog {
+  id         String   @id
+  userId     String
+  blockId    String?
+  proposalId String?
+  action     String
+  source     String
+  beforeJson String   @default("{}")
+  afterJson  String   @default("{}")
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@index([blockId])
+  @@index([proposalId])
+}
+
+model FilterSnapshot {
+  id                       String       @id
+  sessionId                String
+  turnIndex                Int
+  priceMin                 String?
+  priceMax                 String?
+  timeConstraintDays       Int?
+  urgentDeliveryPreferred  Boolean      @default(false)
+  stockOnly                Boolean      @default(false)
+  shopType                 String?
+  color                    String?
+  brand                    String?
+  platform                 String?
+  sortRule                 String       @default("relevance_desc")
+  rawJson                  String       @default("{}")
+  createdAt                DateTime     @default(now())
+  session                  QuerySession @relation(fields: [sessionId], references: [id])
+
+  @@index([sessionId, turnIndex])
+}
+
+model CandidateSnapshot {
+  id                String          @id
+  sessionId         String
+  turnIndex         Int
+  degraded          Boolean         @default(false)
+  appliedFilterJson String          @default("{}")
+  createdAt         DateTime        @default(now())
+  session           QuerySession    @relation(fields: [sessionId], references: [id])
+  items             CandidateItem[]
+  paginationCursors CandidatePaginationCursor[]
+
+  @@index([sessionId, turnIndex])
+}
+
+model CandidateItem {
+  id                       String            @id
+  snapshotId               String
+  title                    String
+  platformName             String
+  amount                   String
+  currency                 String            @default("CNY")
+  shopName                 String?
+  shopType                 String?
+  stockStatus              String
+  coverImageUrl            String?
+  productUrl               String?
+  matchSummaryJson         String            @default("{}")
+  normalizedAttributesJson String            @default("{}")
+  rawPayloadJson           String            @default("{}")
+  recommendationReasonJson String            @default("[]")
+  rank                     Int?
+  pageIndex                Int?
+  productPoolKey           String?
+  createdAt                DateTime          @default(now())
+  snapshot                 CandidateSnapshot @relation(fields: [snapshotId], references: [id])
+  cartItems                SessionCartItem[]
+
+  @@index([snapshotId])
+  @@index([snapshotId, rank])
+  @@index([productPoolKey])
+}
+
+model SessionCartItem {
+  id              String        @id
+  sessionId       String
+  candidateItemId String
+  source          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  session         QuerySession  @relation(fields: [sessionId], references: [id])
+  candidateItem   CandidateItem @relation(fields: [candidateItemId], references: [id])
+
+  @@unique([sessionId, candidateItemId])
+  @@index([sessionId, createdAt])
+  @@index([candidateItemId])
+}
+
+model CandidatePaginationCursor {
+  id                   String            @id
+  sessionId            String
+  candidateSnapshotId  String
+  preprocessSnapshotId String?
+  filterHash           String
+  offset               Int               @default(0)
+  limit                Int               @default(30)
+  sortRule             String?
+  exhausted            Boolean           @default(false)
+  expiresAt            DateTime
+  rawJson              String            @default("{}")
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  session              QuerySession      @relation(fields: [sessionId], references: [id])
+  candidateSnapshot    CandidateSnapshot @relation(fields: [candidateSnapshotId], references: [id])
+
+  @@index([sessionId])
+  @@index([candidateSnapshotId])
+  @@index([expiresAt])
+}
+
+model ProductImportBatch {
+  id             String            @id
+  batchSource    String
+  status         String            @default("completed")
+  totalCount     Int               @default(0)
+  succeededCount Int               @default(0)
+  failedCount    Int               @default(0)
+  rawJson        String            @default("{}")
+  createdAt      DateTime          @default(now())
+  products       Product[]
+  tagAudits      ProductTagAudit[]
+  changes        ProductImportChange[]
+
+  @@index([createdAt])
+}
+
+model ProductPoolStatsSnapshot {
+  id          String   @id
+  payloadJson String
+  generatedAt DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductImportChange {
+  id           String             @id
+  batchId      String
+  productId    String
+  action       String
+  beforeJson   String             @default("{}")
+  afterJson    String             @default("{}")
+  rolledBackAt DateTime?
+  createdAt    DateTime           @default(now())
+  batch        ProductImportBatch @relation(fields: [batchId], references: [id])
+
+  @@index([batchId, createdAt])
+  @@index([productId])
+}
+
+model Product {
+  id                 String                  @id
+  importBatchId      String?
+  externalId         String?
+  platform           String
+  title              String
+  priceAmount        String
+  currency           String                  @default("CNY")
+  stockStatus        String
+  shopName           String?
+  shopType           String?
+  productUrl         String
+  sourceImageUrl     String?
+  imageBucketGroup   String?
+  imageObjectKey     String?
+  imagePublicUrl     String?
+  tagStatus          String                  @default("pending")
+  brand              String?
+  category           String?
+  modelLine          String?
+  colorFamily        String?
+  colorway           String?
+  shoeType           String?
+  keywordsJson       String                  @default("[]")
+  normalizedTagsJson String                  @default("{}")
+  rawPayloadJson     String                  @default("{}")
+  tagConfidence      Float?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  importBatch        ProductImportBatch?     @relation(fields: [importBatchId], references: [id])
+  tagAudits          ProductTagAudit[]
+  embeddings         ProductImageEmbedding[]
+
+  @@index([platform])
+  @@index([platform, externalId])
+  @@index([tagStatus])
+  @@index([tagStatus, category])
+  @@index([tagStatus, platform])
+  @@index([tagStatus, updatedAt])
+  @@index([category])
+  @@index([brand, category])
+  @@index([modelLine])
+}
+
+model ProductTagAudit {
+  id            String              @id
+  productId     String?
+  importBatchId String?
+  status        String
+  modelAJson    String              @default("{}")
+  modelBJson    String              @default("{}")
+  consensusJson String              @default("{}")
+  conflictJson  String              @default("{}")
+  createdAt     DateTime            @default(now())
+  product       Product?            @relation(fields: [productId], references: [id])
+  importBatch   ProductImportBatch? @relation(fields: [importBatchId], references: [id])
+
+  @@index([productId])
+  @@index([importBatchId])
+}
+
+model ProductImageEmbedding {
+  id               String   @id
+  productId        String
+  styleId          String?
+  imageRole        String   @default("main")
+  embeddingKind    String   @default("multimodal")
+  sourceImageUrl   String?
+  imageBucketGroup String?
+  imageObjectKey   String?
+  provider         String
+  modelName        String?
+  dimension        Int
+  vectorJson       String
+  vectorHash       String?
+  qualityScore     Float?
+  preprocessJson   String   @default("{}")
+  createdAt        DateTime @default(now())
+  product          Product  @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@index([productId, styleId])
+  @@index([productId, embeddingKind])
+  @@index([embeddingKind])
+  @@index([embeddingKind, provider, dimension])
+  @@index([embeddingKind, provider, dimension, id])
+  @@index([embeddingKind, provider, dimension, productId])
+  @@index([provider])
+}
+
+model ExternalSnapshot {
+  id           String   @id
+  provider    String
+  requestJson  String   @default("{}")
+  responseJson String   @default("{}")
+  status       String
+  createdAt    DateTime @default(now())
+}
+
+model FallbackSnapshot {
+  id          String       @id
+  sessionId   String
+  reason      String
+  payloadJson String       @default("{}")
+  createdAt   DateTime     @default(now())
+  session     QuerySession @relation(fields: [sessionId], references: [id])
+}

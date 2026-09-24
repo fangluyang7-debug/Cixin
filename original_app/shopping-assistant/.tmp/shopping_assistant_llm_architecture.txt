@@ -1,0 +1,366 @@
+shopping-assistant LLM architecture
+shopping-assistant 多模型协同 LLM 架构说明
+对话理解、视觉识别、商品打标、视觉复核与穿搭趋势推荐
+核心结论：当前项目不是“一个大模型包办购物助手”，而是多模型任务分工 + 后端状态机 + 商品数据库事实约束
+的协同架构。LLM 负责理解、抽取、复核和生成结构化信号；真实商品、价格、库存、候选列表由后端检索系统和
+数据库给出。
+目录
+1. 总体架构定位
+2. A-F 六类模型任务总览
+3. A：对话理解协同架构（重点）
+4. B：视觉识别 LLM - identifyShoe
+5. C：商品类目分类 LLM - classifyProductCategory
+6. D：商品打标签 LLM - tagProduct
+7. E：视觉复核 LLM - verifyCandidateVisualMatch
+8. F：穿搭趋势协同架构（重点）
+9. A 与 F 的区别和联动
+10. 可直接用于答辩/文档的表述
+11. 代码依据
+shopping-assistant LLM architecture
+1. 总体架构定位
+shopping-assistant 当前的 LLM 架构可以概括为：多模型协同、统一适配层封装、后端状态机控制、商品数据
+库作为事实来源。
+这套系统不是让一个聊天模型直接决定商品、价格、库存和推荐结果，而是把模型能力拆成若干可控任务：识
+别图片、解析对话、给商品打标签、做候选视觉复核、从公开内容中抽取搭配趋势。每个模型输出都尽量被限
+制为 JSON 或结构化字段，后续由后端服务执行检索、筛选、排序、保存快照和返回商品。
+用户输入/图片
+  -> 模型任务层：识别、解析、抽取、复核
+  -> 后端状态机：筛选合并、候选快照、记忆沉淀
+  -> 搜索/数据库：真实商品、价格、库存、链接
+  -> 前端展示：回复 + 候选商品 + 推荐理由
+项目中这些能力统一挂在 ModelAdapter 接口下面，避免模型调用散落在业务代码中。这样后续替换模型供应
+商、调整 prompt 或做 mock/fallback 都更容易。
+2. A-F 六类模型任务总览
+编号 模块/函数 核心职责 输入 输出 是否直接返回商品
+A parseConversatio
+nTurn
+理解用户这一轮
+话，判断意图并生
+成筛选补丁
+用户消息 + 商品画
+像 + 当前筛选 + 候
+选摘要 + 用户记忆
+intent、
+filterPatch、
+assistantMessage
+、confidence
+否
+B identifyShoe 从用户图片中抽取
+商品画像
+用户图片或图片 
+assetId
+品类、品牌、颜
+色、鞋型、关键
+词、置信度
+否
+C classifyProductCat
+egory
+快速判断商品主类
+目
+裁剪后的商品图 + 
+categoryHint
+category、
+confidence 否
+D tagProduct 给商品池条目打结
+构化标签
+商品标题、平台、
+品牌 hint、图片
+标准化标签、关键
+词、风格/场景标签 否
+E verifyCandidateVis
+ualMatch
+判断候选商品是否
+与查询商品同款/同
+配色
+查询图片/画像 + 候
+选商品图片/字段
+sameProduct、
+sameColorway、
+confidence
+否
+F extractTrendOutfit 从公开内容搜索结
+果中抽取搭配方向
+基础商品 + 搜索结
+果 snippets
+搭配品类、关键
+词、风格标签、证
+据来源
+否，后续再匹配本
+地商品
+这里的“LLM 架构”更准确地说是“模型任务架构”。其中 A 和 F 不是单模型，而是由多个模型/规则/检索/状
+态模块共同完成。A 偏对话控制，F 偏内容理解和商品搭配推荐。
+3. A：对话理解协同架构（重点）
+A 表面上是“对话 LLM”，但实际是一个多模块协同的对话状态控制系统。它的目标不是直接聊天，而是判断
+用户这一轮话是否需要改变商品集合，以及如果要改变，应当如何修改筛选状态。
+shopping-assistant LLM architecture
+用户自然语言
+  -> 会话上下文构建
+  -> 对话理解 LLM
+  -> 本地规则 Guard / Fallback
+  -> 状态机判断 stateChangingTurn
+      -> 否：建议/解释/比较/闲聊，不重新搜索
+      -> 是：合并 filter，生成关键词和 embedding，重新检索商品
+  -> 保存消息、筛选快照、候选快照、用户记忆候选
+3.1 上下文构建模块
+每轮用户消息进入模型前，系统会先构建 ConversationTurnParseInput。这个输入不只有用户最新一句话，还
+包含当前商品画像、当前有效筛选、用户记忆、历史摘要、最近消息、当前候选商品摘要、prompt、输出 
+schema 和商品 profile schema。
+• productProfile：来自图片识别或商品画像快照，用于判断用户当前围绕什么商品说话。
+• effectiveFilter：当前已经生效的预算、平台、品牌、颜色、库存、排序等筛选条件。
+• userMemoryContext：用户长期偏好，如性别、鞋码、品牌偏好、平台偏好等。
+• conversationSummary/recentMessages：避免模型忘记前文。
+• candidateSummary：让模型可以回答“第一个和第二个哪个好”“为什么推荐这个”。
+• prompt/outputSchema/profileSchema：约束模型输出结构，防止自由发挥。
+这一步的价值是让模型区分相似句子的不同含义。例如“哪个更适合通勤”必须基于 candidateSummary 回
+答；“只看 500 以下”则应当转成筛选条件。
+3.2 对话理解 LLM
+对话理解 LLM 的核心任务是把自然语言转为结构化意图和筛选补丁。输出字段包括 intent、filterPatch、
+filterRemove、shouldResetPreviousFilters、assistantMessage、confidence 和 raw。
+intent 含义 例子 是否重新搜索
+refine_filter 用户新增或修改筛选条件 只看 500 以下、只看京东、有
+货优先 是
+reset_filter 用户要求清空或重置筛选 重新开始、清空条件、看所有
+平台 是
+ask_clarification 用户要求无法安全映射到动
+作，需要追问
+帮我找个合适的，但没有更多
+条件 不一定
+compare_candidates 用户要求比较已有候选 第一个和第二个哪个好 否
+explain_result 用户要求解释推荐/匹配原因 为什么推荐这个 否
+shopping_advice 用户要求购买建议或选择建议 通勤鞋怎么选、值得买吗 否
+general_chat 普通闲聊或功能介绍 你好、你能做什么 否
+这一步最关键的边界是：不是所有购物相关问题都应该触发搜索。例如“有什么适合男生通勤穿的鞋吗”属于 
+advice-first 问题，应先给购买建议，而不是立刻改商品池。
+3.3 本地规则 Guard 与 Fallback
+系统没有完全信任 LLM 输出，而是在 LLM 后面接了一层本地规则。它会处理三件事：
+shopping-assistant LLM architecture
+1. 模型调用失败时，用本地规则从用户消息中提取价格、品牌、颜色、平台、尺码、排序等筛选条件。
+2. 模型误判时进行修正，例如用户明确说“重新开始”时强制 reset_filter。
+3. 防止模型把建议类问题误判为筛选，例如“通勤鞋怎么选”应保持 shopping_advice，不应修改 filterPatch。
+这一层是整个 A 架构的安全阀。它让系统从“LLM 直接执行”变成“LLM 初判 + 本地规则复核 + 后端状态机执
+行”。
+3.4 状态机与检索联动
+A 架构真正的执行点在 TurnsService。系统会根据 parsedTurn 判断这一轮是不是 stateChangingTurn。
+路径 触发条件 后端动作 结果
+非状态变化路径
+shopping_advice、
+compare_candidates、
+explain_result、general_chat 
+等
+保存用户消息和 
+assistantMessage，更新 
+turnIndex，返回当前候选
+不重新搜索
+状态变化路径
+refine_filter、reset_filter、
+filterPatch 非空、
+filterRemove 非空
+合并 filter，构造 
+searchProfile/searchKeyword
+s，生成 queryEmbedding，调
+用 searchProvider
+重新生成候选商品快照
+当进入状态变化路径时，系统还会联动 searchQueryEmbeddingAdapter，根据关键词和商品画像生成 query 
+embedding。也就是说 A 的后半段已经不只是 LLM，而是进入了 embedding + 商品检索流程。
+3.5 用户记忆提取
+每轮对话结束后，系统还会尝试从用户消息中提取可沉淀的偏好，生成 memory proposal。当前主要通过规则
+提取，能识别鞋码、脚长脚宽、身体尺寸、平台偏好、品牌偏好、颜色/风格偏好、配送偏好和交互偏好。
+这些记忆不会直接替代用户输入，而是在下一轮 buildContext 时作为 userMemoryContext 喂给对话理解 
+LLM。例如用户曾表达“我平时穿 42 码”“只想看京东和得物”，后续模型就可以把这些作为偏好背景。
+3.6 A 架构的准确表述
+建议表述：A 不是单一聊天模型，而是由上下文构建模块、对话理解 LLM、本地规则 Guard、筛选状态机、
+Embedding 检索模块、候选商品管理模块和用户记忆模块共同组成的对话状态控制架构。
+4. B：视觉识别 LLM - identifyShoe
+B 负责从用户上传的商品图片中抽取结构化商品画像。它的输入通常是用户图片或 assetId，输出包括 
+category、brand、modelLine、colorFamily、colorway、shoeType、size、styleTags、sceneTags、
+keywords、confidence 等字段。
+用户图片
+  -> identifyShoe
+  -> 商品画像 ProductProfileResult
+  -> 后续关键词检索 / 结构化过滤 / embedding 检索 / 推荐解释
+shopping-assistant LLM architecture
+B 的意义在于把“看图”这件事从“搜商品”中拆开。视觉模型只负责理解图片，不直接返回商品；真实商品
+仍由搜索系统和商品池返回。
+当前需要注意的是，完整视觉识别通常比较慢，因此更好的产品链路是：先用 embedding/ANN 快速返回首批
+结果，再让视觉 LLM 在后台补充详细画像，之后用于精排、解释或二次筛选。
+5. C：商品类目分类 LLM - classifyProductCategory
+C 是比 B 更轻的视觉任务，只判断图片中的主商品类目，例如 shoe、bag、top、bottom、digital_other 等。
+它输出 category 和 confidence。
+它和 B 的区别是：C 只回答“这是什么类目”；B 回答“这是什么商品，有什么品牌、颜色、鞋型和关键
+词”。
+模块 问题 输出粒度 典型用途
+classifyProductCategory 这张图主商品属于哪个类目？ 轻量 category + confidence 选择 schema、prompt、搜索
+管线
+identifyShoe 这张图里的商品具体是什么？ 详细商品画像 生成搜索关键词、结构化属
+性、解释依据
+C 适合作为快速前置路由层，因为不同类目需要不同 schema 和搜索策略。
+6. D：商品打标签 LLM - tagProduct
+D 是商品池建设阶段的模型任务。它的输入是平台商品标题、平台名、品牌 hint、类目 hint 和商品图片，输出
+标准化商品标签。
+平台原始商品
+  -> title + platform + brandHint + imageUrl
+  -> tagProduct
+  -> brand/category/color/styleTags/sceneTags/keywords
+  -> 入库，供检索和搭配匹配使用
+它解决的是商品池数据杂乱的问题。淘宝、京东、得物、拼多多等平台标题格式不同，如果不做结构化，后续
+搜索只能靠模糊标题匹配，准确性不稳定。
+D 和 B 的关系是：B 识别“用户想买的东西”，D 整理“数据库里已有的东西”。只有这两边的标签和画像能对
+齐，检索效果才会稳。
+7. E：视觉复核 LLM - verifyCandidateVisualMatch
+E 用于候选商品精排/复核。它会比较用户查询商品和候选商品，判断是否同款、是否同配色，并给出置信度。
+它通常不会参与首轮全量召回，因为成本和延迟较高，更适合放在 Top K 候选里使用。
+Query Image/Profile + Candidate Image/Profile
+  -> verifyCandidateVisualMatch
+shopping-assistant LLM architecture
+  -> sameProduct / sameColorway / confidence
+  -> 精排或过滤候选商品
+例如 ANN 召回了多双 Nike 白色跑鞋，其中可能有同款不同色、相似鞋型、标题相似但图片不对的商品。E 可
+以帮助系统把真正同款、同配色的商品排到前面。
+8. F：穿搭趋势协同架构（重点）
+F 也不是单 LLM。它的目标是：用户选中一个基础商品后，根据公开内容和本地商品池，推荐可搭配的其他商
+品。
+用户选中的基础商品
+  -> 基础商品画像解析
+  -> 趋势搜索 Query 规划
+  -> 公开内容搜索 provider chain
+  -> 搜索结果去重与噪声过滤
+  -> 趋势抽取 LLM
+  -> 规则兜底
+  -> 本地商品池匹配
+  -> 返回真实搭配商品
+8.1 基础商品画像解析
+F 的输入不是一句空问题，而是用户已经心仪或选中的基础商品。基础商品可以由前端直接传 baseProduct，
+也可以只传 candidateItemId，由后端从当前候选商品中解析。
+系统会把基础商品标准化成 productId、title、normalizedTitle、category、brand、color、styleTags、
+sceneTags、price 等字段。后续查询规划和商品匹配都依赖这些字段。
+这里其实复用了前面 B/D 的结果：用户图片识别和商品池打标签越准确，F 的搭配推荐越精准。
+8.2 趋势搜索 Query 规划
+F 不让 LLM 凭空想象“网红搭配”，而是先根据基础商品标题、颜色、风格标签、场景标签生成公开内容搜索 
+query。
+{商品标题} 搭配 小红书
+{商品标题} 穿搭 抖音
+{商品标题} {styleTag} 搭配
+{商品标题} {sceneTag} 穿搭
+{商品标题} {color} 搭配
+{商品标题} ootd
+{商品标题} 网红 搭配
+这一步现在主要是规则生成，但它承担了“商品画像 -> 内容搜索关键词”的角色。
+8.3 公开内容搜索 provider chain
+F 会调用内容搜索 provider 搜公开内容。项目里采用链式 provider：先尝试 serper，再尝试 serpapi，必要时
+可以走 noop。若前一个 provider 已经拿到足够结果，就提前返回；否则继续尝试后续 provider。
+这说明 F 的信息来源不是 LLM 自己的幻觉，而是外部公开内容搜索结果。LLM 只是后续负责抽取和归纳。
+shopping-assistant LLM architecture
+8.4 搜索结果过滤与去重
+公开搜索结果会有很多噪声，例如真假鉴定、开箱、测评、代购、报价、优惠、假货、避雷等内容。F 会先过滤
+这些不适合做穿搭依据的结果，并按标题/URL 做去重。
+这一步可以减少 LLM 抽取时被噪声污染，让后续趋势抽取更偏向“穿搭关系”，而不是价格测评或真假鉴定。
+8.5 趋势抽取 LLM
+这才是 F 中真正的 LLM 核心。它接收基础商品和公开内容搜索结果 snippets，输出 trendSummary、
+outfitCandidates 和 evidenceSources。
+需要特别强调：趋势抽取 LLM 不直接推荐本地商品。它只抽取搭配方向，例如目标品类、展示类目、关键词、
+风格标签、场景标签、置信度和理由。
+公开内容 snippets
+  -> extractTrendOutfit
+  -> 搭配方向：bottom / socks / top / bag / accessory ...
+  -> 关键词：直筒裤、牛仔裤、中筒袜、通勤包 ...
+  -> 证据来源：title、snippet、url、source
+这种设计比让 LLM 直接生成商品推荐更安全，因为 LLM 不会编造本地商品、价格和库存。
+8.6 规则兜底
+如果公开内容搜索失败、搜索结果为空，或者 LLM 抽取失败，系统会启用规则兜底。
+例如基础商品是鞋时，规则会生成下装、袜子、上装、包袋、配饰等搭配候选：直筒裤、牛仔裤、工装裤、阔
+腿裤、中筒袜、运动袜、卫衣、衬衫、托特包、斜挎包等。
+这保证了 F 功能的可用性：外部搜索不可用时，系统仍能给出基础搭配推荐。
+8.7 本地商品池匹配
+趋势抽取 LLM 输出的只是“搭配方向”，最终还要由 TrendOutfitProductMatcherService 从本地商品池中匹
+配真实商品。
+匹配时会排除基础商品本身，只从 tagStatus 为 verified 或 review_needed 的商品中选择，并计算多个匹配信
+号：
+• categoryScore：商品类目是否符合搭配目标品类。
+• keywordScore：趋势关键词是否命中商品标题、标签或属性。
+• styleScore：风格标签是否匹配。
+• sceneScore：场景标签是否匹配。
+• priceScore：价格是否相对合理。
+• stockScore：库存状态是否可买。
+• trend.confidence：趋势抽取结果自身置信度。
+shopping-assistant LLM architecture
+最后返回 productId、title、category、price、imageUrl、productUrl、reason 和 matchedTrend。换句话
+说，F 的推荐商品来自本地商品池，不是 LLM 编出来的。
+8.8 F 架构的准确表述
+建议表述：F 是“公开内容理解 + 本地商品匹配”的多阶段协同架构。公开内容搜索提供趋势证据，LLM 负责抽取
+搭配方向，本地匹配器负责从真实商品池中选择可购买商品，规则兜底保证功能稳定可用。
+9. A 与 F 的区别和联动
+维度 A：对话协同架构 F：穿搭趋势协同架构
+核心问题 用户这一句话应该触发什么系统动作？ 用户选中这个商品后，应该推荐什么搭配
+单品？
+主要输入 用户消息、当前筛选、候选摘要、用户记
+忆、商品画像
+基础商品画像、公开内容搜索结果、本地
+商品池
+模型核心 对话理解 LLM：自然语言 -> 
+intent/filterPatch 趋势抽取 LLM：搜索结果 -> 搭配方向
+配套模块 上下文构建、规则 Guard、状态机、
+Embedding、搜索、记忆
+Query 规划、内容搜索链、去重过滤、规
+则兜底、本地商品匹配
+是否直接改商品池 可能。refine_filter/reset_filter 会更新候
+选 不会直接改搜索筛选，而是生成搭配推荐
+最大风险 误判用户意图，错误触发搜索或不该搜索 公开内容噪声、抽取方向偏差、本地商品
+池匹配不足
+两者可以串起来：A 负责理解用户说“帮我推荐搭配”或用户点击某个商品后的行为；F 负责在用户选中商品后
+完成搭配趋势抽取和本地商品匹配。
+A：理解用户意图，决定是否进入搭配推荐
+  -> 用户选中商品 / 明确要求搭配
+F：公开内容搜索 + 趋势抽取 + 本地商品匹配
+  -> 返回搭配推荐商品
+10. 可直接用于答辩/文档的表述
+10.1 总体架构表述
+系统采用多模型协同的购物助手架构。视觉模型负责商品图像理解，对话模型负责用户意图解析，商品打标模
+型负责商品池结构化，视觉复核模型负责候选结果精排校验，趋势抽取模型负责从公开内容中提取搭配关系。
+所有模型输出均被限制为结构化 JSON，最终商品结果由后端检索系统和数据库生成，避免 LLM 编造商品、价
+格和库存。
+10.2 A 对话架构表述
+在对话理解部分，系统并非采用单一 LLM 直接完成用户回复，而是采用多模块协同的对话状态控制架构。首先
+由上下文构建模块整合商品画像、历史对话、当前筛选条件、候选商品摘要和用户偏好记忆；随后由对话理解 
+LLM 将用户自然语言解析为结构化意图和筛选补丁；再由本地规则 Guard 对 LLM 结果进行校验和兜底，避免误
+shopping-assistant LLM architecture
+触发搜索或错误修改筛选状态。当用户请求会改变商品集合时，系统进一步调用 Embedding 与商品检索模块更
+新候选商品；当用户只是询问建议、比较或解释时，则直接基于当前候选商品生成回复，不改变商品池状态。
+10.3 F 穿搭推荐表述
+在穿搭推荐部分，系统同样不是让 LLM 直接生成商品推荐，而是采用“公开内容理解 + 本地商品匹配”的多阶
+段架构。系统首先根据用户选中的基础商品解析出标题、类目、品牌、颜色、风格标签和场景标签，并基于这
+些信息生成面向小红书、抖音和 OOTD 场景的搜索查询。随后通过内容搜索 provider chain 获取公开内容摘
+要，并进行去重和噪声过滤。趋势抽取 LLM 只负责从搜索结果中抽取搭配方向、目标品类、关键词、风格标签
+和理由，不直接选择本地商品。最后，商品匹配模块根据类目、关键词、风格、场景、价格和库存等信号，从
+本地商品池中筛选真实商品并生成推荐结果。当公开内容或 LLM 抽取失败时，系统会启用规则兜底生成基础搭
+配候选，保证功能可用性。
+11. 代码依据
+以下文件是本文架构拆解的主要依据。为避免把工具引用标记写进文档，这里使用普通文件路径和功能说明列
+出。
+• services/api-server/src/adapters/model/model-adapter.interface.ts - 定义 ModelAdapter 统一模型能力接口，包括 
+identifyShoe、parseConversationTurn、extractTrendOutfit、tagProduct、verifyCandidateVisualMatch 等。
+• services/api-server/src/adapters/model/openai-compatible-model-adapter.service.ts - 实现 OpenAI-compatible 模型调用，包括
+视觉识别、类目分类、对话解析、趋势抽取、商品打标和视觉复核。
+• services/api-server/src/modules/conversation/application/conversation-context.service.ts - 负责构建对话上下文，包括商品画
+像、筛选状态、用户记忆、历史摘要、最近消息和候选摘要。
+• services/api-server/src/modules/turns/application/standard-conversation-intent-adapter.service.ts - 负责对话意图解析、本地规
+则兜底和 Guard 校验，支持 refine_filter、shopping_advice、general_chat 等意图。
+• services/api-server/src/modules/turns/application/turns.service.ts - 负责每轮对话执行链路，包括保存消息、判断 
+stateChangingTurn、合并 filter、生成 embedding、调用 searchProvider、保存候选快照。
+• services/api-server/src/prompts/conversation/shoe.system.md - 定义鞋类对话解析 prompt，明确 LLM 只输出结构化意图和 
+patch，不能编造商品、价格、库存。
+• services/api-server/src/modules/user-memory/application/user-memory-extraction.service.ts - 负责从用户消息中提取鞋码、品
+牌、平台、颜色、配送和交互偏好等记忆候选。
+• services/api-server/src/modules/trend-outfit/application/trend-outfit.service.ts - 负责穿搭推荐主流程，包括基础商品解析、查
+询规划、内容搜索、趋势抽取、规则兜底和推荐缓存。
+• services/api-server/src/adapters/content-search/chained-content-search-provider.service.ts - 负责公开内容搜索 provider 
+chain，按 serper、serpapi、noop 等顺序尝试并做结果合并。
+• services/api-server/src/modules/trend-outfit/application/trend-outfit-product-matcher.service.ts - 负责将趋势抽取出的搭配方
+向匹配到本地商品池，基于类目、关键词、风格、场景、价格、库存等信号打分。
+• services/api-server/src/common/config/configuration.ts - 包含搜索、ANN、embedding、内容搜索、视觉复核等关键配置项。
+结论
+当前 shopping-assistant 的模型架构可以用一句话概括：LLM 不负责凭空生成商品，而负责把复杂的图片、文
+本和公开内容转成可控的结构化信号；真正的商品结果由后端状态机、检索系统和本地商品池共同生成。
+shopping-assistant LLM architecture
+A 和 F 是最能体现架构设计的两部分。A 体现“自然语言对话如何安全地转成系统动作”；F 体现“公开内容趋
+势如何安全地转成本地可购买商品推荐”。这两部分如果在文档或答辩中讲清楚，会比单纯说“我们接入了 
+LLM”更有技术含量。

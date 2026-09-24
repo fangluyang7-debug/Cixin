@@ -1,0 +1,36 @@
+{
+  "inputPath": "D:\\shopping-assistant\\淘宝网-商品列表页采集【网站反爬请查阅注意事项】.json",
+  "outFullPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-full.json",
+  "outFirstPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-first80.json",
+  "outRejectedPath": "D:\\shopping-assistant\\samples\\product-pool\\generated\\taobao_real_shoes_20260604-rejected.jsonl",
+  "batchSource": "taobao_real_shoes_20260604",
+  "generatedAt": "2026-06-04T13:48:19.648Z",
+  "stats": {
+    "rawCount": 249,
+    "validCount": 249,
+    "dedupedCount": 197,
+    "firstBatchCount": 80,
+    "rejectedCount": 52,
+    "duplicateCount": 52,
+    "droppedCount": 0,
+    "platformCounts": {
+      "taobao": 130,
+      "tmall": 67
+    },
+    "brandCounts": {
+      "PUMA": 197
+    },
+    "missingCounts": {
+      "title": 0,
+      "price": 0,
+      "imageUrl": 0,
+      "productUrl": 0,
+      "externalId": 0
+    },
+    "outputBytes": {
+      "full": 251529,
+      "first": 101933,
+      "rejected": 10137
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "shopping-assistant-api-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "NestJS API server for the intelligent shopping assistant MVP.",
+  "scripts": {
+    "build": "nest build",
+    "start": "node ../../scripts/with-root-env.mjs node dist/src/main.js",
+    "start:dev": "node ../../scripts/with-root-env.mjs nest start --watch",
+    "db:init": "node ../../scripts/with-root-env.mjs prisma db execute --file prisma/migrations/000001_init/migration.sql --schema prisma/schema.prisma && node ../../scripts/with-root-env.mjs node prisma/patch-sqlite-schema.mjs",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "test": "npm run test:unit",
+    "test:unit": "jest --config test/jest-unit.json",
+    "test:e2e": "jest --config test/jest-e2e.json --runInBand",
+    "test:ci": "npm run test:unit -- --ci --runInBand && npm run test:e2e -- --ci && npm run smoke:cache && npm run smoke:conversation",
+    "smoke:cache": "ts-node scripts/cache-smoke.ts",
+    "smoke:conversation": "ts-node scripts/conversation-routing-smoke.ts",
+    "audit:natural-language": "ts-node scripts/cloud-natural-language-e2e-audit.ts",
+    "audit:natural-language:both": "npm run audit:natural-language -- --mode current_ann_then_refine && npm run audit:natural-language -- --mode light_tag_ann_fusion",
+    "audit:image-semantic:cloud": "ts-node scripts/cloud-image-semantic-workflow.ts",
+    "audit:natural-language:local": "ts-node scripts/natural-language-robustness-audit.ts"
+  },
+  "dependencies": {
+    "@nestjs/cli": "^11.0.10",
+    "@nestjs/common": "11.1.23",
+    "@nestjs/config": "^4.0.4",
+    "@nestjs/core": "11.1.23",
+    "@nestjs/platform-express": "11.1.23",
+    "@nestjs/schematics": "^11.0.7",
+    "@prisma/client": "^6.19.3",
+    "@types/node": "^22.10.2",
+    "prisma": "^6.19.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "sharp": "^0.34.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^11.1.27",
+    "@types/jest": "^29.5.14",
+    "@types/supertest": "^6.0.3",
+    "jest": "^29.7.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.11"
+  }
+}

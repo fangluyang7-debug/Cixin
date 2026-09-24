@@ -1,0 +1,2126 @@
+{
+  "inputPath": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\generated\\collected_shoes_20260605-full.json",
+  "outputDir": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200",
+  "sourceBatchSource": "collected_shoes_20260605",
+  "batchSourcePrefix": "collected_shoes_20260605",
+  "sourceCount": 60357,
+  "chunkSize": 200,
+  "chunkCount": 302,
+  "writtenCount": 60357,
+  "chunks": [
+    {
+      "index": 1,
+      "offset": 0,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0001.json",
+      "batchSource": "collected_shoes_20260605_chunk0001"
+    },
+    {
+      "index": 2,
+      "offset": 200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0002.json",
+      "batchSource": "collected_shoes_20260605_chunk0002"
+    },
+    {
+      "index": 3,
+      "offset": 400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0003.json",
+      "batchSource": "collected_shoes_20260605_chunk0003"
+    },
+    {
+      "index": 4,
+      "offset": 600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0004.json",
+      "batchSource": "collected_shoes_20260605_chunk0004"
+    },
+    {
+      "index": 5,
+      "offset": 800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0005.json",
+      "batchSource": "collected_shoes_20260605_chunk0005"
+    },
+    {
+      "index": 6,
+      "offset": 1000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0006.json",
+      "batchSource": "collected_shoes_20260605_chunk0006"
+    },
+    {
+      "index": 7,
+      "offset": 1200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0007.json",
+      "batchSource": "collected_shoes_20260605_chunk0007"
+    },
+    {
+      "index": 8,
+      "offset": 1400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0008.json",
+      "batchSource": "collected_shoes_20260605_chunk0008"
+    },
+    {
+      "index": 9,
+      "offset": 1600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0009.json",
+      "batchSource": "collected_shoes_20260605_chunk0009"
+    },
+    {
+      "index": 10,
+      "offset": 1800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0010.json",
+      "batchSource": "collected_shoes_20260605_chunk0010"
+    },
+    {
+      "index": 11,
+      "offset": 2000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0011.json",
+      "batchSource": "collected_shoes_20260605_chunk0011"
+    },
+    {
+      "index": 12,
+      "offset": 2200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0012.json",
+      "batchSource": "collected_shoes_20260605_chunk0012"
+    },
+    {
+      "index": 13,
+      "offset": 2400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0013.json",
+      "batchSource": "collected_shoes_20260605_chunk0013"
+    },
+    {
+      "index": 14,
+      "offset": 2600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0014.json",
+      "batchSource": "collected_shoes_20260605_chunk0014"
+    },
+    {
+      "index": 15,
+      "offset": 2800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0015.json",
+      "batchSource": "collected_shoes_20260605_chunk0015"
+    },
+    {
+      "index": 16,
+      "offset": 3000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0016.json",
+      "batchSource": "collected_shoes_20260605_chunk0016"
+    },
+    {
+      "index": 17,
+      "offset": 3200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0017.json",
+      "batchSource": "collected_shoes_20260605_chunk0017"
+    },
+    {
+      "index": 18,
+      "offset": 3400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0018.json",
+      "batchSource": "collected_shoes_20260605_chunk0018"
+    },
+    {
+      "index": 19,
+      "offset": 3600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0019.json",
+      "batchSource": "collected_shoes_20260605_chunk0019"
+    },
+    {
+      "index": 20,
+      "offset": 3800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0020.json",
+      "batchSource": "collected_shoes_20260605_chunk0020"
+    },
+    {
+      "index": 21,
+      "offset": 4000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0021.json",
+      "batchSource": "collected_shoes_20260605_chunk0021"
+    },
+    {
+      "index": 22,
+      "offset": 4200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0022.json",
+      "batchSource": "collected_shoes_20260605_chunk0022"
+    },
+    {
+      "index": 23,
+      "offset": 4400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0023.json",
+      "batchSource": "collected_shoes_20260605_chunk0023"
+    },
+    {
+      "index": 24,
+      "offset": 4600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0024.json",
+      "batchSource": "collected_shoes_20260605_chunk0024"
+    },
+    {
+      "index": 25,
+      "offset": 4800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0025.json",
+      "batchSource": "collected_shoes_20260605_chunk0025"
+    },
+    {
+      "index": 26,
+      "offset": 5000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0026.json",
+      "batchSource": "collected_shoes_20260605_chunk0026"
+    },
+    {
+      "index": 27,
+      "offset": 5200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0027.json",
+      "batchSource": "collected_shoes_20260605_chunk0027"
+    },
+    {
+      "index": 28,
+      "offset": 5400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0028.json",
+      "batchSource": "collected_shoes_20260605_chunk0028"
+    },
+    {
+      "index": 29,
+      "offset": 5600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0029.json",
+      "batchSource": "collected_shoes_20260605_chunk0029"
+    },
+    {
+      "index": 30,
+      "offset": 5800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0030.json",
+      "batchSource": "collected_shoes_20260605_chunk0030"
+    },
+    {
+      "index": 31,
+      "offset": 6000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0031.json",
+      "batchSource": "collected_shoes_20260605_chunk0031"
+    },
+    {
+      "index": 32,
+      "offset": 6200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0032.json",
+      "batchSource": "collected_shoes_20260605_chunk0032"
+    },
+    {
+      "index": 33,
+      "offset": 6400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0033.json",
+      "batchSource": "collected_shoes_20260605_chunk0033"
+    },
+    {
+      "index": 34,
+      "offset": 6600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0034.json",
+      "batchSource": "collected_shoes_20260605_chunk0034"
+    },
+    {
+      "index": 35,
+      "offset": 6800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0035.json",
+      "batchSource": "collected_shoes_20260605_chunk0035"
+    },
+    {
+      "index": 36,
+      "offset": 7000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0036.json",
+      "batchSource": "collected_shoes_20260605_chunk0036"
+    },
+    {
+      "index": 37,
+      "offset": 7200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0037.json",
+      "batchSource": "collected_shoes_20260605_chunk0037"
+    },
+    {
+      "index": 38,
+      "offset": 7400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0038.json",
+      "batchSource": "collected_shoes_20260605_chunk0038"
+    },
+    {
+      "index": 39,
+      "offset": 7600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0039.json",
+      "batchSource": "collected_shoes_20260605_chunk0039"
+    },
+    {
+      "index": 40,
+      "offset": 7800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0040.json",
+      "batchSource": "collected_shoes_20260605_chunk0040"
+    },
+    {
+      "index": 41,
+      "offset": 8000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0041.json",
+      "batchSource": "collected_shoes_20260605_chunk0041"
+    },
+    {
+      "index": 42,
+      "offset": 8200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0042.json",
+      "batchSource": "collected_shoes_20260605_chunk0042"
+    },
+    {
+      "index": 43,
+      "offset": 8400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0043.json",
+      "batchSource": "collected_shoes_20260605_chunk0043"
+    },
+    {
+      "index": 44,
+      "offset": 8600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0044.json",
+      "batchSource": "collected_shoes_20260605_chunk0044"
+    },
+    {
+      "index": 45,
+      "offset": 8800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0045.json",
+      "batchSource": "collected_shoes_20260605_chunk0045"
+    },
+    {
+      "index": 46,
+      "offset": 9000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0046.json",
+      "batchSource": "collected_shoes_20260605_chunk0046"
+    },
+    {
+      "index": 47,
+      "offset": 9200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0047.json",
+      "batchSource": "collected_shoes_20260605_chunk0047"
+    },
+    {
+      "index": 48,
+      "offset": 9400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0048.json",
+      "batchSource": "collected_shoes_20260605_chunk0048"
+    },
+    {
+      "index": 49,
+      "offset": 9600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0049.json",
+      "batchSource": "collected_shoes_20260605_chunk0049"
+    },
+    {
+      "index": 50,
+      "offset": 9800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0050.json",
+      "batchSource": "collected_shoes_20260605_chunk0050"
+    },
+    {
+      "index": 51,
+      "offset": 10000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0051.json",
+      "batchSource": "collected_shoes_20260605_chunk0051"
+    },
+    {
+      "index": 52,
+      "offset": 10200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0052.json",
+      "batchSource": "collected_shoes_20260605_chunk0052"
+    },
+    {
+      "index": 53,
+      "offset": 10400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0053.json",
+      "batchSource": "collected_shoes_20260605_chunk0053"
+    },
+    {
+      "index": 54,
+      "offset": 10600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0054.json",
+      "batchSource": "collected_shoes_20260605_chunk0054"
+    },
+    {
+      "index": 55,
+      "offset": 10800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0055.json",
+      "batchSource": "collected_shoes_20260605_chunk0055"
+    },
+    {
+      "index": 56,
+      "offset": 11000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0056.json",
+      "batchSource": "collected_shoes_20260605_chunk0056"
+    },
+    {
+      "index": 57,
+      "offset": 11200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0057.json",
+      "batchSource": "collected_shoes_20260605_chunk0057"
+    },
+    {
+      "index": 58,
+      "offset": 11400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0058.json",
+      "batchSource": "collected_shoes_20260605_chunk0058"
+    },
+    {
+      "index": 59,
+      "offset": 11600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0059.json",
+      "batchSource": "collected_shoes_20260605_chunk0059"
+    },
+    {
+      "index": 60,
+      "offset": 11800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0060.json",
+      "batchSource": "collected_shoes_20260605_chunk0060"
+    },
+    {
+      "index": 61,
+      "offset": 12000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0061.json",
+      "batchSource": "collected_shoes_20260605_chunk0061"
+    },
+    {
+      "index": 62,
+      "offset": 12200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0062.json",
+      "batchSource": "collected_shoes_20260605_chunk0062"
+    },
+    {
+      "index": 63,
+      "offset": 12400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0063.json",
+      "batchSource": "collected_shoes_20260605_chunk0063"
+    },
+    {
+      "index": 64,
+      "offset": 12600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0064.json",
+      "batchSource": "collected_shoes_20260605_chunk0064"
+    },
+    {
+      "index": 65,
+      "offset": 12800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0065.json",
+      "batchSource": "collected_shoes_20260605_chunk0065"
+    },
+    {
+      "index": 66,
+      "offset": 13000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0066.json",
+      "batchSource": "collected_shoes_20260605_chunk0066"
+    },
+    {
+      "index": 67,
+      "offset": 13200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0067.json",
+      "batchSource": "collected_shoes_20260605_chunk0067"
+    },
+    {
+      "index": 68,
+      "offset": 13400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0068.json",
+      "batchSource": "collected_shoes_20260605_chunk0068"
+    },
+    {
+      "index": 69,
+      "offset": 13600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0069.json",
+      "batchSource": "collected_shoes_20260605_chunk0069"
+    },
+    {
+      "index": 70,
+      "offset": 13800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0070.json",
+      "batchSource": "collected_shoes_20260605_chunk0070"
+    },
+    {
+      "index": 71,
+      "offset": 14000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0071.json",
+      "batchSource": "collected_shoes_20260605_chunk0071"
+    },
+    {
+      "index": 72,
+      "offset": 14200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0072.json",
+      "batchSource": "collected_shoes_20260605_chunk0072"
+    },
+    {
+      "index": 73,
+      "offset": 14400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0073.json",
+      "batchSource": "collected_shoes_20260605_chunk0073"
+    },
+    {
+      "index": 74,
+      "offset": 14600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0074.json",
+      "batchSource": "collected_shoes_20260605_chunk0074"
+    },
+    {
+      "index": 75,
+      "offset": 14800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0075.json",
+      "batchSource": "collected_shoes_20260605_chunk0075"
+    },
+    {
+      "index": 76,
+      "offset": 15000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0076.json",
+      "batchSource": "collected_shoes_20260605_chunk0076"
+    },
+    {
+      "index": 77,
+      "offset": 15200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0077.json",
+      "batchSource": "collected_shoes_20260605_chunk0077"
+    },
+    {
+      "index": 78,
+      "offset": 15400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0078.json",
+      "batchSource": "collected_shoes_20260605_chunk0078"
+    },
+    {
+      "index": 79,
+      "offset": 15600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0079.json",
+      "batchSource": "collected_shoes_20260605_chunk0079"
+    },
+    {
+      "index": 80,
+      "offset": 15800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0080.json",
+      "batchSource": "collected_shoes_20260605_chunk0080"
+    },
+    {
+      "index": 81,
+      "offset": 16000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0081.json",
+      "batchSource": "collected_shoes_20260605_chunk0081"
+    },
+    {
+      "index": 82,
+      "offset": 16200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0082.json",
+      "batchSource": "collected_shoes_20260605_chunk0082"
+    },
+    {
+      "index": 83,
+      "offset": 16400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0083.json",
+      "batchSource": "collected_shoes_20260605_chunk0083"
+    },
+    {
+      "index": 84,
+      "offset": 16600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0084.json",
+      "batchSource": "collected_shoes_20260605_chunk0084"
+    },
+    {
+      "index": 85,
+      "offset": 16800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0085.json",
+      "batchSource": "collected_shoes_20260605_chunk0085"
+    },
+    {
+      "index": 86,
+      "offset": 17000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0086.json",
+      "batchSource": "collected_shoes_20260605_chunk0086"
+    },
+    {
+      "index": 87,
+      "offset": 17200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0087.json",
+      "batchSource": "collected_shoes_20260605_chunk0087"
+    },
+    {
+      "index": 88,
+      "offset": 17400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0088.json",
+      "batchSource": "collected_shoes_20260605_chunk0088"
+    },
+    {
+      "index": 89,
+      "offset": 17600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0089.json",
+      "batchSource": "collected_shoes_20260605_chunk0089"
+    },
+    {
+      "index": 90,
+      "offset": 17800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0090.json",
+      "batchSource": "collected_shoes_20260605_chunk0090"
+    },
+    {
+      "index": 91,
+      "offset": 18000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0091.json",
+      "batchSource": "collected_shoes_20260605_chunk0091"
+    },
+    {
+      "index": 92,
+      "offset": 18200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0092.json",
+      "batchSource": "collected_shoes_20260605_chunk0092"
+    },
+    {
+      "index": 93,
+      "offset": 18400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0093.json",
+      "batchSource": "collected_shoes_20260605_chunk0093"
+    },
+    {
+      "index": 94,
+      "offset": 18600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0094.json",
+      "batchSource": "collected_shoes_20260605_chunk0094"
+    },
+    {
+      "index": 95,
+      "offset": 18800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0095.json",
+      "batchSource": "collected_shoes_20260605_chunk0095"
+    },
+    {
+      "index": 96,
+      "offset": 19000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0096.json",
+      "batchSource": "collected_shoes_20260605_chunk0096"
+    },
+    {
+      "index": 97,
+      "offset": 19200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0097.json",
+      "batchSource": "collected_shoes_20260605_chunk0097"
+    },
+    {
+      "index": 98,
+      "offset": 19400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0098.json",
+      "batchSource": "collected_shoes_20260605_chunk0098"
+    },
+    {
+      "index": 99,
+      "offset": 19600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0099.json",
+      "batchSource": "collected_shoes_20260605_chunk0099"
+    },
+    {
+      "index": 100,
+      "offset": 19800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0100.json",
+      "batchSource": "collected_shoes_20260605_chunk0100"
+    },
+    {
+      "index": 101,
+      "offset": 20000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0101.json",
+      "batchSource": "collected_shoes_20260605_chunk0101"
+    },
+    {
+      "index": 102,
+      "offset": 20200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0102.json",
+      "batchSource": "collected_shoes_20260605_chunk0102"
+    },
+    {
+      "index": 103,
+      "offset": 20400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0103.json",
+      "batchSource": "collected_shoes_20260605_chunk0103"
+    },
+    {
+      "index": 104,
+      "offset": 20600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0104.json",
+      "batchSource": "collected_shoes_20260605_chunk0104"
+    },
+    {
+      "index": 105,
+      "offset": 20800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0105.json",
+      "batchSource": "collected_shoes_20260605_chunk0105"
+    },
+    {
+      "index": 106,
+      "offset": 21000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0106.json",
+      "batchSource": "collected_shoes_20260605_chunk0106"
+    },
+    {
+      "index": 107,
+      "offset": 21200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0107.json",
+      "batchSource": "collected_shoes_20260605_chunk0107"
+    },
+    {
+      "index": 108,
+      "offset": 21400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0108.json",
+      "batchSource": "collected_shoes_20260605_chunk0108"
+    },
+    {
+      "index": 109,
+      "offset": 21600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0109.json",
+      "batchSource": "collected_shoes_20260605_chunk0109"
+    },
+    {
+      "index": 110,
+      "offset": 21800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0110.json",
+      "batchSource": "collected_shoes_20260605_chunk0110"
+    },
+    {
+      "index": 111,
+      "offset": 22000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0111.json",
+      "batchSource": "collected_shoes_20260605_chunk0111"
+    },
+    {
+      "index": 112,
+      "offset": 22200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0112.json",
+      "batchSource": "collected_shoes_20260605_chunk0112"
+    },
+    {
+      "index": 113,
+      "offset": 22400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0113.json",
+      "batchSource": "collected_shoes_20260605_chunk0113"
+    },
+    {
+      "index": 114,
+      "offset": 22600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0114.json",
+      "batchSource": "collected_shoes_20260605_chunk0114"
+    },
+    {
+      "index": 115,
+      "offset": 22800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0115.json",
+      "batchSource": "collected_shoes_20260605_chunk0115"
+    },
+    {
+      "index": 116,
+      "offset": 23000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0116.json",
+      "batchSource": "collected_shoes_20260605_chunk0116"
+    },
+    {
+      "index": 117,
+      "offset": 23200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0117.json",
+      "batchSource": "collected_shoes_20260605_chunk0117"
+    },
+    {
+      "index": 118,
+      "offset": 23400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0118.json",
+      "batchSource": "collected_shoes_20260605_chunk0118"
+    },
+    {
+      "index": 119,
+      "offset": 23600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0119.json",
+      "batchSource": "collected_shoes_20260605_chunk0119"
+    },
+    {
+      "index": 120,
+      "offset": 23800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0120.json",
+      "batchSource": "collected_shoes_20260605_chunk0120"
+    },
+    {
+      "index": 121,
+      "offset": 24000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0121.json",
+      "batchSource": "collected_shoes_20260605_chunk0121"
+    },
+    {
+      "index": 122,
+      "offset": 24200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0122.json",
+      "batchSource": "collected_shoes_20260605_chunk0122"
+    },
+    {
+      "index": 123,
+      "offset": 24400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0123.json",
+      "batchSource": "collected_shoes_20260605_chunk0123"
+    },
+    {
+      "index": 124,
+      "offset": 24600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0124.json",
+      "batchSource": "collected_shoes_20260605_chunk0124"
+    },
+    {
+      "index": 125,
+      "offset": 24800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0125.json",
+      "batchSource": "collected_shoes_20260605_chunk0125"
+    },
+    {
+      "index": 126,
+      "offset": 25000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0126.json",
+      "batchSource": "collected_shoes_20260605_chunk0126"
+    },
+    {
+      "index": 127,
+      "offset": 25200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0127.json",
+      "batchSource": "collected_shoes_20260605_chunk0127"
+    },
+    {
+      "index": 128,
+      "offset": 25400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0128.json",
+      "batchSource": "collected_shoes_20260605_chunk0128"
+    },
+    {
+      "index": 129,
+      "offset": 25600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0129.json",
+      "batchSource": "collected_shoes_20260605_chunk0129"
+    },
+    {
+      "index": 130,
+      "offset": 25800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0130.json",
+      "batchSource": "collected_shoes_20260605_chunk0130"
+    },
+    {
+      "index": 131,
+      "offset": 26000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0131.json",
+      "batchSource": "collected_shoes_20260605_chunk0131"
+    },
+    {
+      "index": 132,
+      "offset": 26200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0132.json",
+      "batchSource": "collected_shoes_20260605_chunk0132"
+    },
+    {
+      "index": 133,
+      "offset": 26400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0133.json",
+      "batchSource": "collected_shoes_20260605_chunk0133"
+    },
+    {
+      "index": 134,
+      "offset": 26600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0134.json",
+      "batchSource": "collected_shoes_20260605_chunk0134"
+    },
+    {
+      "index": 135,
+      "offset": 26800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0135.json",
+      "batchSource": "collected_shoes_20260605_chunk0135"
+    },
+    {
+      "index": 136,
+      "offset": 27000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0136.json",
+      "batchSource": "collected_shoes_20260605_chunk0136"
+    },
+    {
+      "index": 137,
+      "offset": 27200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0137.json",
+      "batchSource": "collected_shoes_20260605_chunk0137"
+    },
+    {
+      "index": 138,
+      "offset": 27400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0138.json",
+      "batchSource": "collected_shoes_20260605_chunk0138"
+    },
+    {
+      "index": 139,
+      "offset": 27600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0139.json",
+      "batchSource": "collected_shoes_20260605_chunk0139"
+    },
+    {
+      "index": 140,
+      "offset": 27800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0140.json",
+      "batchSource": "collected_shoes_20260605_chunk0140"
+    },
+    {
+      "index": 141,
+      "offset": 28000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0141.json",
+      "batchSource": "collected_shoes_20260605_chunk0141"
+    },
+    {
+      "index": 142,
+      "offset": 28200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0142.json",
+      "batchSource": "collected_shoes_20260605_chunk0142"
+    },
+    {
+      "index": 143,
+      "offset": 28400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0143.json",
+      "batchSource": "collected_shoes_20260605_chunk0143"
+    },
+    {
+      "index": 144,
+      "offset": 28600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0144.json",
+      "batchSource": "collected_shoes_20260605_chunk0144"
+    },
+    {
+      "index": 145,
+      "offset": 28800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0145.json",
+      "batchSource": "collected_shoes_20260605_chunk0145"
+    },
+    {
+      "index": 146,
+      "offset": 29000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0146.json",
+      "batchSource": "collected_shoes_20260605_chunk0146"
+    },
+    {
+      "index": 147,
+      "offset": 29200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0147.json",
+      "batchSource": "collected_shoes_20260605_chunk0147"
+    },
+    {
+      "index": 148,
+      "offset": 29400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0148.json",
+      "batchSource": "collected_shoes_20260605_chunk0148"
+    },
+    {
+      "index": 149,
+      "offset": 29600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0149.json",
+      "batchSource": "collected_shoes_20260605_chunk0149"
+    },
+    {
+      "index": 150,
+      "offset": 29800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0150.json",
+      "batchSource": "collected_shoes_20260605_chunk0150"
+    },
+    {
+      "index": 151,
+      "offset": 30000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0151.json",
+      "batchSource": "collected_shoes_20260605_chunk0151"
+    },
+    {
+      "index": 152,
+      "offset": 30200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0152.json",
+      "batchSource": "collected_shoes_20260605_chunk0152"
+    },
+    {
+      "index": 153,
+      "offset": 30400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0153.json",
+      "batchSource": "collected_shoes_20260605_chunk0153"
+    },
+    {
+      "index": 154,
+      "offset": 30600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0154.json",
+      "batchSource": "collected_shoes_20260605_chunk0154"
+    },
+    {
+      "index": 155,
+      "offset": 30800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0155.json",
+      "batchSource": "collected_shoes_20260605_chunk0155"
+    },
+    {
+      "index": 156,
+      "offset": 31000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0156.json",
+      "batchSource": "collected_shoes_20260605_chunk0156"
+    },
+    {
+      "index": 157,
+      "offset": 31200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0157.json",
+      "batchSource": "collected_shoes_20260605_chunk0157"
+    },
+    {
+      "index": 158,
+      "offset": 31400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0158.json",
+      "batchSource": "collected_shoes_20260605_chunk0158"
+    },
+    {
+      "index": 159,
+      "offset": 31600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0159.json",
+      "batchSource": "collected_shoes_20260605_chunk0159"
+    },
+    {
+      "index": 160,
+      "offset": 31800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0160.json",
+      "batchSource": "collected_shoes_20260605_chunk0160"
+    },
+    {
+      "index": 161,
+      "offset": 32000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0161.json",
+      "batchSource": "collected_shoes_20260605_chunk0161"
+    },
+    {
+      "index": 162,
+      "offset": 32200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0162.json",
+      "batchSource": "collected_shoes_20260605_chunk0162"
+    },
+    {
+      "index": 163,
+      "offset": 32400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0163.json",
+      "batchSource": "collected_shoes_20260605_chunk0163"
+    },
+    {
+      "index": 164,
+      "offset": 32600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0164.json",
+      "batchSource": "collected_shoes_20260605_chunk0164"
+    },
+    {
+      "index": 165,
+      "offset": 32800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0165.json",
+      "batchSource": "collected_shoes_20260605_chunk0165"
+    },
+    {
+      "index": 166,
+      "offset": 33000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0166.json",
+      "batchSource": "collected_shoes_20260605_chunk0166"
+    },
+    {
+      "index": 167,
+      "offset": 33200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0167.json",
+      "batchSource": "collected_shoes_20260605_chunk0167"
+    },
+    {
+      "index": 168,
+      "offset": 33400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0168.json",
+      "batchSource": "collected_shoes_20260605_chunk0168"
+    },
+    {
+      "index": 169,
+      "offset": 33600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0169.json",
+      "batchSource": "collected_shoes_20260605_chunk0169"
+    },
+    {
+      "index": 170,
+      "offset": 33800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0170.json",
+      "batchSource": "collected_shoes_20260605_chunk0170"
+    },
+    {
+      "index": 171,
+      "offset": 34000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0171.json",
+      "batchSource": "collected_shoes_20260605_chunk0171"
+    },
+    {
+      "index": 172,
+      "offset": 34200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0172.json",
+      "batchSource": "collected_shoes_20260605_chunk0172"
+    },
+    {
+      "index": 173,
+      "offset": 34400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0173.json",
+      "batchSource": "collected_shoes_20260605_chunk0173"
+    },
+    {
+      "index": 174,
+      "offset": 34600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0174.json",
+      "batchSource": "collected_shoes_20260605_chunk0174"
+    },
+    {
+      "index": 175,
+      "offset": 34800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0175.json",
+      "batchSource": "collected_shoes_20260605_chunk0175"
+    },
+    {
+      "index": 176,
+      "offset": 35000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0176.json",
+      "batchSource": "collected_shoes_20260605_chunk0176"
+    },
+    {
+      "index": 177,
+      "offset": 35200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0177.json",
+      "batchSource": "collected_shoes_20260605_chunk0177"
+    },
+    {
+      "index": 178,
+      "offset": 35400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0178.json",
+      "batchSource": "collected_shoes_20260605_chunk0178"
+    },
+    {
+      "index": 179,
+      "offset": 35600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0179.json",
+      "batchSource": "collected_shoes_20260605_chunk0179"
+    },
+    {
+      "index": 180,
+      "offset": 35800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0180.json",
+      "batchSource": "collected_shoes_20260605_chunk0180"
+    },
+    {
+      "index": 181,
+      "offset": 36000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0181.json",
+      "batchSource": "collected_shoes_20260605_chunk0181"
+    },
+    {
+      "index": 182,
+      "offset": 36200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0182.json",
+      "batchSource": "collected_shoes_20260605_chunk0182"
+    },
+    {
+      "index": 183,
+      "offset": 36400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0183.json",
+      "batchSource": "collected_shoes_20260605_chunk0183"
+    },
+    {
+      "index": 184,
+      "offset": 36600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0184.json",
+      "batchSource": "collected_shoes_20260605_chunk0184"
+    },
+    {
+      "index": 185,
+      "offset": 36800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0185.json",
+      "batchSource": "collected_shoes_20260605_chunk0185"
+    },
+    {
+      "index": 186,
+      "offset": 37000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0186.json",
+      "batchSource": "collected_shoes_20260605_chunk0186"
+    },
+    {
+      "index": 187,
+      "offset": 37200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0187.json",
+      "batchSource": "collected_shoes_20260605_chunk0187"
+    },
+    {
+      "index": 188,
+      "offset": 37400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0188.json",
+      "batchSource": "collected_shoes_20260605_chunk0188"
+    },
+    {
+      "index": 189,
+      "offset": 37600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0189.json",
+      "batchSource": "collected_shoes_20260605_chunk0189"
+    },
+    {
+      "index": 190,
+      "offset": 37800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0190.json",
+      "batchSource": "collected_shoes_20260605_chunk0190"
+    },
+    {
+      "index": 191,
+      "offset": 38000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0191.json",
+      "batchSource": "collected_shoes_20260605_chunk0191"
+    },
+    {
+      "index": 192,
+      "offset": 38200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0192.json",
+      "batchSource": "collected_shoes_20260605_chunk0192"
+    },
+    {
+      "index": 193,
+      "offset": 38400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0193.json",
+      "batchSource": "collected_shoes_20260605_chunk0193"
+    },
+    {
+      "index": 194,
+      "offset": 38600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0194.json",
+      "batchSource": "collected_shoes_20260605_chunk0194"
+    },
+    {
+      "index": 195,
+      "offset": 38800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0195.json",
+      "batchSource": "collected_shoes_20260605_chunk0195"
+    },
+    {
+      "index": 196,
+      "offset": 39000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0196.json",
+      "batchSource": "collected_shoes_20260605_chunk0196"
+    },
+    {
+      "index": 197,
+      "offset": 39200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0197.json",
+      "batchSource": "collected_shoes_20260605_chunk0197"
+    },
+    {
+      "index": 198,
+      "offset": 39400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0198.json",
+      "batchSource": "collected_shoes_20260605_chunk0198"
+    },
+    {
+      "index": 199,
+      "offset": 39600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0199.json",
+      "batchSource": "collected_shoes_20260605_chunk0199"
+    },
+    {
+      "index": 200,
+      "offset": 39800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0200.json",
+      "batchSource": "collected_shoes_20260605_chunk0200"
+    },
+    {
+      "index": 201,
+      "offset": 40000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0201.json",
+      "batchSource": "collected_shoes_20260605_chunk0201"
+    },
+    {
+      "index": 202,
+      "offset": 40200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0202.json",
+      "batchSource": "collected_shoes_20260605_chunk0202"
+    },
+    {
+      "index": 203,
+      "offset": 40400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0203.json",
+      "batchSource": "collected_shoes_20260605_chunk0203"
+    },
+    {
+      "index": 204,
+      "offset": 40600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0204.json",
+      "batchSource": "collected_shoes_20260605_chunk0204"
+    },
+    {
+      "index": 205,
+      "offset": 40800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0205.json",
+      "batchSource": "collected_shoes_20260605_chunk0205"
+    },
+    {
+      "index": 206,
+      "offset": 41000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0206.json",
+      "batchSource": "collected_shoes_20260605_chunk0206"
+    },
+    {
+      "index": 207,
+      "offset": 41200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0207.json",
+      "batchSource": "collected_shoes_20260605_chunk0207"
+    },
+    {
+      "index": 208,
+      "offset": 41400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0208.json",
+      "batchSource": "collected_shoes_20260605_chunk0208"
+    },
+    {
+      "index": 209,
+      "offset": 41600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0209.json",
+      "batchSource": "collected_shoes_20260605_chunk0209"
+    },
+    {
+      "index": 210,
+      "offset": 41800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0210.json",
+      "batchSource": "collected_shoes_20260605_chunk0210"
+    },
+    {
+      "index": 211,
+      "offset": 42000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0211.json",
+      "batchSource": "collected_shoes_20260605_chunk0211"
+    },
+    {
+      "index": 212,
+      "offset": 42200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0212.json",
+      "batchSource": "collected_shoes_20260605_chunk0212"
+    },
+    {
+      "index": 213,
+      "offset": 42400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0213.json",
+      "batchSource": "collected_shoes_20260605_chunk0213"
+    },
+    {
+      "index": 214,
+      "offset": 42600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0214.json",
+      "batchSource": "collected_shoes_20260605_chunk0214"
+    },
+    {
+      "index": 215,
+      "offset": 42800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0215.json",
+      "batchSource": "collected_shoes_20260605_chunk0215"
+    },
+    {
+      "index": 216,
+      "offset": 43000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0216.json",
+      "batchSource": "collected_shoes_20260605_chunk0216"
+    },
+    {
+      "index": 217,
+      "offset": 43200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0217.json",
+      "batchSource": "collected_shoes_20260605_chunk0217"
+    },
+    {
+      "index": 218,
+      "offset": 43400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0218.json",
+      "batchSource": "collected_shoes_20260605_chunk0218"
+    },
+    {
+      "index": 219,
+      "offset": 43600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0219.json",
+      "batchSource": "collected_shoes_20260605_chunk0219"
+    },
+    {
+      "index": 220,
+      "offset": 43800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0220.json",
+      "batchSource": "collected_shoes_20260605_chunk0220"
+    },
+    {
+      "index": 221,
+      "offset": 44000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0221.json",
+      "batchSource": "collected_shoes_20260605_chunk0221"
+    },
+    {
+      "index": 222,
+      "offset": 44200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0222.json",
+      "batchSource": "collected_shoes_20260605_chunk0222"
+    },
+    {
+      "index": 223,
+      "offset": 44400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0223.json",
+      "batchSource": "collected_shoes_20260605_chunk0223"
+    },
+    {
+      "index": 224,
+      "offset": 44600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0224.json",
+      "batchSource": "collected_shoes_20260605_chunk0224"
+    },
+    {
+      "index": 225,
+      "offset": 44800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0225.json",
+      "batchSource": "collected_shoes_20260605_chunk0225"
+    },
+    {
+      "index": 226,
+      "offset": 45000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0226.json",
+      "batchSource": "collected_shoes_20260605_chunk0226"
+    },
+    {
+      "index": 227,
+      "offset": 45200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0227.json",
+      "batchSource": "collected_shoes_20260605_chunk0227"
+    },
+    {
+      "index": 228,
+      "offset": 45400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0228.json",
+      "batchSource": "collected_shoes_20260605_chunk0228"
+    },
+    {
+      "index": 229,
+      "offset": 45600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0229.json",
+      "batchSource": "collected_shoes_20260605_chunk0229"
+    },
+    {
+      "index": 230,
+      "offset": 45800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0230.json",
+      "batchSource": "collected_shoes_20260605_chunk0230"
+    },
+    {
+      "index": 231,
+      "offset": 46000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0231.json",
+      "batchSource": "collected_shoes_20260605_chunk0231"
+    },
+    {
+      "index": 232,
+      "offset": 46200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0232.json",
+      "batchSource": "collected_shoes_20260605_chunk0232"
+    },
+    {
+      "index": 233,
+      "offset": 46400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0233.json",
+      "batchSource": "collected_shoes_20260605_chunk0233"
+    },
+    {
+      "index": 234,
+      "offset": 46600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0234.json",
+      "batchSource": "collected_shoes_20260605_chunk0234"
+    },
+    {
+      "index": 235,
+      "offset": 46800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0235.json",
+      "batchSource": "collected_shoes_20260605_chunk0235"
+    },
+    {
+      "index": 236,
+      "offset": 47000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0236.json",
+      "batchSource": "collected_shoes_20260605_chunk0236"
+    },
+    {
+      "index": 237,
+      "offset": 47200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0237.json",
+      "batchSource": "collected_shoes_20260605_chunk0237"
+    },
+    {
+      "index": 238,
+      "offset": 47400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0238.json",
+      "batchSource": "collected_shoes_20260605_chunk0238"
+    },
+    {
+      "index": 239,
+      "offset": 47600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0239.json",
+      "batchSource": "collected_shoes_20260605_chunk0239"
+    },
+    {
+      "index": 240,
+      "offset": 47800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0240.json",
+      "batchSource": "collected_shoes_20260605_chunk0240"
+    },
+    {
+      "index": 241,
+      "offset": 48000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0241.json",
+      "batchSource": "collected_shoes_20260605_chunk0241"
+    },
+    {
+      "index": 242,
+      "offset": 48200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0242.json",
+      "batchSource": "collected_shoes_20260605_chunk0242"
+    },
+    {
+      "index": 243,
+      "offset": 48400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0243.json",
+      "batchSource": "collected_shoes_20260605_chunk0243"
+    },
+    {
+      "index": 244,
+      "offset": 48600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0244.json",
+      "batchSource": "collected_shoes_20260605_chunk0244"
+    },
+    {
+      "index": 245,
+      "offset": 48800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0245.json",
+      "batchSource": "collected_shoes_20260605_chunk0245"
+    },
+    {
+      "index": 246,
+      "offset": 49000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0246.json",
+      "batchSource": "collected_shoes_20260605_chunk0246"
+    },
+    {
+      "index": 247,
+      "offset": 49200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0247.json",
+      "batchSource": "collected_shoes_20260605_chunk0247"
+    },
+    {
+      "index": 248,
+      "offset": 49400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0248.json",
+      "batchSource": "collected_shoes_20260605_chunk0248"
+    },
+    {
+      "index": 249,
+      "offset": 49600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0249.json",
+      "batchSource": "collected_shoes_20260605_chunk0249"
+    },
+    {
+      "index": 250,
+      "offset": 49800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0250.json",
+      "batchSource": "collected_shoes_20260605_chunk0250"
+    },
+    {
+      "index": 251,
+      "offset": 50000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0251.json",
+      "batchSource": "collected_shoes_20260605_chunk0251"
+    },
+    {
+      "index": 252,
+      "offset": 50200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0252.json",
+      "batchSource": "collected_shoes_20260605_chunk0252"
+    },
+    {
+      "index": 253,
+      "offset": 50400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0253.json",
+      "batchSource": "collected_shoes_20260605_chunk0253"
+    },
+    {
+      "index": 254,
+      "offset": 50600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0254.json",
+      "batchSource": "collected_shoes_20260605_chunk0254"
+    },
+    {
+      "index": 255,
+      "offset": 50800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0255.json",
+      "batchSource": "collected_shoes_20260605_chunk0255"
+    },
+    {
+      "index": 256,
+      "offset": 51000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0256.json",
+      "batchSource": "collected_shoes_20260605_chunk0256"
+    },
+    {
+      "index": 257,
+      "offset": 51200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0257.json",
+      "batchSource": "collected_shoes_20260605_chunk0257"
+    },
+    {
+      "index": 258,
+      "offset": 51400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0258.json",
+      "batchSource": "collected_shoes_20260605_chunk0258"
+    },
+    {
+      "index": 259,
+      "offset": 51600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0259.json",
+      "batchSource": "collected_shoes_20260605_chunk0259"
+    },
+    {
+      "index": 260,
+      "offset": 51800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0260.json",
+      "batchSource": "collected_shoes_20260605_chunk0260"
+    },
+    {
+      "index": 261,
+      "offset": 52000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0261.json",
+      "batchSource": "collected_shoes_20260605_chunk0261"
+    },
+    {
+      "index": 262,
+      "offset": 52200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0262.json",
+      "batchSource": "collected_shoes_20260605_chunk0262"
+    },
+    {
+      "index": 263,
+      "offset": 52400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0263.json",
+      "batchSource": "collected_shoes_20260605_chunk0263"
+    },
+    {
+      "index": 264,
+      "offset": 52600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0264.json",
+      "batchSource": "collected_shoes_20260605_chunk0264"
+    },
+    {
+      "index": 265,
+      "offset": 52800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0265.json",
+      "batchSource": "collected_shoes_20260605_chunk0265"
+    },
+    {
+      "index": 266,
+      "offset": 53000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0266.json",
+      "batchSource": "collected_shoes_20260605_chunk0266"
+    },
+    {
+      "index": 267,
+      "offset": 53200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0267.json",
+      "batchSource": "collected_shoes_20260605_chunk0267"
+    },
+    {
+      "index": 268,
+      "offset": 53400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0268.json",
+      "batchSource": "collected_shoes_20260605_chunk0268"
+    },
+    {
+      "index": 269,
+      "offset": 53600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0269.json",
+      "batchSource": "collected_shoes_20260605_chunk0269"
+    },
+    {
+      "index": 270,
+      "offset": 53800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0270.json",
+      "batchSource": "collected_shoes_20260605_chunk0270"
+    },
+    {
+      "index": 271,
+      "offset": 54000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0271.json",
+      "batchSource": "collected_shoes_20260605_chunk0271"
+    },
+    {
+      "index": 272,
+      "offset": 54200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0272.json",
+      "batchSource": "collected_shoes_20260605_chunk0272"
+    },
+    {
+      "index": 273,
+      "offset": 54400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0273.json",
+      "batchSource": "collected_shoes_20260605_chunk0273"
+    },
+    {
+      "index": 274,
+      "offset": 54600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0274.json",
+      "batchSource": "collected_shoes_20260605_chunk0274"
+    },
+    {
+      "index": 275,
+      "offset": 54800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0275.json",
+      "batchSource": "collected_shoes_20260605_chunk0275"
+    },
+    {
+      "index": 276,
+      "offset": 55000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0276.json",
+      "batchSource": "collected_shoes_20260605_chunk0276"
+    },
+    {
+      "index": 277,
+      "offset": 55200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0277.json",
+      "batchSource": "collected_shoes_20260605_chunk0277"
+    },
+    {
+      "index": 278,
+      "offset": 55400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0278.json",
+      "batchSource": "collected_shoes_20260605_chunk0278"
+    },
+    {
+      "index": 279,
+      "offset": 55600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0279.json",
+      "batchSource": "collected_shoes_20260605_chunk0279"
+    },
+    {
+      "index": 280,
+      "offset": 55800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0280.json",
+      "batchSource": "collected_shoes_20260605_chunk0280"
+    },
+    {
+      "index": 281,
+      "offset": 56000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0281.json",
+      "batchSource": "collected_shoes_20260605_chunk0281"
+    },
+    {
+      "index": 282,
+      "offset": 56200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0282.json",
+      "batchSource": "collected_shoes_20260605_chunk0282"
+    },
+    {
+      "index": 283,
+      "offset": 56400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0283.json",
+      "batchSource": "collected_shoes_20260605_chunk0283"
+    },
+    {
+      "index": 284,
+      "offset": 56600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0284.json",
+      "batchSource": "collected_shoes_20260605_chunk0284"
+    },
+    {
+      "index": 285,
+      "offset": 56800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0285.json",
+      "batchSource": "collected_shoes_20260605_chunk0285"
+    },
+    {
+      "index": 286,
+      "offset": 57000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0286.json",
+      "batchSource": "collected_shoes_20260605_chunk0286"
+    },
+    {
+      "index": 287,
+      "offset": 57200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0287.json",
+      "batchSource": "collected_shoes_20260605_chunk0287"
+    },
+    {
+      "index": 288,
+      "offset": 57400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0288.json",
+      "batchSource": "collected_shoes_20260605_chunk0288"
+    },
+    {
+      "index": 289,
+      "offset": 57600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0289.json",
+      "batchSource": "collected_shoes_20260605_chunk0289"
+    },
+    {
+      "index": 290,
+      "offset": 57800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0290.json",
+      "batchSource": "collected_shoes_20260605_chunk0290"
+    },
+    {
+      "index": 291,
+      "offset": 58000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0291.json",
+      "batchSource": "collected_shoes_20260605_chunk0291"
+    },
+    {
+      "index": 292,
+      "offset": 58200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0292.json",
+      "batchSource": "collected_shoes_20260605_chunk0292"
+    },
+    {
+      "index": 293,
+      "offset": 58400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0293.json",
+      "batchSource": "collected_shoes_20260605_chunk0293"
+    },
+    {
+      "index": 294,
+      "offset": 58600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0294.json",
+      "batchSource": "collected_shoes_20260605_chunk0294"
+    },
+    {
+      "index": 295,
+      "offset": 58800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0295.json",
+      "batchSource": "collected_shoes_20260605_chunk0295"
+    },
+    {
+      "index": 296,
+      "offset": 59000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0296.json",
+      "batchSource": "collected_shoes_20260605_chunk0296"
+    },
+    {
+      "index": 297,
+      "offset": 59200,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0297.json",
+      "batchSource": "collected_shoes_20260605_chunk0297"
+    },
+    {
+      "index": 298,
+      "offset": 59400,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0298.json",
+      "batchSource": "collected_shoes_20260605_chunk0298"
+    },
+    {
+      "index": 299,
+      "offset": 59600,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0299.json",
+      "batchSource": "collected_shoes_20260605_chunk0299"
+    },
+    {
+      "index": 300,
+      "offset": 59800,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0300.json",
+      "batchSource": "collected_shoes_20260605_chunk0300"
+    },
+    {
+      "index": 301,
+      "offset": 60000,
+      "count": 200,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0301.json",
+      "batchSource": "collected_shoes_20260605_chunk0301"
+    },
+    {
+      "index": 302,
+      "offset": 60200,
+      "count": 157,
+      "path": "D:\\Selling-program\\shopping-assistant\\samples\\product-pool\\adapt-debugger-batches\\shoes-200\\collected_shoes_20260605-full-chunk0302.json",
+      "batchSource": "collected_shoes_20260605_chunk0302"
+    }
+  ]
+}

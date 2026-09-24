@@ -1,0 +1,57 @@
+{
+  "version": "user-memory-global-profile-v1",
+  "description": "Long-term user profile block schema. Long-term writes must be user-confirmed.",
+  "blockTypes": {
+    "identity_basic": {
+      "scope": "global",
+      "fields": {
+        "nickname": "Optional display nickname.",
+        "city": "City or region only. Do not store full address.",
+        "language": "Preferred language.",
+        "currency": "Preferred currency."
+      }
+    },
+    "shopping_preferences": {
+      "scope": "global",
+      "fields": {
+        "priceSensitivity": "low | medium | high",
+        "acceptsSecondHand": "boolean",
+        "acceptsPreorder": "boolean",
+        "acceptsOverseasPurchase": "boolean",
+        "decisionPriority": "price | speed | authenticity | store_trust | visual_match"
+      }
+    },
+    "platform_preferences": {
+      "scope": "global",
+      "fields": {
+        "preferredPlatforms": ["taobao", "tmall", "jd", "dewu", "pdd", "douyin", "manual"],
+        "excludedPlatforms": ["taobao", "tmall", "jd", "dewu", "pdd", "douyin", "manual"]
+      }
+    },
+    "brand_store_preferences": {
+      "scope": "global",
+      "fields": {
+        "favoriteBrands": "Array of trusted or preferred brands.",
+        "dislikedBrands": "Array of brands the user does not want.",
+        "trustedStores": "Array of trusted store names.",
+        "blockedStores": "Array of store names the user does not want."
+      }
+    },
+    "delivery_preferences": {
+      "scope": "global",
+      "fields": {
+        "city": "City or region only.",
+        "maxDeliveryDays": "Maximum acceptable delivery days.",
+        "prefersNearbyWarehouse": "boolean"
+      }
+    },
+    "interaction_preferences": {
+      "scope": "global",
+      "fields": {
+        "responseStyle": "concise | detailed",
+        "memoryConfirmationMode": "always_confirm"
+      }
+    }
+  },
+  "sensitivityRule": "Body size and measurement fields are high sensitivity. City-level delivery preference is medium. General shopping preferences are low."
+}

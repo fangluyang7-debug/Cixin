@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:3000
+
+### Health
+GET {{baseUrl}}/api/v1/health
+
+### Import local product pool seed data
+POST {{baseUrl}}/api/v1/product-pool/import
+Content-Type: application/json
+
+< ../../samples/product-pool/seed-products.json
+
+### Product pool stats
+GET {{baseUrl}}/api/v1/product-pool/stats
+
+### Product pool products
+GET {{baseUrl}}/api/v1/product-pool/products
+
+### Register a demo image asset
+POST {{baseUrl}}/api/v1/assets/images
+Content-Type: application/json
+
+{
+  "variantType": "compressed_recognition",
+  "sourceType": "demo",
+  "isPrimaryRecognitionAsset": true
+}
+
+### Create session from returned assetId
+POST {{baseUrl}}/api/v1/sessions
+Content-Type: application/json
+
+{
+  "assetId": "{{assetId}}",
+  "entrySource": "judge_web",
+  "categoryHint": "shoe"
+}
+
+### Multi-turn filter examples
+POST {{baseUrl}}/api/v1/sessions/{{sessionId}}/turns
+Content-Type: application/json
+
+{
+  "message": "500以内，只看京东和得物，只看有货"
+}

@@ -1,0 +1,7 @@
+{
+  "app_dir": "apps/judge-entry-web",
+  "install_command": "npm install",
+  "build_command": "npm run build",
+  "output_dir": "dist",
+  "cache_dependencies": false
+}
