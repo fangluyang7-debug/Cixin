@@ -57,17 +57,21 @@ export function sampleKey(toolId: string, executorId: string, modelId?: string) 
 }
 
 function aggregate(records: TelemetryRecord[]): PerformanceSample {
-  const latencies = records
+  const completed = records.filter((record) => record.success);
+  const latencies = completed
     .map((record) => record.latencyMs)
     .filter((value) => Number.isFinite(value))
     .sort((left, right) => left - right);
-  const memories = records
+  const cloudExecutionLatencies = completed.every((record) => record.cloud !== undefined)
+    ? completed.map((record) => record.cloud!.executionMs).sort((left, right) => left - right)
+    : [];
+  const memories = completed
     .map((record) => record.memoryPeakMb)
     .filter((value) => Number.isFinite(value));
-  const energies = records
+  const energies = completed
     .map((record) => record.energyMah)
     .filter((value): value is number => value !== null && value !== undefined && Number.isFinite(value));
-  const qualities = records
+  const qualities = completed
     .map((record) => record.quality)
     .filter((value): value is number => value !== null && value !== undefined && Number.isFinite(value));
   const failures = records.filter((record) => !record.success).length;
@@ -81,7 +85,7 @@ function aggregate(records: TelemetryRecord[]): PerformanceSample {
     toolId: records[0].toolId,
     executorId: records[0].executorId,
     modelId: records[0].modelId,
-    sampleCount: records.length,
+    sampleCount: completed.length,
     p50LatencyMs: percentile(latencies, 0.5),
     p95LatencyMs: percentile(latencies, 0.95),
     memoryPeakMb: memories.length > 0 ? Math.max(...memories) : null,
@@ -91,6 +95,10 @@ function aggregate(records: TelemetryRecord[]): PerformanceSample {
     noFallbackRate: noFallback / records.length,
     measuredAt: latest,
     source: "runtime-telemetry",
+    latencyScope: completed.length > 0 && completed.every((record) =>
+      record.latencyScope === completed[0].latencyScope && record.latencyScope !== undefined)
+      ? completed[0].latencyScope : "unknown",
+    cloudExecutionP95Ms: percentile(cloudExecutionLatencies, 0.95),
   };
 }
 
@@ -119,6 +127,20 @@ function validateTelemetry(record: TelemetryRecord) {
   for (const value of [record.energyMah, record.quality]) {
     if (value !== null && value !== undefined && (!Number.isFinite(value) || value < 0)) {
       throw new Error("TELEMETRY_OPTIONAL_METRIC_INVALID");
+    }
+  }
+  if (record.latencyScope !== undefined &&
+      record.latencyScope !== "execution_only" && record.latencyScope !== "end_to_end") {
+    throw new Error("TELEMETRY_LATENCY_SCOPE_INVALID");
+  }
+  if (record.cloud !== undefined) {
+    const cloud = record.cloud;
+    const values = [cloud.inputBytes, cloud.outputBytes, cloud.uploadMs, cloud.storageReadMs,
+      cloud.queueMs, cloud.executionMs, cloud.downloadMs, cloud.storageWriteMs ?? 0];
+    if (values.some((value) => !Number.isFinite(value) || value < 0) ||
+        (cloud.feeMinorUnits !== undefined &&
+          (!Number.isFinite(cloud.feeMinorUnits) || cloud.feeMinorUnits < 0))) {
+      throw new Error("TELEMETRY_CLOUD_METRICS_INVALID");
     }
   }
 }

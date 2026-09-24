@@ -2,6 +2,8 @@ import { Body, Controller, Get, NotFoundException, Param, Post, Sse } from "@nes
 import { ok } from "../../../common/dto/api-response.dto";
 import {
   CheckpointPolicy,
+  CloudExecutionFeedback,
+  CloudRouteObservation,
   ExecutionAssignment,
   FallbackPolicy,
   TaskConstraints,
@@ -215,6 +217,7 @@ function parseTaskGraph(value: unknown): TaskGraph {
         fallbackPolicy: isRecord(node.fallbackPolicy)
           ? (node.fallbackPolicy as FallbackPolicy)
           : undefined,
+        cloudRoutes: parseCloudRoutes(node.cloudRoutes),
       };
     }),
   };
@@ -246,6 +249,10 @@ function parseTelemetry(value: unknown): TelemetryRecord {
   ) {
     throw new Error("TELEMETRY_INVALID");
   }
+  if (input.latencyScope !== undefined && input.latencyScope !== "execution_only" &&
+      input.latencyScope !== "end_to_end") {
+    throw new Error("TELEMETRY_LATENCY_SCOPE_INVALID");
+  }
   return {
     executionId: input.executionId as string,
     taskId: input.taskId as string,
@@ -255,6 +262,9 @@ function parseTelemetry(value: unknown): TelemetryRecord {
     startedAt: input.startedAt as string,
     finishedAt: input.finishedAt as string,
     latencyMs: input.latencyMs,
+    latencyScope: input.latencyScope === "execution_only" || input.latencyScope === "end_to_end"
+      ? input.latencyScope : undefined,
+    cloud: input.cloud === undefined ? undefined : parseCloudFeedback(input.cloud),
     memoryPeakMb: input.memoryPeakMb,
     energyMah: optionalNumber(input.energyMah),
     quality: optionalNumber(input.quality),
@@ -262,6 +272,74 @@ function parseTelemetry(value: unknown): TelemetryRecord {
     success: input.success,
     errorCode: asNonEmptyString(input.errorCode),
     metadata: isRecord(input.metadata) ? input.metadata : undefined,
+  };
+}
+
+function parseCloudRoutes(value: unknown): CloudRouteObservation[] | undefined {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 8) throw new Error("CLOUD_ROUTES_INVALID");
+  const routes = value.map((item): CloudRouteObservation => {
+    const route = asRecord(item);
+    const location = route.inputResidence;
+    const destination = route.outputDestination ?? "device";
+    const access = route.accessMode;
+    const source = route.source;
+    const requiredNumbers = [route.inputBytes, route.outputBytes, route.roundTripMs,
+      route.uploadMbps, route.downloadMbps, route.storageReadMs, route.queueMs];
+    if (!asNonEmptyString(route.executorId) ||
+        !["device", "zeabur_volume", "cos", "external_api"].includes(location) ||
+        !["device", "zeabur_volume", "cos", "external_api"].includes(destination) ||
+        !["inline_transfer", "signed_object_url", "co_located"].includes(access) ||
+        !["measured", "declared"].includes(source) ||
+        typeof route.transferAuthorized !== "boolean" ||
+        requiredNumbers.some((number) => typeof number !== "number" || !Number.isFinite(number) || number < 0) ||
+        (route.storageWriteMs !== undefined &&
+          (typeof route.storageWriteMs !== "number" || !Number.isFinite(route.storageWriteMs) ||
+            route.storageWriteMs < 0)) ||
+        !asNonEmptyString(route.observedAt) ||
+        (route.estimatedFeeMinorUnits !== undefined &&
+          (typeof route.estimatedFeeMinorUnits !== "number" || !Number.isFinite(route.estimatedFeeMinorUnits) ||
+            route.estimatedFeeMinorUnits < 0))) {
+      throw new Error("CLOUD_ROUTE_INVALID");
+    }
+    return {
+      executorId: route.executorId.trim(), inputResidence: location,
+      outputDestination: destination, accessMode: access,
+      transferAuthorized: route.transferAuthorized, inputBytes: route.inputBytes,
+      outputBytes: route.outputBytes, roundTripMs: route.roundTripMs,
+      uploadMbps: route.uploadMbps, downloadMbps: route.downloadMbps,
+      storageReadMs: route.storageReadMs, storageWriteMs: route.storageWriteMs,
+      queueMs: route.queueMs,
+      estimatedFeeMinorUnits: route.estimatedFeeMinorUnits,
+      accessExpiresAt: asNonEmptyString(route.accessExpiresAt),
+      observedAt: route.observedAt.trim(), source,
+    };
+  });
+  if (new Set(routes.map((route) => route.executorId)).size !== routes.length) {
+    throw new Error("CLOUD_ROUTE_DUPLICATE_EXECUTOR");
+  }
+  return routes;
+}
+
+function parseCloudFeedback(value: unknown): CloudExecutionFeedback {
+  const input = asRecord(value);
+  const requiredNumbers = [input.inputBytes, input.outputBytes, input.uploadMs,
+    input.storageReadMs, input.queueMs, input.executionMs, input.downloadMs];
+  if (requiredNumbers.some((number) => typeof number !== "number" || !Number.isFinite(number) || number < 0) ||
+      (input.storageWriteMs !== undefined &&
+        (typeof input.storageWriteMs !== "number" || !Number.isFinite(input.storageWriteMs) ||
+          input.storageWriteMs < 0)) ||
+      (input.feeMinorUnits !== undefined &&
+        (typeof input.feeMinorUnits !== "number" || !Number.isFinite(input.feeMinorUnits) ||
+          input.feeMinorUnits < 0))) {
+    throw new Error("CLOUD_FEEDBACK_INVALID");
+  }
+  return {
+    inputBytes: input.inputBytes, outputBytes: input.outputBytes,
+    uploadMs: input.uploadMs, storageReadMs: input.storageReadMs,
+    storageWriteMs: input.storageWriteMs,
+    queueMs: input.queueMs, executionMs: input.executionMs, downloadMs: input.downloadMs,
+    feeMinorUnits: input.feeMinorUnits, providerStatus: asNonEmptyString(input.providerStatus),
   };
 }
 

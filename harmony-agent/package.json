@@ -9,6 +9,8 @@
   "scripts": {
     "api:dev": "npm --workspace services/api-server run start:dev",
     "api:build": "npm --workspace services/api-server run build",
+    "api:zeabur:preflight": "node scripts/check-zeabur-env.mjs",
+    "api:zeabur:start": "npm run api:zeabur:preflight && npm --workspace services/api-server run db:init && npm --workspace services/api-server run start",
     "api:test": "npm --workspace services/api-server run test",
     "api:test:unit": "npm --workspace services/api-server run test:unit --",
     "api:test:e2e": "npm --workspace services/api-server run test:e2e",

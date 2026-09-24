@@ -21,6 +21,7 @@ import { PerformanceRegistryService } from "./performance-registry.service";
 import { PlatformDiscoveryService, PlatformSnapshot } from "./platform-discovery.service";
 import { ToolRegistryService } from "./tool-registry.service";
 import { RuntimeEventBusService } from "./runtime-event-bus.service";
+import { estimateCloudRoute } from "./cloud-route-cost";
 
 @Injectable()
 export class ResourceAwareSchedulerService {
@@ -80,6 +81,8 @@ export class ResourceAwareSchedulerService {
             placement: evaluation.placement,
             reasons: evaluation.reasons,
             score: evaluation.score,
+            estimatedEndToEndMs: evaluation.estimatedEndToEndMs ?? null,
+            cloudOverheadMs: evaluation.cloudOverheadMs ?? null,
           },
         });
       }
@@ -119,6 +122,9 @@ export class ResourceAwareSchedulerService {
         ],
         plannedAt: generatedAt,
         status: "planned",
+        estimatedEndToEndMs: selected.estimatedEndToEndMs,
+        cloudOverheadMs: selected.cloudOverheadMs,
+        estimatedFeeMinorUnits: selected.estimatedFeeMinorUnits,
       });
       this.lastSelections.set(task.taskId, selected.executorId);
       this.events?.emit({
@@ -133,6 +139,7 @@ export class ResourceAwareSchedulerService {
           backend: selected.backend,
           placement: selected.placement,
           score: selected.score,
+          estimatedEndToEndMs: selected.estimatedEndToEndMs ?? null,
         },
       });
     }
@@ -188,6 +195,9 @@ export class ResourceAwareSchedulerService {
     snapshot: PlatformSnapshot,
   ): Promise<CandidateEvaluation> {
     const reasons: string[] = [];
+    const cloudRoute = executor.placement === "cloud"
+      ? estimateCloudRoute(task, executor.executorId) : null;
+    if (cloudRoute) reasons.push(...cloudRoute.reasons);
     const sample = this.performance.get(
       task.toolId,
       executor.executorId,
@@ -218,7 +228,8 @@ export class ResourceAwareSchedulerService {
       } else if (freeMemoryMb < tool.resourceHints.estimatedMemoryMb) {
         reasons.push("LOCAL_MEMORY_INSUFFICIENT");
       }
-    } else if (executor.totalMemoryMb === null) {
+    } else if (executor.totalMemoryMb === null &&
+      executor.backend !== "cloud_api" && executor.backend !== "network") {
       reasons.push("REMOTE_MEMORY_CAPACITY_UNAVAILABLE");
     }
 
@@ -237,16 +248,18 @@ export class ResourceAwareSchedulerService {
     }
 
     const weights = normalizeWeights(tool.defaultWeights);
+    let estimatedEndToEndMs: number | undefined;
     if (!sample) {
       reasons.push("REAL_PERFORMANCE_PROFILE_MISSING");
     } else {
       if (sample.sampleCount < this.performance.getMinimumSamples()) {
         reasons.push("REAL_PERFORMANCE_SAMPLE_COUNT_TOO_LOW");
       }
-      if (sample.p95LatencyMs === null && weights.latency > 0) {
+      if (sample.p95LatencyMs === null) {
         reasons.push("P95_LATENCY_METRIC_MISSING");
       }
-      if (sample.memoryPeakMb === null) {
+      if (sample.memoryPeakMb === null &&
+          (executor.placement === "local" || (executor.backend !== "cloud_api" && executor.backend !== "network"))) {
         reasons.push("PEAK_MEMORY_METRIC_MISSING");
       }
       if (sample.energyMah === null && weights.energy > 0) {
@@ -255,10 +268,39 @@ export class ResourceAwareSchedulerService {
       if (sample.quality === null && weights.quality > 0) {
         reasons.push("QUALITY_METRIC_MISSING");
       }
+      if (sample.p95LatencyMs !== null) {
+        if (executor.placement === "cloud") {
+          if (cloudRoute?.overheadMs !== null && cloudRoute?.overheadMs !== undefined &&
+              sample.cloudExecutionP95Ms !== null && sample.cloudExecutionP95Ms !== undefined) {
+            estimatedEndToEndMs = sample.cloudExecutionP95Ms + cloudRoute.overheadMs;
+          } else if (sample.latencyScope === "execution_only" && cloudRoute?.overheadMs !== null &&
+              cloudRoute?.overheadMs !== undefined) {
+            estimatedEndToEndMs = sample.p95LatencyMs + cloudRoute.overheadMs;
+          } else {
+            reasons.push("CLOUD_EXECUTION_BREAKDOWN_MISSING");
+          }
+        } else {
+          estimatedEndToEndMs = sample.p95LatencyMs;
+        }
+      }
+      if (executor.placement === "cloud" && estimatedEndToEndMs !== undefined) {
+        const route = task.cloudRoutes?.find((item) => item.executorId === executor.executorId);
+        if (route?.accessMode === "signed_object_url" &&
+            Date.parse(route.accessExpiresAt ?? "") <= Date.now() + estimatedEndToEndMs + 30_000) {
+          reasons.push("SIGNED_OBJECT_ACCESS_TOO_SHORT_FOR_TASK");
+        }
+      }
+      if (executor.placement === "cloud" && constraints.costBudgetMinorUnits !== undefined) {
+        if (cloudRoute?.feeMinorUnits === null || cloudRoute?.feeMinorUnits === undefined) {
+          reasons.push("CLOUD_FEE_ESTIMATE_MISSING");
+        } else if (cloudRoute.feeMinorUnits > constraints.costBudgetMinorUnits) {
+          reasons.push("CLOUD_COST_BUDGET_EXCEEDED");
+        }
+      }
       if (
         constraints.maxLatencyMs !== undefined &&
-        sample.p95LatencyMs !== null &&
-        sample.p95LatencyMs > constraints.maxLatencyMs
+        estimatedEndToEndMs !== undefined &&
+        estimatedEndToEndMs > constraints.maxLatencyMs
       ) {
         reasons.push("P95_LATENCY_BUDGET_EXCEEDED");
       }
@@ -287,6 +329,9 @@ export class ResourceAwareSchedulerService {
       reasons,
       sample,
       score: null,
+      estimatedEndToEndMs,
+      cloudOverheadMs: cloudRoute?.overheadMs ?? undefined,
+      estimatedFeeMinorUnits: cloudRoute?.feeMinorUnits ?? undefined,
     };
   }
 
@@ -319,7 +364,7 @@ export class ResourceAwareSchedulerService {
     if (pressure) raw.energy *= 1.5;
 
     const bestLatency = accepted
-      .map((candidate) => candidate.sample?.p95LatencyMs)
+      .map((candidate) => candidate.estimatedEndToEndMs)
       .filter((value): value is number => value !== null && value !== undefined)
       .sort((left, right) => left - right)[0];
     const budget = task.constraints?.maxLatencyMs ?? tool.constraints.maxLatencyMs;
@@ -334,13 +379,13 @@ export class ResourceAwareSchedulerService {
     const samples = candidates
       .map((candidate) => candidate.sample)
       .filter((sample): sample is PerformanceSample => sample !== null);
-    const latencies = samples.map((sample) => sample.p95LatencyMs as number);
+    const latencies = candidates.map((candidate) => candidate.estimatedEndToEndMs as number);
     const qualities = samples.map((sample) => sample.quality as number);
     const energies = samples.map((sample) => sample.energyMah as number);
     for (const candidate of candidates) {
       const sample = candidate.sample;
       if (!sample) continue;
-      const latencyScore = lowerIsBetter(sample.p95LatencyMs as number, latencies);
+      const latencyScore = lowerIsBetter(candidate.estimatedEndToEndMs as number, latencies);
       const qualityScore = higherIsBetter(sample.quality as number, qualities);
       const energyScore = lowerIsBetter(sample.energyMah as number, energies);
       const reliabilityScore =
@@ -410,6 +455,9 @@ function mergeConstraints(
   const energyBudgetCandidates = [tool.energyBudgetMah, task?.energyBudgetMah].filter(
     (value): value is number => value !== undefined,
   );
+  const costBudgetCandidates = [tool.costBudgetMinorUnits, task?.costBudgetMinorUnits].filter(
+    (value): value is number => value !== undefined,
+  );
   return {
     privacy: stricterPrivacy(tool.privacy, task?.privacy),
     locality: task?.locality ?? tool.locality,
@@ -422,7 +470,8 @@ function mergeConstraints(
       energyBudgetCandidates.length > 0
         ? Math.min(...energyBudgetCandidates)
         : undefined,
-    costBudgetMinorUnits: task?.costBudgetMinorUnits ?? tool.costBudgetMinorUnits,
+    costBudgetMinorUnits:
+      costBudgetCandidates.length > 0 ? Math.min(...costBudgetCandidates) : undefined,
   };
 }
 

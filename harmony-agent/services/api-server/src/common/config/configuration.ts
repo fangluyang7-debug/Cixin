@@ -1,5 +1,6 @@
 export default () => ({
-  port: Number(process.env.API_SERVER_PORT ?? process.env.PORT ?? 3100),
+  // Zeabur injects PORT for the exposed service port; local development uses API_SERVER_PORT.
+  port: Number(process.env.PORT ?? process.env.API_SERVER_PORT ?? 3100),
   jsonBodyLimit: process.env.API_JSON_BODY_LIMIT ?? "10mb",
   databaseUrl: process.env.DATABASE_URL,
   runtime: {

@@ -119,6 +119,28 @@ export interface TaskIntent {
   dependencies?: string[];
   checkpointPolicy?: CheckpointPolicy;
   fallbackPolicy?: FallbackPolicy;
+  // One observed route per candidate executor. No signed URL or credential is carried here.
+  cloudRoutes?: CloudRouteObservation[];
+}
+
+export interface CloudRouteObservation {
+  executorId: string;
+  inputResidence: "device" | "zeabur_volume" | "cos" | "external_api";
+  outputDestination?: "device" | "zeabur_volume" | "cos" | "external_api";
+  accessMode: "inline_transfer" | "signed_object_url" | "co_located";
+  transferAuthorized: boolean;
+  inputBytes: number;
+  outputBytes: number;
+  roundTripMs: number;
+  uploadMbps: number;
+  downloadMbps: number;
+  storageReadMs: number;
+  storageWriteMs?: number;
+  queueMs: number;
+  estimatedFeeMinorUnits?: number;
+  accessExpiresAt?: string;
+  observedAt: string;
+  source: "measured" | "declared";
 }
 
 export interface TaskGraph {
@@ -208,6 +230,21 @@ export interface PerformanceSample {
   noFallbackRate: number | null;
   measuredAt: string;
   source: string;
+  latencyScope?: "execution_only" | "end_to_end" | "unknown";
+  cloudExecutionP95Ms?: number | null;
+}
+
+export interface CloudExecutionFeedback {
+  inputBytes: number;
+  outputBytes: number;
+  uploadMs: number;
+  storageReadMs: number;
+  storageWriteMs?: number;
+  queueMs: number;
+  executionMs: number;
+  downloadMs: number;
+  feeMinorUnits?: number;
+  providerStatus?: string;
 }
 
 export interface TelemetryRecord {
@@ -219,6 +256,8 @@ export interface TelemetryRecord {
   startedAt: string;
   finishedAt: string;
   latencyMs: number;
+  latencyScope?: "execution_only" | "end_to_end";
+  cloud?: CloudExecutionFeedback;
   memoryPeakMb: number;
   energyMah?: number | null;
   quality?: number | null;
@@ -244,6 +283,9 @@ export interface CandidateEvaluation {
   reasons: string[];
   sample: PerformanceSample | null;
   score: ScoreBreakdown | null;
+  estimatedEndToEndMs?: number;
+  cloudOverheadMs?: number;
+  estimatedFeeMinorUnits?: number;
 }
 
 export interface MissingRequirement {
@@ -265,6 +307,9 @@ export interface ExecutionAssignment {
   reasons: string[];
   plannedAt: string;
   status: "planned";
+  estimatedEndToEndMs?: number;
+  cloudOverheadMs?: number;
+  estimatedFeeMinorUnits?: number;
 }
 
 export interface ExecutionPlan {

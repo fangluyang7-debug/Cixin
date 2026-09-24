@@ -20,6 +20,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.zeabur.example
 !.env.local-product-pool.example
 
 # local databases
