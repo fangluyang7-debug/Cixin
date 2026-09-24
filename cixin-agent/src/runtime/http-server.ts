@@ -1,9 +1,31 @@
 import { createServer, IncomingMessage, Server, ServerResponse } from 'node:http';
 import { timingSafeEqual } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { FleetRuntime } from './fleet-runtime';
+import { dashboardReader } from './dashboard';
 import { errorMessage, invariant } from './util';
 import { AttemptRequest, FleetConstraints, QuoteRequest, TaskSubmission } from '../contracts/fleet';
 import { TaskGraph } from '../contracts/cixin';
+
+const webRoot = resolve(__dirname, '../../web');
+const webFiles: Record<string, [string, string]> = {
+  '/dashboard': ['dashboard.html', 'text/html'], '/dashboard/': ['dashboard.html', 'text/html'],
+  '/demo': ['demo.html', 'text/html'], '/demo/': ['demo.html', 'text/html'],
+  '/console.css': ['console.css', 'text/css'], '/client.js': ['client.js', 'text/javascript'],
+  '/dashboard.js': ['dashboard.js', 'text/javascript'], '/demo.js': ['demo.js', 'text/javascript'],
+};
+
+async function web(path: string, response: ServerResponse): Promise<boolean> {
+  if (path === '/') { response.writeHead(302, { location: '/dashboard/' }); response.end(); return true; }
+  const asset = Object.hasOwn(webFiles, path) ? webFiles[path] : undefined;
+  if (!asset) return false;
+  const content = await readFile(resolve(webRoot, asset[0]));
+  response.writeHead(200, { 'content-type': `${asset[1]}; charset=utf-8`, 'cache-control': 'no-store',
+    'x-content-type-options': 'nosniff', 'referrer-policy': 'no-referrer',
+    'content-security-policy': "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'" });
+  response.end(content); return true;
+}
 
 async function body(request: IncomingMessage): Promise<unknown> {
   let size = 0; const chunks: Buffer[] = [];
@@ -18,14 +40,17 @@ export async function serve(runtime: FleetRuntime, token: string, host = runtime
   port = runtime.node.config.port): Promise<Server> {
   invariant(token.length >= 24, 'RUNTIME_TOKEN_MUST_HAVE_AT_LEAST_24_CHARACTERS');
   const expected = Buffer.from(`Bearer ${token}`);
+  const readDashboard = dashboardReader(runtime);
   const server = createServer(async (request, response) => {
     const url = new URL(request.url ?? '/', 'http://localhost');
     try {
       if (url.pathname === '/healthz' && request.method === 'GET') { respond(response, 200, { status: 'ok' }); return; }
+      if (request.method === 'GET' && await web(url.pathname, response)) return;
       const supplied = Buffer.from(request.headers.authorization ?? '');
       if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) { respond(response, 401, { error: 'UNAUTHORIZED' }); return; }
       const path = url.pathname;
       if (request.method === 'GET') {
+        if (path === '/api/v1/runtime/dashboard') { respond(response, 200, await readDashboard()); return; }
         if (path === '/api/v1/node/snapshot' || path === '/api/v1/runtime/snapshot') {
           respond(response, 200, { ...(await runtime.node.snapshot()), mode: runtime.node.config.mode,
             scheduler: runtime.node.scheduler.getMetricsSnapshot() }); return;

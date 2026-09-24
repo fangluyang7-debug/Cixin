@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Cixin 边缘算力调度控制台</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/console.css">
+  <script type="module" src="/dashboard.js"></script>
+</head>
+<body>
+  <!-- Visual source: harmony-agent/调度盘/code.html and screen.png. Runtime data only. -->
+  <header class="rack-header">
+    <div class="brand"><span class="hardware-mark">CIXIN</span><div><h1>边缘算力调度控制台</h1><p id="identity">节点 -- · 内核 --</p></div></div>
+    <nav aria-label="工作区"><a class="active" href="/dashboard/" aria-current="page">调度盘</a><a href="/demo/" target="_blank" rel="noopener">打开演示 App ↗</a></nav>
+    <div class="connection-state"><i id="connectionLed" class="led off"></i><span id="connectionState">未连接</span><span id="mode" class="badge">--</span></div>
+  </header>
+  <div class="toolbar">
+    <form id="authForm" class="auth-form"><label for="token">访问令牌</label><input id="token" type="password" autocomplete="off" placeholder="Runtime Bearer token" required><button type="submit">连接</button><button id="forgetToken" class="quiet" type="button">断开</button></form>
+    <div class="refresh-tools"><label for="interval">刷新</label><select id="interval"><option value="2000">2 秒</option><option value="5000">5 秒</option><option value="10000">10 秒</option></select><button id="pause" type="button" disabled>暂停刷新</button><time id="capturedAt">--</time></div>
+  </div>
+  <div id="notice" class="notice" role="status">等待连接</div>
+  <main>
+    <section class="instruments" aria-label="协调节点实时指标">
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">CPU</span> 主机负载</div><strong id="cpu">--</strong><meter id="cpuMeter" min="0" max="100" value="0" hidden></meter><p id="cpuSource">采样 --</p></article>
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">TMP</span> 热状态</div><strong id="thermal">--</strong><p id="thermalSource">传感器 --</p></article>
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">MEM</span> 可用内存</div><strong id="memory">--</strong><meter id="memoryMeter" min="0" max="100" value="0" hidden></meter><p id="memorySource">总量 --</p></article>
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">QUEUE</span> 运行 / 排队</div><strong id="queue">-- / --</strong><p id="queueSource">协调节点本地队列</p></article>
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">P95</span> 本地窗口延迟</div><strong id="latency">--</strong><p id="latencySource">终态样本 --</p></article>
+      <article class="instrument rack-panel"><div class="instrument-label"><span class="badge">FLEET</span> 节点状态</div><strong id="nodesCount">-- / --</strong><p id="nodesSource">快照可读 / 已配置</p></article>
+    </section>
+    <div class="workbench">
+      <div class="bay-column">
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>资源节点</h2><span class="badge cyan">LIVE SNAPSHOT</span></div><div id="nodes" class="node-list empty">尚无节点快照</div></section>
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>任务运行记录</h2><span id="runCount" class="badge">-- RUNS</span></div><div id="runs" class="run-list empty">尚无任务记录</div><p class="panel-foot">按最近更新时间展示，最多 40 条持久化记录</p></section>
+      </div>
+      <div class="bay-column">
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>放置决策与候选节点</h2><span class="badge gold">PLACEMENT</span></div><div id="decision" class="empty">选择一条任务记录</div></section>
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>执行回执</h2><span class="badge green">EXECUTION</span></div><div id="receipt" class="empty">尚无执行回执</div></section>
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>资源采样轨迹</h2><span class="chart-legend"><span class="cyan-text">CPU</span><span class="green-text">可用内存</span></span></div><div class="chart"><canvas id="history" role="img" aria-label="协调节点 CPU 和可用内存百分比的实际采样轨迹"></canvas></div><p class="panel-foot">当前页面最近 60 次采样 · 缺失值不插值</p></section>
+      </div>
+      <div class="bay-column">
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>任务图执行流水线</h2><span class="badge">DAG</span></div><div id="pipeline" class="empty">尚未选择任务图</div></section>
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>本地执行尝试</h2><span class="badge green">RECEIPTS</span></div><div id="attempts" class="attempt-list empty">尚无执行尝试</div></section>
+        <section class="rack-panel bay-panel"><div class="panel-heading"><h2>能力与数据连接</h2><span class="badge">I/O</span></div><dl id="capabilities" class="facts"><dt>执行后端</dt><dd>--</dd><dt>云端数据库</dt><dd>未接入</dd></dl><div id="missing" class="missing"></div></section>
+      </div>
+    </div>
+  </main>
+  <footer><span>CIXIN / MULTI-DEVICE RUNTIME</span><span id="footerStatus">数据源 --</span></footer>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Cixin 演示 App</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/console.css">
+  <script type="module" src="/demo.js"></script>
+</head>
+<body>
+  <header class="rack-header"><div class="brand"><span class="hardware-mark">CIXIN</span><div><h1>演示 App</h1><p>任务提交与结果回传</p></div></div><nav aria-label="工作区"><a href="/dashboard/" target="_blank" rel="noopener">打开调度盘 ↗</a><a class="active" href="/demo/" aria-current="page">演示 App</a></nav><span id="connectionState">未连接</span></header>
+  <div class="toolbar"><form id="authForm" class="auth-form"><label for="token">访问令牌</label><input id="token" type="password" autocomplete="off" placeholder="Runtime Bearer token" required><button type="submit">连接</button><button id="forgetToken" class="quiet" type="button">断开</button></form></div>
+  <div id="notice" class="notice" role="status">等待连接</div>
+  <main class="demo-workspace">
+    <section class="task-editor">
+      <div class="panel-heading"><h2>新任务</h2><span class="badge cyan">APPLICATION</span></div>
+      <form id="taskForm">
+        <label for="tool">执行工具</label><select id="tool" required disabled><option value="">等待工具注册表</option></select>
+        <div class="input-row"><div><label for="deadline">截止时限 (ms)</label><input id="deadline" type="number" value="10000" min="1" max="300000" required></div><label class="checkbox"><input id="allowRemote" type="checkbox">允许已配置的远端节点执行</label></div>
+        <label for="payload">任务输入 JSON</label><textarea id="payload" spellcheck="false" rows="16" required placeholder='{"query": [...], "vectors": [{"id": "...", "values": [...]}], "limit": 10}'></textarea>
+        <div class="file-row"><label for="taskFile">导入任务 JSON</label><input id="taskFile" type="file" accept=".json,application/json"></div>
+        <p id="inputOrigin" class="field-note">未导入输入数据</p>
+        <button id="submit" type="submit" disabled>提交任务</button>
+      </form>
+    </section>
+    <section class="task-result"><div class="panel-heading"><h2>运行结果</h2><span id="taskStatus" class="badge">--</span></div><dl id="runFacts" class="facts"></dl><div class="result-actions"><button id="cancel" type="button" disabled>取消任务</button><button id="reconcile" type="button" disabled>查询未确认回执</button><button id="retryRead" type="button" disabled>重新读取状态</button></div><div id="output" class="output empty" aria-live="polite">尚未提交任务</div></section>
+  </main>
+  <footer><span>CIXIN / DEMO APPLICATION</span><span id="demoMode">执行模式 --</span></footer>
+</body>
+</html>

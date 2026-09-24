@@ -198,12 +198,13 @@ npm start -- config/p1.example.json
 
 ## 8. 应用接入与 API
 
-除 `/healthz`，所有接口均要求 `Authorization: Bearer <节点令牌>`。
+除 `/healthz` 和调度盘/演示 App 的静态页面资源，所有数据及操作接口均要求 `Authorization: Bearer <节点令牌>`。
 
 | 接口 | 用途 |
 |---|---|
 | `GET /api/v1/runtime/tools` | 已注册工具契约与模型摘要 |
 | `GET /api/v1/runtime/snapshot` | 本节点画像、可用工具、资源和调度指标 |
+| `GET /api/v1/runtime/dashboard` | 本地/peer 真实快照、候选决策与脱除业务输入输出的近期回执 |
 | `POST /api/v1/runtime/plan` | 单工具全局候选评估，不执行任务 |
 | `POST /api/v1/runtime/tasks` | 异步提交单工具任务，返回 runId |
 | `POST /api/v1/runtime/graphs` | 提交 Cixin TaskGraph 与 inputs 绑定 |
@@ -223,6 +224,8 @@ TaskGraph 保留原 `graphId / goal / nodes`，每节点使用 `taskId / toolId 
 
 一次输入、输出各限 512 KiB，请求体限 1 MiB。大模型、图片和大索引应预装到板端，后续再扩展经过授权的 artifact 引用协议，不通过当前 JSON 接口发送完整权重。`minimumQuality` 必须有工具已验证的质量声明；无法计量的能耗/货币预算会明确拒绝。
 
+独立 Web 演示入口为 `/demo/`，电脑调度盘为 `/dashboard/`，两者与 Runtime 同端口。运行 `npm run console` 可启动并取得访问令牌。调度盘沿用原 `harmony-agent/调度盘` 设计，显示真实数据，具体来源和测试步骤见 [调度盘与演示App接入测试](调度盘与演示App接入测试.md)。
+
 ## 9. 验证结果与实际边界
 
 本次在 Windows、Node.js v24.16.0 上完成：
@@ -230,7 +233,8 @@ TaskGraph 保留原 `graphId / goal / nodes`，每节点使用 `taskId / toolId 
 | 检查 | 结果 |
 |---|---|
 | 严格 TypeScript 构建 | 通过 |
-| 自动化测试 | 22 个测试条目通过，其中 3 个条目包含原算法的 22 项子检查 |
+| 自动化测试 | 27 个测试条目通过，其中 3 个条目包含原算法的 22 项子检查 |
+| 调度盘/演示 App 浏览器联测 | 真实主机适配器、真实 CPU 回执、1536px/390px 布局、画布采样、暂停与断连通过 |
 | 本地 CPU 完整调度、回执审计 | 通过 |
 | 两个 HTTP 节点真实远端执行 | 通过，测试使用受控资源 fixture |
 | `npm run demo` | 通过，真实主机资源采集、双 localhost 服务、真实 CPU 向量检索 |

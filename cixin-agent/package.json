@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "start": "node dist/cli.js",
+    "console": "npm run build && node scripts/console.cjs",
     "test": "npm run build && node --test test/*.test.cjs",
+    "test:console": "npm run build && node scripts/test-console.cjs",
     "demo": "npm run build && node scripts/demo.cjs",
     "migration:verify": "node scripts/verify-migration.cjs"
   },

@@ -26,7 +26,8 @@ async function main(): Promise<void> {
     const node = new BoardNode(config, adapter, registry); startedNode = node; await node.start();
     const runtime = new FleetRuntime(node); const server = await serve(runtime, token);
     console.log(JSON.stringify({ event: 'ready', device: adapter.identity, mode: config.mode,
-      address: `http://${config.host}:${config.port}`, missingNpuRequiresWorker: true }));
+      address: `http://${config.host}:${config.port}`, dashboard: `http://${config.host}:${config.port}/dashboard/`,
+      demo: `http://${config.host}:${config.port}/demo/`, missingNpuRequiresWorker: true }));
     let stopping = false;
     const stop = async () => {
       if (stopping) return; stopping = true;
