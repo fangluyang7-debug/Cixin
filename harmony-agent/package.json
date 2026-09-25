@@ -8,8 +8,9 @@
   "workspaces": ["services/api-server", "apps/test-entry-web"],
   "scripts": {
     "api:dev": "npm --workspace services/api-server run start:dev",
-    "api:build": "npm --workspace services/api-server run build",
+    "api:build": "npm --workspace services/api-server run prisma:generate && npm --workspace services/api-server run build",
     "api:zeabur:preflight": "node scripts/check-zeabur-env.mjs",
+    "api:test:cloud-db": "npm --workspace services/api-server run prisma:generate && node scripts/test-cloud-database.mjs",
     "api:zeabur:start": "npm run api:zeabur:preflight && npm --workspace services/api-server run db:init && npm --workspace services/api-server run start",
     "api:test": "npm --workspace services/api-server run test",
     "api:test:unit": "npm --workspace services/api-server run test:unit --",

@@ -761,7 +761,9 @@ export class ProductPoolService implements OnApplicationBootstrap {
           count: row._count.status,
         })),
       ),
-      products: products.map((product) => this.productViewAdapter.toListItem(product)),
+      products: await Promise.all(
+        products.map((product) => this.toListItemWithSignedImage(product)),
+      ),
     };
   }
 
@@ -1056,7 +1058,9 @@ export class ProductPoolService implements OnApplicationBootstrap {
       total,
       limit,
       offset,
-      items: products.map((product) => this.productViewAdapter.toListItem(product)),
+      items: await Promise.all(
+        products.map((product) => this.toListItemWithSignedImage(product)),
+      ),
     };
   }
 
@@ -1076,7 +1080,8 @@ export class ProductPoolService implements OnApplicationBootstrap {
     });
     if (!product) throw new NotFoundException('PRODUCT_NOT_FOUND');
 
-    return this.productViewAdapter.toDetail(product);
+    const detail = this.productViewAdapter.toDetail(product);
+    return this.withSignedImageUrl(detail, product);
   }
 
   async updateProduct(productId: string, body: Record<string, unknown>) {
@@ -2121,12 +2126,6 @@ export class ProductPoolService implements OnApplicationBootstrap {
   }
 
   private async resolveProductImageUrl(product: Product) {
-    if (product.imagePublicUrl && !product.imagePublicUrl.startsWith('mock://')) {
-      return product.imagePublicUrl;
-    }
-    if (product.sourceImageUrl && !product.sourceImageUrl.startsWith('mock://')) {
-      return product.sourceImageUrl;
-    }
     if (product.imageBucketGroup && product.imageObjectKey) {
       const signedUrl = await this.storage.getSignedReadUrl?.({
         bucketGroup: product.imageBucketGroup,
@@ -2135,7 +2134,29 @@ export class ProductPoolService implements OnApplicationBootstrap {
       });
       if (signedUrl && !signedUrl.startsWith('mock://')) return signedUrl;
     }
+    if (product.imagePublicUrl && !product.imagePublicUrl.startsWith('mock://')) {
+      return product.imagePublicUrl;
+    }
+    if (product.sourceImageUrl && !product.sourceImageUrl.startsWith('mock://')) {
+      return product.sourceImageUrl;
+    }
     return product.imagePublicUrl ?? product.sourceImageUrl ?? null;
+  }
+
+  private async toListItemWithSignedImage(product: Product & {
+    _count?: { embeddings?: number; tagAudits?: number };
+  }) {
+    const item = this.productViewAdapter.toListItem(product);
+    return this.withSignedImageUrl(item, product);
+  }
+
+  private async withSignedImageUrl(
+    item: Record<string, unknown>,
+    product: Product,
+  ) {
+    const imageUrl = await this.resolveProductImageUrl(product);
+    if (imageUrl) item.imageUrl = imageUrl;
+    return item;
   }
 
   private async resolveDiagnosticImageUrl(input: {

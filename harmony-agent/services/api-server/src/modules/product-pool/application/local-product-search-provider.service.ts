@@ -1048,6 +1048,14 @@ export class LocalProductSearchProviderService implements SearchProvider {
   }
 
   private async resolveProductImageUrl(product: Product) {
+    if (product.imageBucketGroup && product.imageObjectKey) {
+      const signedUrl = await this.storage.getSignedReadUrl?.({
+        bucketGroup: product.imageBucketGroup,
+        objectKey: product.imageObjectKey,
+        expiresSeconds: 900,
+      });
+      if (signedUrl && !signedUrl.startsWith("mock://")) return signedUrl;
+    }
     if (
       product.imagePublicUrl &&
       !product.imagePublicUrl.startsWith("mock://")
@@ -1059,14 +1067,6 @@ export class LocalProductSearchProviderService implements SearchProvider {
       !product.sourceImageUrl.startsWith("mock://")
     ) {
       return product.sourceImageUrl;
-    }
-    if (product.imageBucketGroup && product.imageObjectKey) {
-      const signedUrl = await this.storage.getSignedReadUrl?.({
-        bucketGroup: product.imageBucketGroup,
-        objectKey: product.imageObjectKey,
-        expiresSeconds: 900,
-      });
-      if (signedUrl && !signedUrl.startsWith("mock://")) return signedUrl;
     }
     return product.imagePublicUrl ?? product.sourceImageUrl ?? "";
   }

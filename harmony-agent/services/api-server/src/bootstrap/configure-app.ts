@@ -8,6 +8,10 @@ export function configureApp(app: NestExpressApplication) {
 
   app.useBodyParser('json', { limit: jsonBodyLimit });
   app.useBodyParser('urlencoded', { extended: true, limit: jsonBodyLimit });
-  app.enableCors();
+  const corsOrigins = config.get<string[]>('corsOrigins') ?? [];
+  app.enableCors({
+    origin: corsOrigins.length > 0 ? corsOrigins : true,
+    credentials: false,
+  });
   app.useGlobalFilters(new ApiExceptionFilter());
 }

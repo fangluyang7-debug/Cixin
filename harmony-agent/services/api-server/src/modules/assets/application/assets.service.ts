@@ -48,6 +48,12 @@ export class AssetsService {
       },
     });
 
+    const signedReadUrl = await this.createSignedReadUrl({
+      uploadStatus: asset.uploadStatus,
+      bucketGroup: asset.bucketGroup,
+      objectKey: asset.objectKey,
+    });
+
     return {
       assetId: asset.id,
       assetGroupId: asset.assetGroupId,
@@ -62,6 +68,8 @@ export class AssetsService {
         region: storedRef.region,
         objectKey: asset.objectKey,
         publicUrl: storedRef.publicUrl,
+        signedReadUrl,
+        signedReadUrlExpiresSeconds: signedReadUrl ? 900 : null,
       },
       fileMeta: input.file
         ? {
@@ -71,5 +79,18 @@ export class AssetsService {
           }
         : null,
     };
+  }
+
+  private async createSignedReadUrl(input: {
+    uploadStatus: string;
+    bucketGroup: string;
+    objectKey: string;
+  }) {
+    if (input.uploadStatus !== 'uploaded') return null;
+    return (await this.storage.getSignedReadUrl?.({
+      bucketGroup: input.bucketGroup,
+      objectKey: input.objectKey,
+      expiresSeconds: 900,
+    })) ?? null;
   }
 }

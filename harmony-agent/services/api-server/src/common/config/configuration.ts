@@ -1,7 +1,9 @@
 export default () => ({
   // Zeabur injects PORT for the exposed service port; local development uses API_SERVER_PORT.
   port: Number(process.env.PORT ?? process.env.API_SERVER_PORT ?? 3100),
+  host: process.env.API_SERVER_HOST ?? "0.0.0.0",
   jsonBodyLimit: process.env.API_JSON_BODY_LIMIT ?? "10mb",
+  corsOrigins: parseCsv(process.env.CORS_ORIGINS ?? ""),
   databaseUrl: process.env.DATABASE_URL,
   runtime: {
     nodeEnv: process.env.NODE_ENV ?? "development",
@@ -253,6 +255,9 @@ export default () => ({
   objectStorage: {
     provider: process.env.OBJECT_STORAGE_PROVIDER ?? "tencent_cos",
     region: process.env.OBJECT_STORAGE_REGION,
+    requestTimeoutMs: Number(
+      process.env.OBJECT_STORAGE_REQUEST_TIMEOUT_MS ?? 15000,
+    ),
     endpoint: process.env.OBJECT_STORAGE_ENDPOINT,
     secretId: process.env.OBJECT_STORAGE_ACCESS_KEY_ID,
     secretKey: process.env.OBJECT_STORAGE_ACCESS_KEY_SECRET,

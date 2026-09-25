@@ -145,14 +145,22 @@ export class TencentCosStorageAdapterService implements StorageAdapter {
       secretKey,
     });
 
-    const response = await fetch(`https://${host}${pathname}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: authorization,
-        'Content-Type': input.contentType ?? 'application/octet-stream',
-      },
-      body,
-    });
+    let response: Response;
+    try {
+      response = await fetch(`https://${host}${pathname}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: authorization,
+          'Content-Type': input.contentType ?? 'application/octet-stream',
+        },
+        body,
+        signal: AbortSignal.timeout(
+          this.config.get<number>('objectStorage.requestTimeoutMs') ?? 15000,
+        ),
+      });
+    } catch {
+      throw new InternalServerErrorException('IMAGE_UPLOAD_NETWORK_FAILED');
+    }
 
     if (!response.ok) {
       throw new InternalServerErrorException('IMAGE_UPLOAD_FAILED');
@@ -167,8 +175,9 @@ export class TencentCosStorageAdapterService implements StorageAdapter {
     secretKey: string;
     expiresSeconds?: number;
   }) {
-    const start = Math.floor(Date.now() / 1000) - 60;
-    const end = start + (input.expiresSeconds ?? 600);
+    const now = Math.floor(Date.now() / 1000);
+    const start = now - 60;
+    const end = now + (input.expiresSeconds ?? 600);
     const keyTime = `${start};${end}`;
     const signKey = this.hmacSha1(input.secretKey, keyTime);
     const httpString = `${input.method}\n${input.pathname}\n\nhost=${input.host.toLowerCase()}\n`;

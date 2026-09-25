@@ -12,7 +12,8 @@ async function bootstrap() {
 
   const config = app.get(ConfigService);
   const port = config.get<number>('port') ?? 3100;
-  await app.listen(port);
+  const host = config.get<string>('host') ?? '0.0.0.0';
+  await app.listen(port, host);
 }
 
 void bootstrap();

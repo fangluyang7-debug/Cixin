@@ -440,8 +440,6 @@ export class SearchDebugService {
   }
 
   private async resolveProductImageUrl(product: Product) {
-    if (product.imagePublicUrl && !product.imagePublicUrl.startsWith('mock://')) return product.imagePublicUrl;
-    if (product.sourceImageUrl && !product.sourceImageUrl.startsWith('mock://')) return product.sourceImageUrl;
     if (product.imageBucketGroup && product.imageObjectKey) {
       const signedUrl = await this.storage.getSignedReadUrl?.({
         bucketGroup: product.imageBucketGroup,
@@ -450,6 +448,8 @@ export class SearchDebugService {
       });
       if (signedUrl && !signedUrl.startsWith('mock://')) return signedUrl;
     }
+    if (product.imagePublicUrl && !product.imagePublicUrl.startsWith('mock://')) return product.imagePublicUrl;
+    if (product.sourceImageUrl && !product.sourceImageUrl.startsWith('mock://')) return product.sourceImageUrl;
     return product.imagePublicUrl ?? product.sourceImageUrl ?? '';
   }
 
