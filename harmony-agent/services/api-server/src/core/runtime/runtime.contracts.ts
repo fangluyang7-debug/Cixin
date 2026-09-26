@@ -65,6 +65,8 @@ export interface ToolExecutionPolicy {
 }
 
 export interface ToolDescriptor {
+  // Explicit opt-in for bounded cold-start execution; never a performance sample.
+  allowColdStart?: boolean;
   toolId: string;
   version: string;
   description: string;
@@ -111,6 +113,9 @@ export interface FallbackPolicy {
 }
 
 export interface TaskIntent {
+  taskType?: "foreground_realtime" | "user_initiated" | "background_batch";
+  deviceProfile?: Record<string, unknown>;
+  networkProfile?: Record<string, unknown>;
   taskId: string;
   toolId: string;
   inputRef: string;
@@ -144,6 +149,7 @@ export interface CloudRouteObservation {
 }
 
 export interface TaskGraph {
+  clientTaskId?: string;
   graphId: string;
   goal: string;
   nodes: TaskIntent[];
@@ -306,7 +312,10 @@ export interface ExecutionAssignment {
   weights: ObjectiveWeights;
   reasons: string[];
   plannedAt: string;
-  status: "planned";
+  status: "planned" | "running" | "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked";
+  startedAt?: string;
+  finishedAt?: string;
+  errorCode?: string;
   estimatedEndToEndMs?: number;
   cloudOverheadMs?: number;
   estimatedFeeMinorUnits?: number;
@@ -343,7 +352,7 @@ export interface RuntimeSnapshot {
   capturedAt: string;
 }
 
-export type RuntimeRunStatus = "planning" | "ready" | "blocked" | "completed" | "failed";
+export type RuntimeRunStatus = "planning" | "ready" | "running" | "blocked" | "completed" | "failed" | "cancelled" | "timed_out";
 
 export interface RuntimeVerificationEvent {
   taskId: string;
@@ -371,6 +380,7 @@ export interface RuntimeOperationStep {
 }
 
 export interface RuntimeRun {
+  clientTelemetry?: { taskId: string; observedAt: string; timing: Record<string, number | null> };
   runId: string;
   goal: string;
   taskGraph: TaskGraph | null;

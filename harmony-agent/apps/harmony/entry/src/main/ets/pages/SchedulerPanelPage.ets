@@ -852,7 +852,7 @@ struct SchedulerPanelPage {
   private planSecondaryLabel(plan: ExecutionPlan): string {
     if (plan.inferenceLocation === InferenceLocation.REMOTE_CLOUD) {
       const remotePlan: RemoteExecutionPlan = plan as RemoteExecutionPlan;
-      return `答案生成 · 超时 ${remotePlan.timeoutMs} ms · 重试 ${remotePlan.maxRetries}`;
+      return `云端任务 · 超时 ${remotePlan.timeoutMs} ms · 探测重试 ${remotePlan.maxRetries}`;
     }
     const localPlan: LocalExecutionPlan = plan as LocalExecutionPlan;
     return `${localPlan.modelTier} · ${localPlan.threadCount} 线程 · ${localPlan.queueAction}`;
@@ -1347,6 +1347,15 @@ struct SchedulerPanelPage {
         Text(`预测 ${Math.round(entry.executionPlan.prediction?.latencyMs ?? 0)} ms · 实际 ${entry.executionDurationMs ?? '-'} ms · 配置确认 ${entry.executionPlan.policyAudit.actualConfirmed === true ? '是' : '否'}`)
           .fontSize(11).width('100%').fontColor('#475467')
         Text(`回退 ${entry.executionPlan.policyAudit.fallbackReason ?? '无'} · 反馈 ${entry.telemetry?.userFeedback?.option ?? '无'}`)
+          .fontSize(11).width('100%').fontColor('#475467')
+      }
+
+      if (entry.telemetry?.actual?.cloudRunId !== undefined) {
+        Text(`云端 runId：${entry.telemetry?.actual?.cloudRunId}`)
+          .fontSize(11).width('100%').fontColor('#344054').copyOption(CopyOptions.LocalDevice)
+        Text(`关联 taskId：${entry.telemetry?.actual?.cloudTaskId ?? '未记录'}`)
+          .fontSize(11).width('100%').fontColor('#344054').copyOption(CopyOptions.LocalDevice)
+        Text(`请求 ${entry.telemetry?.actual?.cloudTiming?.requestMs ?? '未观测'} ms · 上传 ${entry.telemetry?.actual?.cloudTiming?.uploadMs ?? '未观测'} ms · 下载 ${entry.telemetry?.actual?.cloudTiming?.downloadMs ?? '未观测'} ms`)
           .fontSize(11).width('100%').fontColor('#475467')
       }
 

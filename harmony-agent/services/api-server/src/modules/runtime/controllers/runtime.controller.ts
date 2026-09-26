@@ -1,4 +1,4 @@
-import { Body, Controller, Get, NotFoundException, Param, Post, Sse } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Sse } from "@nestjs/common";
 import { ok } from "../../../common/dto/api-response.dto";
 import {
   CheckpointPolicy,
@@ -18,6 +18,7 @@ import { TelemetryService } from "../../../core/runtime/telemetry.service";
 import { ToolRegistryService } from "../../../core/runtime/tool-registry.service";
 import { RuntimeRunService } from "../../../core/runtime/runtime-run.service";
 import { RuntimeEventBusService } from "../../../core/runtime/runtime-event-bus.service";
+import { RuntimeRunnerService } from '../../../core/runtime/runtime-runner.service';
 
 @Controller("api/v1/runtime")
 export class RuntimeController {
@@ -30,7 +31,31 @@ export class RuntimeController {
     private readonly performance: PerformanceRegistryService,
     private readonly runs: RuntimeRunService,
     private readonly events: RuntimeEventBusService,
+    private readonly runner: RuntimeRunnerService,
   ) {}
+
+  @Post('runs/:runId/cancel')
+  cancelRun(@Param('runId') runId: string) {
+    return ok({ runId, cancellationRequested: this.runner.cancel(runId) });
+  }
+
+  @Post('runs/:runId/client-telemetry')
+  recordClientTelemetry(@Param('runId') runId: string, @Body() body: unknown) {
+    const input = asRecord(body);
+    const taskId = asNonEmptyString(input.taskId);
+    const raw = asRecord(input.timing);
+    if (!taskId) throw new BadRequestException('CLIENT_TASK_ID_REQUIRED');
+    const timing: Record<string, number | null> = {};
+    for (const key of ['requestMs', 'uploadMs', 'downloadMs', 'inputBytes', 'outputBytes']) {
+      const value = raw[key];
+      if (value !== null && (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 128 * 1024 * 1024)) {
+        throw new BadRequestException('CLIENT_TIMING_INVALID');
+      }
+      timing[key] = value as number | null;
+    }
+    this.runs.recordClientTelemetry(runId, taskId, timing);
+    return ok({ runId, recorded: true });
+  }
 
   @Get("tools")
   getTools() {
@@ -249,6 +274,7 @@ function parseTelemetry(value: unknown): TelemetryRecord {
   ) {
     throw new Error("TELEMETRY_INVALID");
   }
+
   if (input.latencyScope !== undefined && input.latencyScope !== "execution_only" &&
       input.latencyScope !== "end_to_end") {
     throw new Error("TELEMETRY_LATENCY_SCOPE_INVALID");

@@ -1,3 +1,4 @@
+import { IMAGE_STAGE_TOOLS } from '../../src/core/runtime/image-search-task-graph';
 import { ConfigService } from "@nestjs/config";
 import { createShoppingPlugin } from "../../src/core/runtime/shopping-plugin";
 import { ToolRegistryService } from "../../src/core/runtime/tool-registry.service";
@@ -7,15 +8,16 @@ describe("ToolRegistryService", () => {
     const registry = new ToolRegistryService();
     registry.registerPlugin(createShoppingPlugin(new ConfigService()));
 
-    expect(registry.list().map((tool) => tool.toolId)).toEqual([
+    expect(registry.list().map((tool) => tool.toolId)).toEqual([...IMAGE_STAGE_TOOLS,
       "answer.generate",
       "catalog.price_query",
       "catalog.vector_search",
       "image.crop",
       "image.embedding",
       "image.quality_check",
-      "text.embedding",
-    ]);
+      "shopping.answer", "shopping.prices", "shopping.debug", "shopping.image", "shopping.image_upload", "shopping.profile", "shopping.read",
+      "shopping.refine", "shopping.subject", "shopping.text", "text.embedding",
+    ].sort());
     expect(registry.get("image.embedding")?.resourceHints).not.toHaveProperty(
       "backend",
     );

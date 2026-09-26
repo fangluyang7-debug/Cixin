@@ -1,59 +1,19 @@
-import { TaskGraph } from "./runtime.contracts";
+import { shoppingTask } from './shopping-task-graph';
+import { TaskGraph } from './runtime.contracts';
+
+export const IMAGE_SEARCH_STAGES = ['receive', 'asset', 'quality-check', 'crop', 'category',
+  'product-profile', 'embedding', 'vector-search', 'price-stock', 'rank', 'answer', 'result'] as const;
+export const IMAGE_STAGE_TOOLS = IMAGE_SEARCH_STAGES.map(stage => `shopping.stage.${stage}`);
 
 export function buildImageSearchTaskGraph(assetId: string): TaskGraph {
-  return {
-    graphId: `image-search-${assetId}`,
-    goal: `使用图片 ${assetId} 完成可解释的商品候选检索`,
-    planner: "shopping-debug-entry",
-    createdAt: new Date().toISOString(),
-    nodes: [
-      {
-        taskId: "quality-check",
-        toolId: "image.quality_check",
-        inputRef: `asset:${assetId}`,
-        fallbackPolicy: {
-          enabled: true,
-          actions: ["请求用户重新上传图片"],
-          maxAttempts: 2,
-          replanAtStageBoundary: true,
-        },
-      },
-      {
-        taskId: "crop",
-        toolId: "image.crop",
-        inputRef: `asset:${assetId}`,
-        dependencies: ["quality-check"],
-        fallbackPolicy: {
-          enabled: true,
-          actions: ["使用原图继续处理"],
-          maxAttempts: 2,
-          replanAtStageBoundary: true,
-        },
-      },
-      {
-        taskId: "embedding",
-        toolId: "image.embedding",
-        inputRef: "task:crop",
-        dependencies: ["crop"],
-        fallbackPolicy: {
-          enabled: true,
-          actions: ["降低输入分辨率"],
-          maxAttempts: 2,
-          replanAtStageBoundary: true,
-        },
-      },
-      {
-        taskId: "vector-search",
-        toolId: "catalog.vector_search",
-        inputRef: "task:embedding",
-        dependencies: ["embedding"],
-        fallbackPolicy: {
-          enabled: true,
-          actions: ["切换到结构化标签召回"],
-          maxAttempts: 2,
-          replanAtStageBoundary: true,
-        },
-      },
-    ],
-  };
+  if (!/^[a-zA-Z0-9_-]{1,128}$/.test(assetId)) throw new Error('INVALID_ASSET_REFERENCE');
+  return { graphId: `image-search-${assetId}`, goal: '云端图片商品检索', planner: 'shopping-runtime',
+    createdAt: new Date().toISOString(), nodes: IMAGE_SEARCH_STAGES.map((stage, index) => ({
+      ...shoppingTask(stage, `shopping.stage.${stage}`, index === 0 ? `asset:${assetId}` : `task:${IMAGE_SEARCH_STAGES[index - 1]}`,
+        index === 0 ? [] : [IMAGE_SEARCH_STAGES[index - 1]]),
+      outputType: stage === 'result' ? 'ShoppingResult' : `ShoppingStage:${stage}`,
+      constraints: { locality: 'cloud_only', privacy: 'internal', maxLatencyMs: 60000, deadlineMs: 150000, minimumQuality: 0 },
+    })) };
 }
+
+export const buildImageSessionTaskGraph = buildImageSearchTaskGraph;

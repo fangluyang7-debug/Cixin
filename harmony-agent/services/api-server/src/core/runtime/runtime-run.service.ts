@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { createId } from "../../common/utils/id";
 import {
   ExecutionPlan,
@@ -39,14 +39,20 @@ export class RuntimeRunService {
       updatedAt: now,
     };
     this.store(run);
-    const plan = await this.scheduler.plan(taskGraph, { runId: run.runId });
-    return this.updatePlan(run.runId, plan);
+    try {
+      const plan = await this.scheduler.plan(taskGraph, { runId: run.runId });
+      return this.updatePlan(run.runId, plan);
+    } catch {
+      this.fail(run.runId, 'RUNTIME_PLANNING_FAILED');
+      throw new Error('RUNTIME_PLANNING_FAILED:' + run.runId);
+    }
   }
 
   async attachGraph(runId: string | undefined, taskGraph: TaskGraph): Promise<RuntimeRun> {
     if (!runId || !this.get(runId)) {
       return this.start(taskGraph);
     }
+    if (this.require(runId).status === 'running') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
     const plan = await this.scheduler.plan(taskGraph, { runId });
     return this.updatePlan(runId, plan, taskGraph);
   }
@@ -100,6 +106,7 @@ export class RuntimeRunService {
 
   updatePlan(runId: string, plan: ExecutionPlan, taskGraph?: TaskGraph): RuntimeRun {
     const run = this.require(runId);
+    if (run.status === 'running') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
     if (taskGraph) {
       run.taskGraph = taskGraph;
       run.goal = taskGraph.goal;
@@ -174,6 +181,7 @@ export class RuntimeRunService {
 
   recordReplan(runId: string, reason: string, telemetryCount: number, plan: ExecutionPlan) {
     const run = this.require(runId);
+    if (run.status === 'running') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
     const event: RuntimeReplanEvent = {
       reason,
       telemetryCount,
@@ -207,6 +215,15 @@ export class RuntimeRunService {
     return run;
   }
 
+  recordClientTelemetry(runId: string, taskId: string, timing: Record<string, number | null>) {
+    const run = this.require(runId);
+    if (run.taskGraph?.clientTaskId !== taskId) throw new ConflictException('RUNTIME_CLIENT_TASK_MISMATCH');
+    run.clientTelemetry = { taskId, timing, observedAt: new Date().toISOString() };
+    run.updatedAt = new Date().toISOString();
+    this.store(run);
+    return run;
+  }
+
   get(runId: string) {
     return this.runs.get(runId) ?? null;
   }
@@ -232,7 +249,7 @@ export class RuntimeRunService {
   private store(run: RuntimeRun) {
     this.runs.set(run.runId, run);
     if (this.runs.size <= this.maxRecentRuns) return;
-    const oldest = [...this.runs.values()].sort((left, right) =>
+    const oldest = [...this.runs.values()].filter(item => !['planning', 'ready', 'running'].includes(item.status)).sort((left, right) =>
       left.updatedAt.localeCompare(right.updatedAt),
     )[0];
     if (oldest) this.runs.delete(oldest.runId);

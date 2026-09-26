@@ -1,3 +1,4 @@
+import { IMAGE_STAGE_TOOLS } from './image-search-task-graph';
 import { ConfigService } from "@nestjs/config";
 import { ToolPlugin } from "./runtime.contracts";
 
@@ -16,6 +17,7 @@ export function createShoppingPlugin(config: ConfigService): ToolPlugin {
     pluginId: "shopping-assistant-test-plugin",
     version: "1.0.0",
     tools: [
+      ...createWorkflowTools(),
       {
         toolId: "image.quality_check",
         version: "1.0.0",
@@ -247,4 +249,20 @@ export function createShoppingPlugin(config: ConfigService): ToolPlugin {
 function optionalString(value: string | undefined) {
   const normalized = value?.trim();
   return normalized ? normalized : undefined;
+}
+
+export const SHOPPING_WORKFLOW_TOOLS = ['shopping.text', 'shopping.image', 'shopping.image_upload', 'shopping.debug',
+  'shopping.read', 'shopping.prices', 'shopping.answer', 'shopping.subject', 'shopping.profile', 'shopping.refine'];
+
+function createWorkflowTools(): import('./runtime.contracts').ToolDescriptor[] {
+  return [...SHOPPING_WORKFLOW_TOOLS, ...IMAGE_STAGE_TOOLS].map(toolId => ({
+    toolId, version: '1.0.0', description: 'Zeabur business workflow',
+    inputType: 'ShoppingRequest', outputType: 'ShoppingResult',
+    preconditions: ['cloud readiness passed'], postconditions: ['business result returned'],
+    quality: {}, constraints: { privacy: 'internal', locality: 'cloud_only', allowLocal: false,
+      allowCloud: true, maxLatencyMs: 120000 },
+    resourceHints: { computeClass: 'network', estimatedMemoryMb: 0 },
+    execution: { supportsPause: false, supportsRetry: false, maxAttempts: 1, compensationActions: [] },
+    defaultWeights: { latency: 0.5, reliability: 0.5, quality: 0, energy: 0 }, allowColdStart: true,
+  }));
 }

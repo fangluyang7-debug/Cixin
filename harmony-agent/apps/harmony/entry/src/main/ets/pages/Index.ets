@@ -2,8 +2,7 @@ import { common } from '@kit.AbilityKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import { FeedbackOption, FeedbackRequest, SchedulerService, TaskSignalType, TaskStatus, WorkflowHandle } from 'scheduler';
 import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher';
-import { StoreManager } from '../database/StoreManager';
-import { DataInitService } from '../services/DataInitService';
+import { CloudApiConfig } from '../services/CloudApiConfig';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
 import { Product } from '../models/Product';
 import { AssistantHome } from '../components/AssistantHome';
@@ -27,7 +26,8 @@ struct Index {
   private expiryTimer: number = -1;
   private readyTimer: number = -1;
   private photoGeneration: number = 0;
-  private warming: boolean = false;
+  @State cloudEndpoint: string = '';
+  @State cloudStatus: string = '请配置 Zeabur HTTPS API 地址';
   private contentScroller: Scroller = new Scroller();
   @State feedbackStatus: string = '等待本次任务完成';
   @State tab: CommerceTab = CommerceTab.HOME;
@@ -41,7 +41,7 @@ struct Index {
   @State showHistory: boolean = false;
   @State selected: Product | null = null;
   @State loading: boolean = false;
-  @State initialStatus: string = '正在准备本地商品';
+  @State initialStatus: string = '正在准备云端检索';
   @State summary: string = '输入商品名称开始搜索';
   @State plan: string = '';
   @State highQuality: boolean = false;
@@ -76,25 +76,27 @@ struct Index {
   private refreshReady(): void {
     this.ready = this.scheduler.isInitialized();
     if (!this.ready) { return; }
+    if (this.cloudEndpoint.length === 0) {
+      try { this.cloudEndpoint = CloudApiConfig.getBaseUrl(); this.cloudStatus = '云端 API 已配置'; } catch (_) {}
+    }
     this.feedbackEnabled = this.scheduler.isFeedbackEnabled();
     if (this.monitorEnabled && this.monitorSettingsLoaded) {
       this.monitor.start(this.monitorEndpoint, this.monitorPairingCode);
     }
     if (!this.feedbackEnabled && this.feedback !== null) { this.clearFeedback(); }
     this.refreshFeedbackStatus();
-    if (!this.warming) {
-      try { const handle = this.tasks.warmup(); this.warming = true; handle.result.catch(() => {}); }
-      catch (_) { /* The host may still be registering its client. */ }
-    }
   }
   private async loadCatalog(): Promise<void> {
+    this.catalog = [];
+    this.initialStatus = '商品由 Zeabur 云端检索';
+    try { this.cloudEndpoint = CloudApiConfig.getBaseUrl(); this.cloudStatus = '云端 API 已配置'; } catch (_) {}
+  }
+  private async saveCloudEndpoint(): Promise<void> {
     try {
-      await DataInitService.waitUntilReady();
-      const store = StoreManager.getInstance();
-      const count = await store.getProductCount();
-      this.catalog = await store.queryTopProducts(12);
-      this.initialStatus = `本地 ${count} 件商品已就绪`;
-    } catch (_) { this.initialStatus = '商品加载失败'; }
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      await CloudApiConfig.save(context, this.cloudEndpoint);
+      this.cloudStatus = '云端 API 已保存';
+    } catch (_) { this.cloudStatus = '请填写有效的 HTTPS API 域名'; }
   }
   private async loadMonitorSettings(): Promise<void> {
     this.monitor.setStatusListener((status: string) => { this.monitorStatus = status; });
@@ -136,7 +138,7 @@ struct Index {
     clearTimeout(this.expiryTimer); this.feedback = null; this.feedbackHidden = false;
   }
   private invalidate(type: TaskSignalType = TaskSignalType.INPUT_REPLACED): void {
-    this.generation++; this.clearFeedback();
+    this.generation++; this.photoGeneration++; this.clearFeedback();
     if (this.activeSearch !== null) { this.activeSearch.signal({ type: type }).catch(() => {}); this.activeSearch = null; }
     if (this.loading) { this.summary = '搜索已停止'; }
     this.loading = false;
@@ -156,7 +158,7 @@ struct Index {
     const generation = this.generation;
     this.tab = CommerceTab.RADAR; this.selected = null; this.showHistory = false;
     this.query = ''; this.lastQuery = query; this.products = []; this.plan = ''; this.receiptText = '';
-    this.summary = '正在检索本地商品'; this.loading = true;
+    this.summary = '正在请求云端商品检索'; this.loading = true;
     this.contentScroller.scrollTo({ xOffset: 0, yOffset: 0 });
     const started = Date.now();
     try {
@@ -166,14 +168,14 @@ struct Index {
       if (generation !== this.generation) { await handle.signal({ type: TaskSignalType.RESULT_IGNORED }); return; }
       if (result.nodes.length > 0) {
         const audit = result.nodes[result.nodes.length - 1].executionPlan.policyAudit;
-        this.plan = audit === undefined ? '本地执行' : `${audit.mode} · ${audit.actualProfileId}`;
+        this.plan = audit === undefined ? 'Zeabur 云端执行' : `${audit.mode} · ${audit.actualProfileId}`;
       }
       if (result.status !== TaskStatus.SUCCEEDED || result.output === null) {
         this.summary = result.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : '当前设备状态或任务约束不允许完成搜索';
         await handle.signal({ type: TaskSignalType.RESULT_IGNORED }); return;
       }
       this.products = result.output;
-      this.summary = `找到 ${result.output.length} 件本地商品 · ${Date.now() - started} ms`;
+      this.summary = `找到 ${result.output.length} 件云端商品 · ${Date.now() - started} ms`;
       this.histories = [query].concat(this.histories.filter((item: string) => item !== query)).slice(0, 20);
       await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED,
         experience: { responseReadyMs: Date.now() - started } });
@@ -240,8 +242,15 @@ struct Index {
       if (generation !== this.photoGeneration || result.photoUris.length === 0) { return; }
       this.photoUri = result.photoUris[0]; this.tab = CommerceTab.RADAR; this.selected = null;
       this.products = []; this.lastQuery = ''; this.plan = ''; this.receiptText = '';
-      this.summary = '尚未接入图像识别，请输入图中商品名称进行文字搜索';
-    } catch (_) { this.notify('未能打开图片选择器'); }
+      this.summary = '正在上传图片并执行云端检索'; this.loading = true;
+      const handle = this.tasks.searchImage(this.photoUri); this.activeSearch = handle;
+      const searchResult = await handle.result;
+      if (generation !== this.photoGeneration) { return; }
+      this.loading = false;
+      if (searchResult.status === TaskStatus.SUCCEEDED && searchResult.output !== null) {
+        this.products = searchResult.output; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
+      } else { this.summary = '云端图片检索失败、超时或已取消'; }
+    } catch (_) { this.loading = false; this.summary = '图片选择或云端检索失败，请检查配置与网络'; }
   }
   private async openSource(): Promise<void> {
     if (this.selected === null || !safeProductUrl(this.selected.productUrl)) {
@@ -273,7 +282,7 @@ struct Index {
         .width(30).height(30).backgroundColor('#111111').borderRadius(15)
       Column({ space: 2 }) {
         Text(this.selected !== null ? '商品详情' : 'SoleAI').fontSize(19).fontWeight(FontWeight.Bold).maxLines(1)
-        Text(this.ready ? '端侧商品助手' : '正在初始化').fontSize(10).fontColor('#747878')
+        Text(this.ready ? '云端商品助手' : '正在初始化').fontSize(10).fontColor('#747878')
       }.layoutWeight(1).alignItems(HorizontalAlign.Start)
     }.width('100%').padding(8).backgroundColor('#FFFFFF').borderRadius(32)
   }
@@ -341,6 +350,11 @@ struct Index {
       Text('仅记录结构化答案和调度指标，不记录搜索原文或图片，不自动上传。可随时关闭。')
         .fontSize(13).fontColor('#747878').width('100%')
       Divider().color('#E2E2E2')
+      Text('Zeabur 云端 API').fontSize(18).width('100%')
+      TextInput({ text: this.cloudEndpoint, placeholder: 'https://你的服务域名' })
+        .onChange((value: string) => { this.cloudEndpoint = value; })
+      Button('保存云端地址').onClick(() => this.saveCloudEndpoint())
+      Text(this.cloudStatus).fontSize(12)
       Text('电脑实时监控').fontSize(18).fontWeight(FontWeight.Medium).width('100%')
       Text('电脑和手机连接同一可信 Wi-Fi 后，运行电脑端监控服务，再填写电脑局域网地址与配对码。只推送调度状态、资源指标和任务事件，不包含搜索内容、图片或商品列表。')
         .fontSize(12).fontColor('#747878').width('100%')
@@ -402,7 +416,7 @@ struct Index {
         },
         onOpen: (item: Product) => this.openProduct(item), onSave: (item: Product) => this.toggleSaved(item),
         onRetry: () => this.search(this.lastQuery), onCancel: () => this.invalidate(TaskSignalType.CANCEL), onPhoto: () => this.choosePhoto() })
-    } else if (this.tab === CommerceTab.CATALOG) { this.Collection(this.catalog, '本地商品') }
+    } else if (this.tab === CommerceTab.CATALOG) { this.Collection(this.catalog, '云端商品') }
     else if (this.tab === CommerceTab.SAVED) { this.Collection(this.saved, `本次清单 · ${this.saved.length}`) }
     else { this.Profile() }
   }

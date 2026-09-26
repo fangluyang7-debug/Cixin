@@ -1,3 +1,4 @@
+import { RuntimeWorkScope } from '../../core/runtime/runtime-work-scope';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash, createHmac } from 'crypto';
@@ -7,6 +8,18 @@ import { BUCKET_GROUPS } from './storage.constants';
 @Injectable()
 export class TencentCosStorageAdapterService implements StorageAdapter {
   constructor(private readonly config: ConfigService) {}
+
+  async probeReadWrite(): Promise<void> {
+    // A bounded, dedicated object; repeated probes never touch a user's asset.
+    const bucketName = this.resolveBucketName(BUCKET_GROUPS.compressedRecognition);
+    const region = this.config.get<string>('objectStorage.region') ?? null;
+    const objectKey = '_runtime/readiness.txt';
+    await this.putObject({ bucketName, region, objectKey, content: Buffer.from('runtime-ready'), contentType: 'text/plain' });
+    const url = await this.getSignedReadUrl({ bucketGroup: BUCKET_GROUPS.compressedRecognition, objectKey, expiresSeconds: 60 });
+    if (!url) throw new Error('COS_SIGNING_UNAVAILABLE');
+    const response = await fetch(url, { signal: RuntimeWorkScope.signal(5000) });
+    if (!response.ok || await response.text() !== 'runtime-ready') throw new Error('COS_READ_PROBE_FAILED');
+  }
 
   async putImage(input: {
     assetId: string;
@@ -23,13 +36,13 @@ export class TencentCosStorageAdapterService implements StorageAdapter {
     const objectKey = this.buildObjectKey(input);
 
     if (input.content) {
-      await this.putObject({
+      await RuntimeWorkScope.measure('storageWriteMs', () => this.putObject({
         bucketName,
         region,
         objectKey,
-        content: input.content,
+        content: input.content!,
         contentType: input.contentType,
-      });
+      }));
     }
 
     return {

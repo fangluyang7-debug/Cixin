@@ -157,6 +157,28 @@ export default function semanticSchedulerTest(): void {
       expect(result.nodes[0].executionPlan.reasonCodes.indexOf('PRIVACY_CONSTRAINT') >= 0).assertTrue();
     });
 
+    it('cloudQualityDoesNotRequireKnownLocalComputeState', 0, async () => {
+      const remote: TaskTemplate = template();
+      remote.inferenceLocation = InferenceLocation.REMOTE_CLOUD;
+      remote.privacyPolicy = PrivacyPolicy.REMOTE_ALLOWED;
+      remote.qualityLevels = [remote.qualityLevels[0]];
+      remote.remoteOptions = { provider: 'test', maxRetries: 0, maxConcurrency: 1, allowLocalFallback: false };
+      client.registerTemplate(remote);
+      const executor = new ProbeExecutor();
+      executor.inferenceLocation = InferenceLocation.REMOTE_CLOUD;
+      client.registerExecutor(executor);
+      const allowed = context();
+      allowed.networkAllowed = true;
+      allowed.highQuality = true;
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.UNKNOWN, batteryPercent: null });
+      expect((await client.submit<string, string>('generic', 'unknown', allowed).result).status).assertEqual(TaskStatus.SUCCEEDED);
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.HOT, batteryPercent: 10, isCharging: false });
+      expect((await client.submit<string, string>('generic', 'constrained', allowed).result).status).assertEqual(TaskStatus.SUCCEEDED);
+      service.updateRealDeviceState({ thermalLevel: ThermalLevel.CRITICAL });
+      expect((await client.submit<string, string>('generic', 'critical', allowed).result).status).assertEqual(TaskStatus.FAILED);
+      expect(executor.calls).assertEqual(2);
+    });
+
     it('requiresNetworkConsentAndSanitizedInput', 0, async () => {
       const remote: TaskTemplate = template(); remote.inferenceLocation = InferenceLocation.REMOTE_CLOUD;
       remote.privacyPolicy = PrivacyPolicy.SANITIZED_REMOTE;

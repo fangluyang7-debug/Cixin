@@ -59,7 +59,7 @@ export class ApiExceptionFilter implements ExceptionFilter {
 
       return {
         status,
-        code: this.toErrorCode(message, status),
+        code: typeof body.code === 'string' && /^[A-Z0-9_]+$/.test(body.code) ? body.code : this.toErrorCode(message, status),
         message,
         details: this.extractDetails(body),
       };

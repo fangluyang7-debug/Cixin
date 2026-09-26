@@ -1,3 +1,4 @@
+import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { createHash } from 'crypto';
@@ -61,6 +62,7 @@ export class VolcengineDoubaoEmbeddingProviderService implements EmbeddingProvid
     const body: Record<string, unknown> = { model: modelName, input };
     if (dimension !== undefined) body.dimensions = dimension;
     const response = await fetch(endpoint, {
+      signal: RuntimeWorkScope.signal(60000),
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,

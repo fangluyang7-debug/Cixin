@@ -32,7 +32,7 @@ function link(): PlacementLinkProfile {
 
 export default function placementPolicyTests(): void {
   describe('PlacementPolicy', () => {
-    it('keeps actual execution local even when remote shadow is faster', () => {
+    it('keeps actual execution local even when remote shadow is faster', 0, () => {
       const result = new GlobalPlacementPolicy().evaluate(task(), 'local',
         [device('local', true, 200), device('tablet', false, 30)], [link()], PlacementMode.SHADOW, NOW);
       expect(result.actualDeviceId).assertEqual('local');
@@ -40,7 +40,7 @@ export default function placementPolicyTests(): void {
       expect(result.dispatchAllowed).assertFalse();
     });
 
-    it('excludes remote when privacy or network permission forbids it', () => {
+    it('excludes remote when privacy or network permission forbids it', 0, () => {
       const request = task(); request.privacyPolicy = PrivacyPolicy.LOCAL_ONLY;
       const result = new GlobalPlacementPolicy().evaluate(request, 'local',
         [device('local', true, 200), device('tablet', false, 30)], [link()], PlacementMode.SHADOW, NOW);
@@ -48,14 +48,14 @@ export default function placementPolicyTests(): void {
       expect(result.rejectedDeviceIds.indexOf('tablet') >= 0).assertTrue();
     });
 
-    it('excludes expired remote memory despite a fresh heartbeat', () => {
+    it('excludes expired remote memory despite a fresh heartbeat', 0, () => {
       const remote = device('tablet', false, 30); remote.memoryAgeMs = 3001;
       const result = new GlobalPlacementPolicy().evaluate(task(), 'local',
         [device('local', true, 200), remote], [link()], PlacementMode.SHADOW, NOW);
       expect(result.suggestedDeviceId).assertEqual('local');
     });
 
-    it('accounts for transfer and cold model load', () => {
+    it('accounts for transfer and cold model load', 0, () => {
       const remote = device('tablet', false, 30); remote.loadedModelVersions = []; remote.coldLoadMs = 200;
       const result = new GlobalPlacementPolicy().evaluate(task(), 'local',
         [device('local', true, 100), remote], [link()], PlacementMode.SHADOW, NOW);
@@ -63,7 +63,7 @@ export default function placementPolicyTests(): void {
       expect(result.estimates.find((item) => item.deviceId === 'tablet')!.modelLoadMs).assertEqual(200);
     });
 
-    it('keeps declared privacy even with favorable user context', () => {
+    it('keeps declared privacy even with favorable user context', 0, () => {
       const declaration: TaskTemplate = { capability: 'encode', taskType: TaskType.USER_INITIATED,
         inferenceLocation: InferenceLocation.LOCAL_DEVICE, qualityLevels: [],
         interruptibility: Interruptibility.NON_INTERRUPTIBLE, duplicatePolicy: DuplicatePolicy.KEEP_ALL,

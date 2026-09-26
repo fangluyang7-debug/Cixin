@@ -1,3 +1,4 @@
+import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
 import sharp = require('sharp');
@@ -53,11 +54,13 @@ export class StandardQueryImageContentAdapterService implements QueryImageConten
   }
 
   private async fetchImageBuffer(url: string) {
-    const response = await fetch(url);
+    return RuntimeWorkScope.measure('storageReadMs', async () => {
+    const response = await fetch(url, { signal: RuntimeWorkScope.signal(15000) });
     if (!response.ok) {
       throw new InternalServerErrorException('QUERY_IMAGE_FETCH_FAILED');
     }
     return Buffer.from(await response.arrayBuffer());
+    });
   }
 
   private toSquareCropRegion(

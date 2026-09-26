@@ -4,12 +4,19 @@
   "private": true,
   "description": "Independent HarmonyOS scheduling workspace with native app and desktop live monitor.",
   "packageManager": "npm@11.12.0",
-  "engines": { "node": ">=22" },
-  "workspaces": ["services/api-server", "apps/test-entry-web"],
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "services/api-server",
+    "apps/test-entry-web"
+  ],
   "scripts": {
     "api:dev": "npm --workspace services/api-server run start:dev",
     "api:build": "npm --workspace services/api-server run prisma:generate && npm --workspace services/api-server run build",
     "api:zeabur:preflight": "node scripts/check-zeabur-env.mjs",
+    "api:acceptance": "node scripts/check-cloud-acceptance.mjs",
+    "api:acceptance:test": "node --test scripts/check-cloud-acceptance.test.mjs",
     "api:test:cloud-db": "npm --workspace services/api-server run prisma:generate && node scripts/test-cloud-database.mjs",
     "api:zeabur:start": "npm run api:zeabur:preflight && npm --workspace services/api-server run db:init && npm --workspace services/api-server run start",
     "api:test": "npm --workspace services/api-server run test",
@@ -26,6 +33,8 @@
     "placement:test": "node scripts/test-placement.mjs",
     "algorithm:test": "node scripts/test-local-algorithm.mjs",
     "concurrency:test": "node scripts/test-local-concurrency.mjs",
-    "scheduler:typecheck": "node scripts/typecheck-scheduler.mjs"
+    "scheduler:typecheck": "node scripts/typecheck-scheduler.mjs",
+    "cloud-shopping:test": "node scripts/test-cloud-shopping.mjs",
+    "cloud-shopping:typecheck": "node scripts/typecheck-cloud-shopping.mjs"
   }
 }

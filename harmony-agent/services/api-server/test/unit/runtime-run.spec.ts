@@ -9,6 +9,25 @@ function createRunService(scheduler: ResourceAwareSchedulerService) {
 }
 
 describe("RuntimeRunService", () => {
+  it("rejects plan replacement while the runner is executing", async () => {
+    const scheduler = { plan: jest.fn() } as unknown as ResourceAwareSchedulerService;
+    const service = createRunService(scheduler);
+    const original = executionPlan('ready');
+    const run = service.createPlanned(graph(), original);
+    run.status = 'running';
+    const replacement = executionPlan('blocked');
+    expect(() => service.updatePlan(run.runId, replacement, { ...graph(), goal: 'replacement' }))
+      .toThrow('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
+    expect(() => service.recordReplan(run.runId, 'new observation', 0, replacement))
+      .toThrow('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
+    await expect(service.attachGraph(run.runId, graph())).rejects.toThrow('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
+    expect(run.executionPlan).toBe(original);
+    expect(run.goal).toBe('检索商品');
+    expect(run.status).toBe('running');
+    expect(run.replanEvents).toEqual([]);
+    expect(scheduler.plan).not.toHaveBeenCalled();
+  });
+
   it("keeps the runId and scheduler result together for a planned graph", async () => {
     const plan = executionPlan("ready");
     const scheduler = {
@@ -124,12 +143,10 @@ describe("buildImageSearchTaskGraph", () => {
 
     expect(graph.graphId).toBe("image-search-asset_demo");
     expect(graph.nodes.map((node) => node.taskId)).toEqual([
-      "quality-check",
-      "crop",
-      "embedding",
-      "vector-search",
+      'receive', 'asset', 'quality-check', 'crop', 'category', 'product-profile', 'embedding',
+      'vector-search', 'price-stock', 'rank', 'answer', 'result',
     ]);
-    expect(graph.nodes[2].dependencies).toEqual(["crop"]);
+    expect(graph.nodes[6].dependencies).toEqual(["product-profile"]);
   });
 });
 

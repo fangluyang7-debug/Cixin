@@ -1,0 +1,64 @@
+{
+  "checkedAt": "2026-09-26T05:00:02.196Z",
+  "origin": "https://cixin.zeabur.app",
+  "runId": null,
+  "scope": "deployment-readiness-only",
+  "passed": false,
+  "checks": [
+    {
+      "name": "/api/v1/health",
+      "passed": false,
+      "detail": "HTTP 404; API envelope absent/failed"
+    },
+    {
+      "name": "api-process",
+      "passed": false,
+      "detail": "Expected api-server liveness"
+    },
+    {
+      "name": "/api/v1/health/readiness",
+      "passed": false,
+      "detail": "HTTP 404; API envelope absent/failed"
+    },
+    {
+      "name": "readiness:database",
+      "passed": false,
+      "detail": "A real successful dependency probe is required"
+    },
+    {
+      "name": "readiness:cos",
+      "passed": false,
+      "detail": "A real successful dependency probe is required"
+    },
+    {
+      "name": "readiness:chat",
+      "passed": false,
+      "detail": "A real successful dependency probe is required"
+    },
+    {
+      "name": "readiness:vision",
+      "passed": false,
+      "detail": "A real successful dependency probe is required"
+    },
+    {
+      "name": "readiness:embedding",
+      "passed": false,
+      "detail": "A real successful dependency probe is required"
+    },
+    {
+      "name": "/api/v1/runtime/tools",
+      "passed": false,
+      "detail": "HTTP 404; API envelope absent/failed"
+    },
+    {
+      "name": "deployed-workflow-version",
+      "passed": false,
+      "detail": "Missing tools: shopping.text, shopping.read, shopping.refine, shopping.stage.receive, shopping.stage.asset, shopping.stage.quality-check, shopping.stage.crop, shopping.stage.category, shopping.stage.product-profile, shopping.stage.embedding, shopping.stage.vector-search, shopping.stage.price-stock, shopping.stage.rank, shopping.stage.answer, shopping.stage.result"
+    }
+  ],
+  "remaining": [
+    "Native build and phone text/image UI evidence",
+    "Real failure, timeout and cancellation evidence",
+    "Product/index data compatibility and displayed result verification"
+  ]
+}

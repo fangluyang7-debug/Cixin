@@ -1,3 +1,4 @@
+// offline_diagnostic: packaged sample data / local model self-test; never a formal shopping fallback.
 import { NormalizationProgress, validateNormalizationProgress, appendNormalizationValues } from './NormalizationCheckpoint';
 import { collectVectorPartitions } from './VectorPartitionResults';
 import { parseSearchConstraints, matchesSearchConstraints, SearchConstraints } from './SearchConstraints';

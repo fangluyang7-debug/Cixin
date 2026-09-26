@@ -14,6 +14,10 @@ import { RuntimeRunService } from "../../core/runtime/runtime-run.service";
 import { RuntimeEventBusService } from "../../core/runtime/runtime-event-bus.service";
 import { createShoppingPlugin } from "../../core/runtime/shopping-plugin";
 import { RuntimeController } from "./controllers/runtime.controller";
+import { ExecutorRegistryService } from '../../core/runtime/executor-registry.service';
+import { RuntimeRunnerService } from '../../core/runtime/runtime-runner.service';
+import { CloudReadinessService } from '../../core/runtime/cloud-readiness.service';
+import { TencentCosStorageAdapterService } from '../../adapters/storage/tencent-cos-storage-adapter.service';
 
 @Injectable()
 class ShoppingPluginRegistration implements OnModuleInit {
@@ -30,6 +34,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
 @Module({
   controllers: [RuntimeController],
   providers: [
+    ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService, TencentCosStorageAdapterService,
     ToolRegistryService,
     PerformanceRegistryService,
     TelemetryService,
@@ -46,6 +51,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     ShoppingPluginRegistration,
   ],
   exports: [
+    ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService,
     ToolRegistryService,
     PerformanceRegistryService,
     TelemetryService,

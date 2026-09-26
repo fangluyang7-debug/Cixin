@@ -1,3 +1,4 @@
+import { RuntimeWorkScope } from '../../core/runtime/runtime-work-scope';
 import {
   Inject,
   Injectable,
@@ -516,6 +517,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
       max_tokens: options.maxTokens ?? 800,
     };
     let response = await fetch(endpoint, {
+      signal: RuntimeWorkScope.signal(60000),
       method: "POST",
       headers: {
         Authorization: `Bearer ${options.apiKey}`,
@@ -528,6 +530,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
       const { response_format: _responseFormat, ...bodyWithoutResponseFormat } =
         requestBody;
       response = await fetch(endpoint, {
+      signal: RuntimeWorkScope.signal(60000),
         method: "POST",
         headers: {
           Authorization: `Bearer ${options.apiKey}`,

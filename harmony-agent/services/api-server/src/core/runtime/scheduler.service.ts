@@ -197,7 +197,8 @@ export class ResourceAwareSchedulerService {
     const reasons: string[] = [];
     const cloudRoute = executor.placement === "cloud"
       ? estimateCloudRoute(task, executor.executorId) : null;
-    if (cloudRoute) reasons.push(...cloudRoute.reasons);
+    if (cloudRoute) reasons.push(...cloudRoute.reasons.filter(reason =>
+      !(tool.allowColdStart && reason === 'CLOUD_ROUTE_NOT_MEASURED')));
     const sample = this.performance.get(
       task.toolId,
       executor.executorId,
@@ -247,15 +248,22 @@ export class ResourceAwareSchedulerService {
       }
     }
 
+    if (tool.allowColdStart && constraints.costBudgetMinorUnits !== undefined &&
+        (cloudRoute?.feeMinorUnits === null || cloudRoute?.feeMinorUnits === undefined || cloudRoute.feeMinorUnits > constraints.costBudgetMinorUnits)) {
+      reasons.push('CLOUD_COST_BUDGET_NOT_VERIFIABLE');
+    }
+    if (tool.allowColdStart && constraints.energyBudgetMah !== undefined && sample?.energyMah == null) {
+      reasons.push('ENERGY_BUDGET_NOT_VERIFIABLE');
+    }
     const weights = normalizeWeights(tool.defaultWeights);
     let estimatedEndToEndMs: number | undefined;
-    if (!sample) {
-      reasons.push("REAL_PERFORMANCE_PROFILE_MISSING");
+    if (!sample || (tool.allowColdStart && sample.sampleCount === 0)) {
+      if (!tool.allowColdStart) reasons.push("REAL_PERFORMANCE_PROFILE_MISSING");
     } else {
-      if (sample.sampleCount < this.performance.getMinimumSamples()) {
+      if (!tool.allowColdStart && sample.sampleCount < this.performance.getMinimumSamples()) {
         reasons.push("REAL_PERFORMANCE_SAMPLE_COUNT_TOO_LOW");
       }
-      if (sample.p95LatencyMs === null) {
+      if (sample.p95LatencyMs === null && !tool.allowColdStart) {
         reasons.push("P95_LATENCY_METRIC_MISSING");
       }
       if (sample.memoryPeakMb === null &&
@@ -276,6 +284,10 @@ export class ResourceAwareSchedulerService {
           } else if (sample.latencyScope === "execution_only" && cloudRoute?.overheadMs !== null &&
               cloudRoute?.overheadMs !== undefined) {
             estimatedEndToEndMs = sample.p95LatencyMs + cloudRoute.overheadMs;
+          } else if (tool.allowColdStart && sample.latencyScope === 'execution_only') {
+            estimatedEndToEndMs = sample.p95LatencyMs;
+          } else if (tool.allowColdStart && sample.latencyScope === 'execution_only') {
+            estimatedEndToEndMs = sample.p95LatencyMs;
           } else {
             reasons.push("CLOUD_EXECUTION_BREAKDOWN_MISSING");
           }
@@ -384,7 +396,11 @@ export class ResourceAwareSchedulerService {
     const energies = samples.map((sample) => sample.energyMah as number);
     for (const candidate of candidates) {
       const sample = candidate.sample;
-      if (!sample) continue;
+      if (!sample || sample.sampleCount === 0) {
+        candidate.score = { latencyScore: 0, qualityScore: 0, energyScore: 0, reliabilityScore: 0, totalScore: 0 };
+        candidate.reasons.push('COLD_START_NO_PERFORMANCE_ESTIMATE');
+        continue;
+      }
       const latencyScore = lowerIsBetter(candidate.estimatedEndToEndMs as number, latencies);
       const qualityScore = higherIsBetter(sample.quality as number, qualities);
       const energyScore = lowerIsBetter(sample.energyMah as number, energies);

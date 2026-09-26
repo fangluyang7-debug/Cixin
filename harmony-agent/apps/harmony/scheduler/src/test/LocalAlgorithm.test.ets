@@ -41,14 +41,19 @@ function profile(): TaskProfile {
 
 export default function localAlgorithmTests(): void {
   describe('LocalAlgorithm', () => {
-    it('keeps critical path and serialized work distinct', () => {
+    it('keeps critical path and serialized work distinct', 0, () => {
       const nodes: WorkflowNode[] = [
         { id: 'start', templateId: 'a', dependsOn: [], failurePolicy: DependencyFailurePolicy.CANCEL_WORKFLOW },
         { id: 'long', templateId: 'b', dependsOn: ['start'], failurePolicy: DependencyFailurePolicy.CANCEL_WORKFLOW },
         { id: 'short', templateId: 'c', dependsOn: ['start'], failurePolicy: DependencyFailurePolicy.CANCEL_WORKFLOW },
         { id: 'join', templateId: 'd', dependsOn: ['long', 'short'], failurePolicy: DependencyFailurePolicy.CANCEL_WORKFLOW }
       ];
-      const plan = planWorkflowCosts(nodes, { start: 2, long: 40, short: 10, join: 5 });
+      const estimates: Record<string, number> = {};
+      estimates['start'] = 2;
+      estimates['long'] = 40;
+      estimates['short'] = 10;
+      estimates['join'] = 5;
+      const plan = planWorkflowCosts(nodes, estimates);
       expect(plan[0].criticalPathMs).assertEqual(47);
       expect(plan[0].serialRemainingMs).assertEqual(57);
       expect(estimatedWorkflowCompletion({ userVisible: true, userWaiting: true,
@@ -56,11 +61,11 @@ export default function localAlgorithmTests(): void {
         workflowRemainingSerialMs: 75, workflowCurrentNodeEstimateMs: 40 }, 60)).assertEqual(95);
     });
 
-    it('raises urgency as the workflow deadline approaches', () => {
+    it('raises urgency as the workflow deadline approaches', 0, () => {
       expect(workflowUrgencyBonus(100, 80, 10, 40) > workflowUrgencyBonus(100, 0, 10, 40)).assertTrue();
     });
 
-    it('uses actual samples only for matching profile bucket', () => {
+    it('uses actual samples only for matching profile bucket', 0, () => {
       const cost = new AdaptiveCostModel();
       const task = profile(); const current = state();
       const execution: ExecutionProfile = task.template!.manifest!.profiles[0];
@@ -71,19 +76,24 @@ export default function localAlgorithmTests(): void {
       expect(trained.sampleCount).assertEqual(20);
       expect(trained.p95LatencyMs).assertEqual(20);
       expect(trained.latencyMs < prior).assertTrue();
-      expect(cost.predict(task, current, { ...execution, id: 'OTHER' }, level).sampleCount).assertEqual(0);
+      const other: ExecutionProfile = profile().template!.manifest!.profiles[0];
+      other.id = 'OTHER';
+      expect(cost.predict(task, current, other, level).sampleCount).assertEqual(0);
     });
 
-    it('requires measured validated profiles for marginal acceleration', () => {
+    it('requires measured validated profiles for marginal acceleration', 0, () => {
       const base: ExecutionProfile = profile().template!.manifest!.profiles[0];
-      const alternative: ExecutionProfile = { ...base, id: 'ALT', workerCount: 4 };
+      const alternative: ExecutionProfile = profile().template!.manifest!.profiles[0];
+      alternative.id = 'ALT';
+      alternative.workerCount = 4;
       const measured: ResourcePrediction = { latencyMs: 100, sampleCount: 10, memoryMb: 32,
         relativeEnergyCost: 1, thermalRisk: 0, deadlineMissRisk: 0, confidence: 0.7, source: 'test' };
-      const faster: ResourcePrediction = { ...measured, latencyMs: 60 };
+      const faster: ResourcePrediction = { latencyMs: 60, sampleCount: 10, memoryMb: 32,
+        relativeEnergyCost: 1, thermalRisk: 0, deadlineMissRisk: 0, confidence: 0.7, source: 'test' };
       expect(marginalAccelerationBonus(base, measured,
         alternative, faster, 100) > 0).assertTrue();
-      expect(marginalAccelerationBonus(base, measured,
-        { ...alternative, qualityValidated: false }, faster, 100)).assertEqual(0);
+      alternative.qualityValidated = false;
+      expect(marginalAccelerationBonus(base, measured, alternative, faster, 100)).assertEqual(0);
     });
   });
 }

@@ -1,6 +1,6 @@
 import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.AbilityKit';
 import { hilog } from '@kit.PerformanceAnalysisKit';
-import { DataInitService } from '../services/DataInitService';
+import { CloudApiConfig } from '../services/CloudApiConfig';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
 import { LocalPolicyStore } from '../services/LocalPolicyStore';
 import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher';
@@ -37,40 +37,17 @@ export default class EntryAbility extends UIAbility {
     }
     hilog.info(DOMAIN, 'testTag', '%{public}s', 'Ability onCreate');
 
-    // Initialize local database and load sample JSON data if empty
-    DataInitService.checkAndInitData(this.context);
+    // Local data and models are reserved for offline_diagnostic.
 
     const schedulerConfig: SchedulerConfig = {
       policyStateStore: new LocalPolicyStore(this.context),
       defaultPolicyMode: PolicyMode.ADAPTIVE,
-      enableDebugInjection: true,
+      enableDebugInjection: false,
       metricsWindowSize: 100,
       upgradeStableDurationMs: 10000,
       minimumTierHoldMs: 5000,
-      executors: [
-        {
-          capability: 'text_product_embedding_search',
-          inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-          backend: Backend.CPU,
-          supportedModelTiers: [
-            ModelTier.HIGH_ACCURACY,
-            ModelTier.BALANCED,
-            ModelTier.LIGHTWEIGHT
-          ],
-          supportedThreadCounts: [1, 2, 4]
-        },
-        {
-          capability: 'image_product_embedding_search',
-          inferenceLocation: InferenceLocation.LOCAL_DEVICE,
-          backend: Backend.CPU,
-          supportedModelTiers: [
-            ModelTier.HIGH_ACCURACY,
-            ModelTier.BALANCED,
-            ModelTier.LIGHTWEIGHT
-          ],
-          supportedThreadCounts: [1, 2, 4]
-        }
-      ]
+      executors: [{ capability: 'product_search', inferenceLocation: InferenceLocation.REMOTE_CLOUD,
+        provider: 'cloud-shopping-api', maxConcurrency: 2 }]
     };
     this.schedulerStartup = this.startScheduler(schedulerConfig);
     this.schedulerStartup.then(() => {
@@ -132,6 +109,7 @@ export default class EntryAbility extends UIAbility {
   }
 
   private async startScheduler(config: SchedulerConfig): Promise<void> {
+    await CloudApiConfig.load(this.context);
     await this.schedulerService.initialize(config);
     if (this.destroyed) {
       await this.schedulerService.shutdown();

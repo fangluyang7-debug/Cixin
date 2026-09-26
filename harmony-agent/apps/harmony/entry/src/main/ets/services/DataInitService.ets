@@ -1,3 +1,4 @@
+// offline_diagnostic: packaged sample data / local model self-test; never a formal shopping fallback.
 import { StoreManager } from '../database/StoreManager';
 import { ProductJsonItem } from '../models/Product';
 import hilog from '@ohos.hilog';

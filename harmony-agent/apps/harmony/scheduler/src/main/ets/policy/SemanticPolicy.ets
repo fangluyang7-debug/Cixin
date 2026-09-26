@@ -77,8 +77,10 @@ export class SemanticPolicy {
       const level: QualityLevel = template.qualityLevels[i];
       if (maximumTier !== undefined && qualityRank(level.modelTier) > qualityRank(maximumTier)) { continue; }
       if (qualityRank(level.modelTier) < floor) { continue; }
-      if (constrained && qualityRank(level.modelTier) > 0) { continue; }
-      if (unknown && qualityRank(level.modelTier) > 1) { continue; }
+      // Phone compute limits cannot downgrade a model that runs on the cloud.
+      // Critical device protection and transfer-memory checks still apply.
+      if (!remote && constrained && qualityRank(level.modelTier) > 0) { continue; }
+      if (!remote && unknown && qualityRank(level.modelTier) > 1) { continue; }
       const usable: Backend[] = level.supportedBackends.filter((item: Backend) =>
         state.availableBackends.indexOf(item) >= 0);
       if (!remote && usable.length === 0) { continue; }
@@ -159,7 +161,7 @@ export class SemanticPolicy {
       this.profileCosts.observe(profile, state, plan.executionProfile, durationMs);
       return;
     }
-    const key: string = this.key(profile, state, plan.executionProfile?.id ?? plan.qualityLevelId ?? '',
+    const key: string = this.key(profile, state, plan.qualityLevelId ?? '',
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).backend : Backend.CPU,
       plan.inferenceLocation === InferenceLocation.LOCAL_DEVICE ? (plan as LocalExecutionPlan).threadCount : 1);
     const previous: CostObservation | undefined = this.observations.get(key);

@@ -28,7 +28,7 @@ describe("CloudPlatformAdapterService", () => {
     expect(
       executors.some((executor) =>
         executor.availabilityReason?.includes(
-          "PROVIDER_SPECIFIC_PROBE_NOT_IMPLEMENTED",
+          "CAPABILITY_PROBE_NOT_PASSED",
         ),
       ),
     ).toBe(true);

@@ -15,7 +15,7 @@ import {
   SearchEventsService,
   SessionSearchEvent,
 } from "../application/search-events.service";
-import { SessionsService } from "../application/sessions.service";
+import { ShoppingRuntimeService } from "../application/shopping-runtime.service";
 import { CreateSessionDto } from "../dto/create-session.dto";
 import { CreateTextSessionDto } from "../dto/create-text-session.dto";
 import { UpdateSubjectSelectionDto } from "../dto/subject-selection.dto";
@@ -24,7 +24,7 @@ import { UpdateProductProfileDto } from "../dto/update-product-profile.dto";
 @Controller("api/v1/sessions")
 export class SessionsController {
   constructor(
-    private readonly sessionsService: SessionsService,
+    private readonly runtime: ShoppingRuntimeService,
     private readonly searchEvents: SearchEventsService,
     private readonly auth: AuthService,
   ) {}
@@ -36,9 +36,7 @@ export class SessionsController {
   ) {
     const user = await this.auth.getUserFromAuthorization(authorization);
     return ok(
-      await this.sessionsService.createSession(dto, {
-        userId: user?.userId ?? null,
-      }),
+      await this.runtime.execute('shopping.image', { dto, userId: user?.userId ?? null }),
     );
   }
 
@@ -49,15 +47,13 @@ export class SessionsController {
   ) {
     const user = await this.auth.getUserFromAuthorization(authorization);
     return ok(
-      await this.sessionsService.createTextSession(dto, {
-        userId: user?.userId ?? null,
-      }),
+      await this.runtime.execute('shopping.text', { dto, userId: user?.userId ?? null }),
     );
   }
 
   @Get(":sessionId")
   async getSession(@Param("sessionId") sessionId: string) {
-    return ok(await this.sessionsService.getSession(sessionId));
+    return ok(await this.runtime.execute('shopping.read', { sessionId }));
   }
 
   @Post(":sessionId/subject-selection")
@@ -66,7 +62,7 @@ export class SessionsController {
     @Body() dto: UpdateSubjectSelectionDto,
   ) {
     return ok(
-      await this.sessionsService.updateSubjectSelection(sessionId, dto),
+      await this.runtime.execute('shopping.subject', { sessionId, dto }),
     );
   }
 
@@ -75,12 +71,12 @@ export class SessionsController {
     @Param("sessionId") sessionId: string,
     @Body() dto: UpdateProductProfileDto,
   ) {
-    return ok(await this.sessionsService.updateProductProfile(sessionId, dto));
+    return ok(await this.runtime.execute('shopping.profile', { sessionId, dto }));
   }
 
   @Post(":sessionId/candidates/refine")
   async refineCandidates(@Param("sessionId") sessionId: string) {
-    return ok(await this.sessionsService.refineCandidates(sessionId));
+    return ok(await this.runtime.execute('shopping.refine', { sessionId }));
   }
 
   @Sse(":sessionId/search-events")

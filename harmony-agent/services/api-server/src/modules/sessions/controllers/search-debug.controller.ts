@@ -10,18 +10,14 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ok } from '../../../common/dto/api-response.dto';
 import { AssetsService } from '../../assets/application/assets.service';
 import { UploadedImageFile } from '../../assets/dto/uploaded-image-file';
-import { SearchDebugService } from '../application/search-debug.service';
+import { ShoppingRuntimeService } from '../application/shopping-runtime.service';
 import { NormalizedSubjectBoxDto } from '../dto/subject-selection.dto';
-import { RuntimeRunService } from '../../../core/runtime/runtime-run.service';
-import { buildImageSearchTaskGraph } from '../../../core/runtime/image-search-task-graph';
-import { RuntimeOperationStep } from '../../../core/runtime/runtime.contracts';
 
 @Controller('api/v1/debug')
 export class SearchDebugController {
   constructor(
     private readonly assetsService: AssetsService,
-    private readonly searchDebugService: SearchDebugService,
-    private readonly runtimeRuns: RuntimeRunService,
+    private readonly shoppingRuntime: ShoppingRuntimeService,
   ) {}
 
   @Post('image-search')
@@ -47,48 +43,18 @@ export class SearchDebugController {
       file,
     );
 
-    const runtimeRun = await this.runtimeRuns.attachGraph(
-      this.optionalString(body.runtimeRunId),
-      buildImageSearchTaskGraph(asset.assetId),
-    );
-
-    try {
-      const result = await this.searchDebugService.run({
-        assetId: asset.assetId,
-        box: this.parseBox(body),
-        categoryHint: this.optionalString(body.categoryHint),
-        topK: this.optionalNumber(body.topK),
-        minScore: this.optionalNumber(body.minScore),
-        resultLimit: this.optionalNumber(body.resultLimit),
-        embeddingKind: this.optionalEmbeddingKind(body.embeddingKind),
-        runDetailed: this.optionalBoolean(body.runDetailed),
-        runRefined: this.optionalBoolean(body.runRefined),
-      });
-
-      const operationTimeline = Array.isArray(result.timeline)
-        ? result.timeline.map((step) => ({
-            key: step.key,
-            label: step.label,
-            startedAtMs: step.startedAtMs,
-            endedAtMs: step.endedAtMs,
-            durationMs: step.durationMs,
-            status: step.status,
-            ...(step.error ? { error: step.error } : {}),
-          })) satisfies RuntimeOperationStep[]
-        : [];
-      this.runtimeRuns.recordOperationTimeline(runtimeRun.runId, operationTimeline);
-      return ok({
-        upload: asset,
-        ...result,
-        runtime: this.runtimeRuns.complete(runtimeRun.runId, 'image_search_completed'),
-      });
-    } catch (error) {
-      this.runtimeRuns.fail(
-        runtimeRun.runId,
-        error instanceof Error ? error.message : 'IMAGE_SEARCH_FAILED',
-      );
-      throw error;
-    }
+    const result = await this.shoppingRuntime.execute('shopping.debug', { dto: {
+      assetId: asset.assetId,
+      box: this.parseBox(body),
+      categoryHint: this.optionalString(body.categoryHint),
+      topK: this.optionalNumber(body.topK),
+      minScore: this.optionalNumber(body.minScore),
+      resultLimit: this.optionalNumber(body.resultLimit),
+      embeddingKind: this.optionalEmbeddingKind(body.embeddingKind),
+      runDetailed: this.optionalBoolean(body.runDetailed),
+      runRefined: this.optionalBoolean(body.runRefined),
+    } });
+    return ok({ upload: asset, ...result });
   }
 
   private parseBox(body: Record<string, unknown>): NormalizedSubjectBoxDto {

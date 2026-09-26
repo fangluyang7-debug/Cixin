@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Optional } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   ExecutorDescriptor,
@@ -8,13 +8,14 @@ import {
   PlatformProfile,
   RuntimeState,
 } from "./runtime.contracts";
+import { CloudReadinessService } from "./cloud-readiness.service";
 import { PlatformAdapter } from "./platform-adapter.interface";
 
 @Injectable()
 export class CloudPlatformAdapterService implements PlatformAdapter {
   readonly platformId = "cloud" as const;
 
-  constructor(private readonly config: ConfigService) {}
+  constructor(private readonly config: ConfigService, @Optional() private readonly readiness?: CloudReadinessService) {}
 
   async getStaticProfile(): Promise<PlatformProfile> {
     const backends = await this.discoverExecutors();
@@ -63,13 +64,34 @@ export class CloudPlatformAdapterService implements PlatformAdapter {
   }
 
   async discoverExecutors(): Promise<ExecutorDescriptor[]> {
+    const health = await this.readiness?.check();
     const endpoints = [
       this.endpoint("cloud-vision", "modelProviders.vision", "neural_inference"),
       this.endpoint("cloud-chat", "modelProviders.chat", "neural_inference"),
       this.endpoint("cloud-embedding", "embedding", "neural_inference"),
     ];
     const marketplace = this.marketplaceExecutor();
-    return [...endpoints, marketplace];
+    for (const executor of endpoints) {
+      const kind = executor.executorId.replace('cloud-', '');
+      if (health?.checks[kind]?.available) {
+        const prefix = kind === 'embedding' ? kind : 'modelProviders.' + kind;
+        const model = this.config.get<string>(prefix + '.modelName');
+        executor.available = true;
+        executor.availabilityReason = undefined;
+        executor.supportedComputeClasses = ['neural_inference'];
+        executor.supportedModels = model ? [model] : [];
+        executor.capabilities = [kind];
+        executor.source = 'live-model-capability-probe';
+      }
+    }
+    return [...endpoints, marketplace, {
+      executorId: 'zeabur-shopping-workflow', backend: 'cloud_api', placement: 'cloud',
+      available: health?.available === true,
+      availabilityReason: health?.available ? undefined : 'ZEABUR_DEPENDENCIES_NOT_READY:' +
+        Object.entries(health?.checks ?? {}).filter(([, value]) => !value.available).map(([key]) => key).join(','),
+      supportedComputeClasses: ['network'], supportedModels: [], totalMemoryMb: null,
+      source: 'live-dependency-probes', capabilities: ['shopping.workflow'],
+    }];
   }
 
   async probeModel(
@@ -77,13 +99,13 @@ export class CloudPlatformAdapterService implements PlatformAdapter {
     request: ModelProbeRequest,
   ): Promise<ModelProbeResult> {
     return {
-      supported: false,
+      supported: executor.available && (request.modelId === undefined || executor.supportedModels.includes(request.modelId)),
       executorId: executor.executorId,
       modelId: request.modelId,
-      evidence: "provider-specific health and model probe is not implemented",
+      evidence: executor.source,
       reason:
         executor.availabilityReason ??
-        "REMOTE_MODEL_PROBE_REQUIRES_PROVIDER_SPECIFIC_HEALTH_CHECK",
+        "REMOTE_MODEL_CAPABILITY_NOT_CONFIRMED",
       checkedAt: new Date().toISOString(),
     };
   }
@@ -104,7 +126,7 @@ export class CloudPlatformAdapterService implements PlatformAdapter {
     const availabilityReason =
       missing.length > 0
         ? `CLOUD_ENDPOINT_NOT_CONFIGURED:${prefix}:${missing.join(",")}`
-        : "CLOUD_PROVIDER_SPECIFIC_PROBE_NOT_IMPLEMENTED";
+        : "CLOUD_CAPABILITY_PROBE_NOT_PASSED";
     return {
       executorId,
       backend: "cloud_api",

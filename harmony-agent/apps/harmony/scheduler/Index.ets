@@ -1,3 +1,4 @@
+export { CloudClientTiming } from './src/main/ets/api/SchedulerTypes';
 export {
   AccuracyPreference,
   AppVisibility,

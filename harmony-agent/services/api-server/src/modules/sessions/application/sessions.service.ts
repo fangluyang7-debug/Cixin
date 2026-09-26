@@ -2358,6 +2358,28 @@ export class SessionsService {
     );
   }
 
+  async runtimePriceView(sessionId: string) {
+    const result = await this.readRuntimeSession(sessionId);
+    return { ...result, priceSource: 'persisted_candidate_snapshot', prices: result.candidates.items.map(item => ({
+      candidateItemId: item.candidateItemId, price: item.price, stockStatus: item.stockStatus,
+    })) };
+  }
+
+  async runtimeAnswerView(sessionId: string) {
+    const result = await this.readRuntimeSession(sessionId);
+    return { ...result, assistantMessage: { kind: 'catalog_summary', candidateCount: result.candidates.items.length,
+      text: result.candidates.items.length ? '请根据价格、库存和来源平台比较当前候选商品。' : '当前没有商品候选，请调整需求。' } };
+  }
+
+  async readRuntimeSession(sessionId: string) {
+    return { ...(await this.getSession(sessionId)), candidates: await this.candidatesService.getCurrentCandidates(sessionId) };
+  }
+
+  async writeRuntimeCandidateSnapshot(input: {
+    sessionId: string; turnIndex: number; candidates: CandidateSeed[];
+    fallback: SearchResult['fallback']; appliedFilter: Record<string, unknown>;
+  }) { return this.writeCandidateSnapshot(input); }
+
   private async writeCandidateSnapshot(input: {
     sessionId: string;
     turnIndex: number;

@@ -1,27 +1,42 @@
 import { ConfigService } from '@nestjs/config';
+import { CloudReadinessService } from '../../src/core/runtime/cloud-readiness.service';
 import { HealthController } from '../../src/modules/health/controllers/health.controller';
 import { PrismaService } from '../../src/persistence/prisma/prisma.service';
+import { TencentCosStorageAdapterService } from '../../src/adapters/storage/tencent-cos-storage-adapter.service';
 
-describe('HealthController readiness', () => {
-  const storage = {
-    provider: 'tencent_cos', region: 'ap-test', secretId: 'not-printed',
-    secretKey: 'not-printed', buckets: {
-      compressedRecognition: 'recognition', originalSource: 'original', demoAssets: 'demo',
-    },
-  };
-
-  it('checks the database and reports COS configuration without exposing secrets', async () => {
-    const prisma = { $queryRaw: jest.fn().mockResolvedValue([{ '1': 1 }]) } as unknown as PrismaService;
-    const controller = new HealthController(prisma, new ConfigService({ objectStorage: storage }));
-    const result = await controller.getReadiness();
-    expect(result.data).toEqual({ database: 'connected', objectStorage: 'configured_not_probed' });
-    expect(JSON.stringify(result)).not.toContain('not-printed');
-    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
+describe('Cloud readiness', () => {
+  const originalFetch = global.fetch;
+  afterEach(() => { global.fetch = originalFetch; });
+  function fixture() {
+    const model = { baseUrl: 'https://provider.invalid/v1', apiKey: 'test', modelName: 'model' };
+    const prisma = { product: { findFirst: jest.fn().mockResolvedValue({ id: 'p' }) } };
+    const storage = { probeReadWrite: jest.fn().mockResolvedValue(undefined) };
+    const readiness = new CloudReadinessService(prisma as unknown as PrismaService,
+      new ConfigService({ modelProviders: { chat: model, vision: model }, embedding: model }),
+      storage as unknown as TencentCosStorageAdapterService);
+    return { readiness, prisma, storage };
+  }
+  it('requires successful DB, COS and model probes and coalesces concurrent checks', async () => {
+    global.fetch = jest.fn().mockImplementation(async (url: string) => ({ ok: true,
+      json: async () => url.endsWith('/embeddings/multimodal') ? { data: [{ embedding: [1, 2] }] } : { choices: [{ message: { content: 'OK' } }] } }));
+    const { readiness, prisma, storage } = fixture();
+    const [left, right] = await Promise.all([readiness.check(), readiness.check()]);
+    expect(left.available).toBe(true); expect(right).toBe(left); await readiness.check();
+    expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
+    expect(storage.probeReadWrite).toHaveBeenCalledTimes(1); expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(JSON.stringify(left)).not.toContain('apiKey');
   });
-
-  it('fails readiness when the mounted database is unavailable', async () => {
-    const prisma = { $queryRaw: jest.fn().mockRejectedValue(new Error('disk unavailable')) } as unknown as PrismaService;
-    const controller = new HealthController(prisma, new ConfigService({ objectStorage: storage }));
-    await expect(controller.getReadiness()).rejects.toMatchObject({ status: 503 });
+  it('blocks when configured models fail', async () => {
+    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+    const { readiness } = fixture();
+    await expect(new HealthController(readiness).getReadiness()).rejects.toThrow();
+    expect((await readiness.check()).checks.vision.available).toBe(false);
+  });
+  it('does not treat COS configuration as a successful probe', async () => {
+    global.fetch = jest.fn().mockRejectedValue(new Error('unavailable'));
+    const { readiness, storage } = fixture(); storage.probeReadWrite.mockRejectedValue(new Error('private url'));
+    const result = await readiness.check();
+    expect(result.available).toBe(false); expect(result.checks.cos.reason).toBe('COS_PROBE_FAILED');
+    expect(JSON.stringify(result)).not.toContain('private url');
   });
 });

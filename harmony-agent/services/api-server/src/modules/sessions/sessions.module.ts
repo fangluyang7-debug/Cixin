@@ -1,3 +1,6 @@
+import { ShoppingImageStagesService } from './application/shopping-image-stages.service';
+import { ShoppingTaskController } from './controllers/shopping-task.controller';
+import { ShoppingRuntimeService } from './application/shopping-runtime.service';
 import { Module } from '@nestjs/common';
 import { CacheModule } from '../../cache/cache.module';
 import { AssetsModule } from '../assets/assets.module';
@@ -43,8 +46,9 @@ import { SearchDebugController } from './controllers/search-debug.controller';
     UserMemoryModule,
     RuntimeModule,
   ],
-  controllers: [SessionsController, SearchDebugController],
+  controllers: [ShoppingTaskController, SessionsController, SearchDebugController],
   providers: [
+    ShoppingRuntimeService, ShoppingImageStagesService,
     SessionsService,
     SearchDebugService,
     SearchEventsService,
