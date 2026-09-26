@@ -77,8 +77,10 @@ export class SemanticPolicy {
       const level: QualityLevel = template.qualityLevels[i];
       if (maximumTier !== undefined && qualityRank(level.modelTier) > qualityRank(maximumTier)) { continue; }
       if (qualityRank(level.modelTier) < floor) { continue; }
-      if (constrained && qualityRank(level.modelTier) > 0) { continue; }
-      if (unknown && qualityRank(level.modelTier) > 1) { continue; }
+      // Device compute pressure does not downgrade a model that runs remotely.
+      // Critical protection and transfer-memory checks still apply.
+      if (!remote && constrained && qualityRank(level.modelTier) > 0) { continue; }
+      if (!remote && unknown && qualityRank(level.modelTier) > 1) { continue; }
       const usable: Backend[] = level.supportedBackends.filter((item: Backend) =>
         state.availableBackends.indexOf(item) >= 0);
       if (!remote && usable.length === 0) { continue; }

@@ -65,6 +65,8 @@ export interface ToolExecutionPolicy {
 }
 
 export interface ToolDescriptor {
+  // Explicit opt-in for bounded cold-start execution; never a performance sample.
+  allowColdStart?: boolean;
   toolId: string;
   version: string;
   description: string;
@@ -111,6 +113,9 @@ export interface FallbackPolicy {
 }
 
 export interface TaskIntent {
+  taskType?: "foreground_realtime" | "user_initiated" | "background_batch";
+  deviceProfile?: Record<string, unknown>;
+  networkProfile?: Record<string, unknown>;
   taskId: string;
   toolId: string;
   inputRef: string;
@@ -119,9 +124,32 @@ export interface TaskIntent {
   dependencies?: string[];
   checkpointPolicy?: CheckpointPolicy;
   fallbackPolicy?: FallbackPolicy;
+  // One observed route per candidate executor. Credentials and signed URLs stay out of the graph.
+  cloudRoutes?: CloudRouteObservation[];
+}
+
+export interface CloudRouteObservation {
+  executorId: string;
+  inputResidence: "device" | "zeabur_volume" | "cos" | "external_api";
+  outputDestination?: "device" | "zeabur_volume" | "cos" | "external_api";
+  accessMode: "inline_transfer" | "signed_object_url" | "co_located";
+  transferAuthorized: boolean;
+  inputBytes: number;
+  outputBytes: number;
+  roundTripMs: number;
+  uploadMbps: number;
+  downloadMbps: number;
+  storageReadMs: number;
+  storageWriteMs?: number;
+  queueMs: number;
+  estimatedFeeMinorUnits?: number;
+  accessExpiresAt?: string;
+  observedAt: string;
+  source: "measured" | "declared";
 }
 
 export interface TaskGraph {
+  clientTaskId?: string;
   graphId: string;
   goal: string;
   nodes: TaskIntent[];
@@ -208,6 +236,21 @@ export interface PerformanceSample {
   noFallbackRate: number | null;
   measuredAt: string;
   source: string;
+  latencyScope?: "execution_only" | "end_to_end" | "unknown";
+  cloudExecutionP95Ms?: number | null;
+}
+
+export interface CloudExecutionFeedback {
+  inputBytes: number;
+  outputBytes: number;
+  uploadMs: number;
+  storageReadMs: number;
+  storageWriteMs?: number;
+  queueMs: number;
+  executionMs: number;
+  downloadMs: number;
+  feeMinorUnits?: number;
+  providerStatus?: string;
 }
 
 export interface TelemetryRecord {
@@ -219,6 +262,8 @@ export interface TelemetryRecord {
   startedAt: string;
   finishedAt: string;
   latencyMs: number;
+  latencyScope?: "execution_only" | "end_to_end";
+  cloud?: CloudExecutionFeedback;
   memoryPeakMb: number;
   energyMah?: number | null;
   quality?: number | null;
@@ -244,6 +289,9 @@ export interface CandidateEvaluation {
   reasons: string[];
   sample: PerformanceSample | null;
   score: ScoreBreakdown | null;
+  estimatedEndToEndMs?: number;
+  cloudOverheadMs?: number;
+  estimatedFeeMinorUnits?: number;
 }
 
 export interface MissingRequirement {
@@ -264,7 +312,13 @@ export interface ExecutionAssignment {
   weights: ObjectiveWeights;
   reasons: string[];
   plannedAt: string;
-  status: "planned";
+  status: "planned" | "running" | "succeeded" | "failed" | "cancelled" | "timed_out" | "blocked";
+  startedAt?: string;
+  finishedAt?: string;
+  errorCode?: string;
+  estimatedEndToEndMs?: number;
+  cloudOverheadMs?: number;
+  estimatedFeeMinorUnits?: number;
 }
 
 export interface ExecutionPlan {
@@ -298,7 +352,7 @@ export interface RuntimeSnapshot {
   capturedAt: string;
 }
 
-export type RuntimeRunStatus = "planning" | "ready" | "blocked" | "completed" | "failed";
+export type RuntimeRunStatus = "planning" | "ready" | "running" | "blocked" | "completed" | "failed" | "cancelled" | "timed_out";
 
 export interface RuntimeVerificationEvent {
   taskId: string;
@@ -326,6 +380,7 @@ export interface RuntimeOperationStep {
 }
 
 export interface RuntimeRun {
+  clientTelemetry?: { taskId: string; observedAt: string; timing: Record<string, number | null> };
   runId: string;
   goal: string;
   taskGraph: TaskGraph | null;

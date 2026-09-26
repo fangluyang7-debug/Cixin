@@ -456,7 +456,18 @@ export interface TaskCheckpoint {
   data?: Object;
 }
 
+export interface CloudClientTiming {
+  requestMs: number;
+  uploadMs: number | null;
+  downloadMs: number | null;
+  inputBytes: number;
+  outputBytes: number;
+}
+
 export interface ExecutorTelemetry {
+  cloudTiming?: CloudClientTiming;
+  cloudRunId?: string;
+  cloudTaskId?: string;
   profileId?: string;
   actualModelTier?: ModelTier;
   retrievalDimensions?: number;

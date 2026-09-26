@@ -95,6 +95,33 @@ check('new cost model feeds the existing constrained policy safely', () => {
   assert.equal(plan.queueAction, types.QueueAction.ENQUEUE);
   assert.equal(plan.prediction.source, 'PROFILE_PRIOR_UNCALIBRATED');
 });
+check('remote cloud quality is not downgraded by local device pressure', () => {
+  const remoteLevel = { id: 'cloud', modelTier: types.ModelTier.HIGH_ACCURACY,
+    estimatedLatencyMs: 100, estimatedMemoryMb: 32, relativeEnergyCost: 1,
+    supportedBackends: [types.Backend.CPU], supportedThreadCounts: [1] };
+  const profile = { taskType: types.TaskType.USER_INITIATED,
+    inferenceLocation: types.InferenceLocation.REMOTE_CLOUD, capability: 'product_search',
+    accuracyPreference: types.AccuracyPreference.QUALITY_FIRST, latencyBudgetMs: 3000,
+    allowDegrade: false, allowPause: false, timeoutMs: 3000,
+    remoteOptions: { provider: 'cloud-shopping-api', maxRetries: 0, maxConcurrency: 1, allowLocalFallback: false },
+    context: { userVisible: true, userWaiting: true, accuracyFloor: types.ModelTier.HIGH_ACCURACY,
+      deadlineMs: 3000, freshnessMs: 3000, networkAllowed: true, highQuality: true },
+    template: { capability: 'product_search', taskType: types.TaskType.USER_INITIATED,
+      inferenceLocation: types.InferenceLocation.REMOTE_CLOUD, privacyPolicy: types.PrivacyPolicy.REMOTE_ALLOWED,
+      qualityLevels: [remoteLevel], resourceHints: { modelVersion: 'zeabur-shopping-workflow-v1' } } };
+  const pressured = { batteryApplicable: false, batteryPercent: null, isCharging: null,
+    thermalLevel: types.ThermalLevel.HOT, memoryPressure: types.MemoryPressure.HIGH,
+    appVisibility: types.AppVisibility.FOREGROUND, recentLatencyMs: null, queueDepth: 0,
+    systemCpuUsage: 90, appCpuUsage: null, totalMemoryMb: 4096, freeMemoryMb: 256,
+    availableMemoryMb: 256, availableBackends: [], source: types.DeviceStateSource.REAL,
+    capturedAt: Date.now() };
+  const plan = new SemanticPolicy().evaluate(profile, pressured, types.PolicyMode.ADAPTIVE);
+  assert.equal(plan.queueAction, types.QueueAction.ENQUEUE);
+  assert.equal(plan.qualityLevelId, 'cloud');
+  pressured.thermalLevel = types.ThermalLevel.CRITICAL;
+  assert.equal(new SemanticPolicy().evaluate(profile, pressured, types.PolicyMode.ADAPTIVE).queueAction,
+    types.QueueAction.REJECT);
+});
 check('interference waits for solo baselines and learns a pair', () => {
   const model = new InterferenceModel();
   model.observe('a:v1:P', 'b:v1:P', 200, 100, 0);

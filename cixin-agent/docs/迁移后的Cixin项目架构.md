@@ -1,19 +1,19 @@
 # 迁移后的 Cixin 项目架构
 
-更新日期：2026-09-24。本文描述本目录实际代码，区分宿主机验证和开发板验收。
+更新日期：2026-09-26。本文描述本目录实际代码，区分共享 Harmony 链路、宿主机验证和开发板验收。
 
 ## 1. 迁移位置与原则
 
-迁移来源为仓库 `harmony/mobile-scheduler` 分支的 `harmony-agent`，源提交和逐文件 SHA-256 记录在 [migration-manifest.json](../migration-manifest.json)。迁移成果位于新分支 `codex/cixin-multi-device-runtime` 的同级目录 `cixin-agent`。原分支、`harmony-agent`、`shopping-assistant` 不修改。
+调度核心最初迁移自 `harmony/mobile-scheduler`，当前共享基线已更新到 `codex/cixin-multi-device-runtime` 的 Harmony 实现；源提交和逐文件 SHA-256 记录在 [migration-manifest.json](../migration-manifest.json)。Cixin 保留 Node/Linux 必需的适配，但共享的调度语义、任务画像与云端遥测以 `harmony-agent` 为准。
 
 ```text
 Cixin/                         内层 Git 仓库
-├── harmony-agent/             鸿蒙项目，只读参考
+├── harmony-agent/             共用 App、调度基线与 Zeabur 业务服务
 ├── shopping-assistant/         原 Cixin 购物应用，只读参考
-└── cixin-agent/                本次新增：P1 主控 / 多板 Runtime
+└── cixin-agent/                P1 主控 / 多板 Runtime 扩展
 ```
 
-源项目最新的跨设备实现是 LOCAL_ONLY/SHADOW 候选评估，还没有网络派发。迁移既转换其已有算法，也增加能连接真实节点的 HTTP 执行协议。没有把源文档中尚未实现的设计算作现成能力。
+共享 App 的正式购物链路现在由 `harmony-agent` 调度后调用 Zeabur。Cixin Runtime 继续增加真实开发板 HTTP 执行协议；本次没有把它虚构成已经注册到 Zeabur 的购物执行器。
 
 本项目采用原 Cixin 文档的职责划分：**App 注册业务工具，Agent 提出任务图，P1 Runtime 校验与编排，Scheduler 选择资源，Platform Adapter 提供真实状态，Executor 完成计算，Telemetry 记录结果。** 购物只是一个插件，不进入调度算法。
 

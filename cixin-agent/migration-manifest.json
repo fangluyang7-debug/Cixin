@@ -1,7 +1,7 @@
 {
-  "sourceBranch": "harmony/mobile-scheduler",
-  "sourceCommit": "b24497e4b4fa86ddd38f696ff0a92d968ac6b590",
-  "sourceTree": "572d28e83866885737cd2a7b73a606a3e004713b",
+  "sourceBranch": "codex/cixin-multi-device-runtime",
+  "sourceCommit": "88109953a115ff36a02ca4468299e2b290d24b85",
+  "sourceTree": "30ace0f4b70b0d8a1db1b0ae45c04d1107973e26",
   "files": [
     {
       "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerClient.ets",
@@ -21,7 +21,7 @@
     {
       "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/api/SchedulerTypes.ets",
       "target": "src/scheduler/api/SchedulerTypes.ts",
-      "sourceSha256": "a8747ccc4aa421a41cb10f897f3641d6ead24e6569460bc99e7bc595742092c3"
+      "sourceSha256": "d9bcf450dcc06aa3f3c6a9fe6816e72e5a3e64449a78950827eda34e61b3e7c1"
     },
     {
       "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/executor/CancellationController.ets",
@@ -96,7 +96,7 @@
     {
       "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/SemanticPolicy.ets",
       "target": "src/scheduler/policy/SemanticPolicy.ts",
-      "sourceSha256": "5f1e5730267d7957de75facf1fb95f5814166d83e908a7552ea44c4a8d5ad82d"
+      "sourceSha256": "8fcfe935023dcfa5d54fd70a0160cac360daf34a1e2fff6d2a3d7c81d59bb13f"
     },
     {
       "source": "harmony-agent/apps/harmony/scheduler/src/main/ets/policy/WorkflowPlanner.ets",

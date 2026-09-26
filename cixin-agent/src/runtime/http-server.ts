@@ -79,6 +79,15 @@ export async function serve(runtime: FleetRuntime, token: string, host = runtime
         if (attempt) { const value = await runtime.node.cancel(attempt[1]); respond(response, value ? 200 : 404, value ?? { error: 'NOT_FOUND' }); return; }
         const run = path.match(/^\/api\/v1\/runtime\/runs\/([a-f0-9-]{36})\/(cancel|reconcile)$/);
         if (run) { respond(response, 200, run[2] === 'cancel' ? await runtime.cancel(run[1]) : await runtime.reconcile(run[1])); return; }
+        const clientTelemetry = path.match(/^\/api\/v1\/runtime\/runs\/([a-f0-9-]{36})\/client-telemetry$/);
+        if (clientTelemetry) {
+          invariant(input && typeof input === 'object' && !Array.isArray(input), 'CLIENT_TELEMETRY_INVALID');
+          const value = input as { taskId?: unknown; timing?: unknown };
+          invariant(typeof value.taskId === 'string' && value.timing && typeof value.timing === 'object' &&
+            !Array.isArray(value.timing), 'CLIENT_TELEMETRY_INVALID');
+          respond(response, 200, runtime.recordClientTelemetry(clientTelemetry[1], value.taskId,
+            value.timing as import('../scheduler/api/SchedulerTypes').CloudClientTiming)); return;
+        }
       }
       respond(response, 404, { error: 'NOT_FOUND' });
     } catch (error) { if (!response.headersSent) respond(response, 400, { error: errorMessage(error) }); else response.end(); }

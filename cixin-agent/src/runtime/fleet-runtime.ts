@@ -131,9 +131,11 @@ export class FleetRuntime {
 
   submit(task: TaskSubmission): RunRecord {
     const cloned = structuredClone(task);
+    if (cloned.taskId !== undefined) invariant(identifier(cloned.taskId), 'INVALID_CLIENT_TASK_ID');
     this.requirements(cloned, cloned.constraints?.deadlineMs ?? 10000);
     invariant(this.active.size < this.node.config.maxPendingTasks, 'COORDINATOR_CAPACITY_EXCEEDED');
-    const run: RunRecord = { runId: randomUUID(), status: 'planning', createdAt: Date.now(), updatedAt: Date.now() };
+    const run: RunRecord = { runId: randomUUID(), clientTaskId: cloned.taskId,
+      status: 'planning', createdAt: Date.now(), updatedAt: Date.now() };
     this.save(run);
     const work = this.execute(run, cloned).catch(error => { run.status = 'failed'; run.reason = errorMessage(error); this.save(run); })
       .finally(() => { this.active.delete(run.runId); });
@@ -210,6 +212,20 @@ export class FleetRuntime {
   }
   async wait(runId: string): Promise<RunRecord | undefined> { await this.active.get(runId); return this.runs.get(runId); }
 
+  recordClientTelemetry(runId: string, taskId: string, timing: import('../scheduler/api/SchedulerTypes').CloudClientTiming): RunRecord {
+    const run = this.runs.get(runId);
+    invariant(run, 'RUN_NOT_FOUND');
+    invariant(run.clientTaskId !== undefined && run.clientTaskId === taskId, 'RUNTIME_CLIENT_TASK_MISMATCH');
+    const values = [timing.requestMs, timing.inputBytes, timing.outputBytes];
+    invariant(values.every(value => finite(value, 0, 128 * 1024 * 1024)), 'CLIENT_TIMING_INVALID');
+    for (const value of [timing.uploadMs, timing.downloadMs]) {
+      invariant(value === null || finite(value, 0, 128 * 1024 * 1024), 'CLIENT_TIMING_INVALID');
+    }
+    run.clientTelemetry = { taskId, observedAt: Date.now(), timing: structuredClone(timing) };
+    this.save(run);
+    return structuredClone(run);
+  }
+
   submitGraph(graph: TaskGraph, inputs: Record<string, unknown>, constraints: FleetConstraints = {}): RunRecord {
     const copy = structuredClone(graph); const boundInputs = structuredClone(inputs);
     const ordered = topological(copy); validateConstraints(constraints);
@@ -221,7 +237,8 @@ export class FleetRuntime {
       else invariant(Object.hasOwn(boundInputs, node.inputRef), 'MISSING_GRAPH_INPUT');
     }
     invariant(this.active.size < this.node.config.maxPendingTasks, 'COORDINATOR_CAPACITY_EXCEEDED');
-    const run: RunRecord = { runId: randomUUID(), taskGraph: copy, status: 'running', nodes: {}, createdAt: Date.now(), updatedAt: Date.now() };
+    const run: RunRecord = { runId: randomUUID(), clientTaskId: copy.clientTaskId,
+      taskGraph: copy, status: 'running', nodes: {}, createdAt: Date.now(), updatedAt: Date.now() };
     this.save(run);
     const work = (async () => {
       const start = performance.now();

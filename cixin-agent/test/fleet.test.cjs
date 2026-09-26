@@ -16,6 +16,19 @@ test('local Cixin tool runs through the migrated constrained scheduler and persi
   assert.equal(runtime.runs.get(run.runId).status, 'completed');
   assert.ok(!JSON.stringify(runtime.runs.get(run.runId)).includes('"query"'));
 });
+test('shared client task id and segmented timing remain correlated without storing input', async t => {
+  const node = await makeNode(t); const runtime = new FleetRuntime(node);
+  const run = runtime.submit({ ...task(), taskId: 'phone_shared_1' });
+  await runtime.wait(run.runId);
+  const recorded = runtime.recordClientTelemetry(run.runId, 'phone_shared_1', {
+    requestMs: 35, uploadMs: 4, downloadMs: 6, inputBytes: 128, outputBytes: 512 });
+  assert.equal(recorded.clientTaskId, 'phone_shared_1');
+  assert.equal(recorded.clientTelemetry.timing.uploadMs, 4);
+  assert.ok(!JSON.stringify(recorded).includes('"query"'));
+  assert.throws(() => runtime.recordClientTelemetry(run.runId, 'another_task', {
+    requestMs: 1, uploadMs: null, downloadMs: null, inputBytes: 0, outputBytes: 0 }),
+  /RUNTIME_CLIENT_TASK_MISMATCH/);
+});
 test('concurrent duplicate attempt IDs execute once; payload changes are rejected', async t => {
   let count = 0;
   const node = await makeNode(t, 'node', tool => { const execute = tool.executor.execute;
@@ -140,6 +153,24 @@ test('HTTP rejects missing auth, oversized request and unconfigured planner', as
   const oversized = await fetch(`${url}/api/v1/runtime/tasks`, { method: 'POST',
     headers: { authorization: `Bearer ${token}` }, body: 'x'.repeat(1024 * 1024 + 1) });
   assert.equal(oversized.status, 400);
+  const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+  const submitted = await fetch(`${url}/api/v1/runtime/tasks`, { method: 'POST', headers,
+    body: JSON.stringify({ ...task(), taskId: 'phone_http_1' }) });
+  assert.equal(submitted.status, 202);
+  const created = await submitted.json();
+  const telemetry = await fetch(`${url}/api/v1/runtime/runs/${created.runId}/client-telemetry`, {
+    method: 'POST', headers, body: JSON.stringify({ taskId: 'phone_http_1', timing: {
+      requestMs: 20, uploadMs: 3, downloadMs: 5, inputBytes: 120, outputBytes: 480 } }) });
+  assert.equal(telemetry.status, 200);
+  assert.equal((await telemetry.json()).clientTelemetry.timing.downloadMs, 5);
+  let terminal = false;
+  for (let i = 0; i < 100; i++) {
+    const response = await fetch(`${url}/api/v1/runtime/runs/${created.runId}`, { headers });
+    const current = await response.json();
+    if (!['planning', 'running'].includes(current.status)) { terminal = true; break; }
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  assert.equal(terminal, true);
 });
 test('DAG dependencies and shared deadline execute through Cixin TaskGraph; cycles reject', async t => {
   const node = await makeNode(t); const runtime = new FleetRuntime(node);

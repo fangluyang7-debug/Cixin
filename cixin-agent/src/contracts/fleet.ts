@@ -1,6 +1,6 @@
 import { ToolDescriptor, TaskConstraints, TaskGraph } from './cixin';
 import { DeviceState, ExecutionPlan, TaskContext, TaskResult, TaskTemplate,
-  WorkloadExecutor, RealDeviceStatePatch } from '../scheduler/api/SchedulerTypes';
+  WorkloadExecutor, RealDeviceStatePatch, CloudClientTiming } from '../scheduler/api/SchedulerTypes';
 
 export type Mode = 'LOCAL_ONLY' | 'SHADOW' | 'ACTIVE';
 export interface BoardIdentity {
@@ -31,6 +31,8 @@ export interface FleetConstraints extends TaskConstraints {
   inputSanitized?: boolean;
 }
 export interface TaskSubmission {
+  // Correlates the shared App request with this runtime without storing business input.
+  taskId?: string;
   toolId: string;
   input: unknown;
   constraints?: FleetConstraints;
@@ -124,6 +126,8 @@ export interface FleetDecision {
 }
 export interface RunRecord {
   runId: string;
+  clientTaskId?: string;
+  clientTelemetry?: { taskId: string; observedAt: number; timing: CloudClientTiming };
   taskGraph?: TaskGraph;
   status: 'planning' | 'running' | 'completed' | 'blocked' | 'failed' | 'unknown';
   decision?: FleetDecision;
