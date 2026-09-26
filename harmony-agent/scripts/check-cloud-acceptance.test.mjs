@@ -45,3 +45,11 @@ test('completed label alone is insufficient without actual stage/phone telemetry
 test('credential-bearing URLs are rejected before fetching', async () => {
   await assert.rejects(checkCloudAcceptance('https://secret@test.example'), /without credentials/);
 });
+test('infrastructure-only report explicitly excludes model acceptance', async () => {
+  const report = await checkCloudAcceptance('https://test.example', { infrastructureOnly: true,
+    fetchImpl: fixture({ '/api/v1/health/infrastructure': { available: true, shoppingAvailable: false,
+      checks: { database: { available: true }, cos: { available: true } } } }) });
+  assert.equal(report.passed, true);
+  assert.equal(report.scope, 'infrastructure-only-models-not-accepted');
+  assert.equal(report.checks.some(item => item.name === 'readiness:vision'), false);
+});

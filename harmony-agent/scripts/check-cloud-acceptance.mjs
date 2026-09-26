@@ -7,12 +7,13 @@ const finite = value => typeof value === 'number' && Number.isFinite(value) && v
 
 // GET only. Readiness itself performs the server's small COS/model probes.
 // Exported for fixture tests; no credentials, response bodies or signed URLs in the report.
-export async function checkCloudAcceptance(baseUrl, { runId, fetchImpl = fetch } = {}) {
+export async function checkCloudAcceptance(baseUrl, { runId, infrastructureOnly = false, fetchImpl = fetch } = {}) {
   const url = new URL(baseUrl);
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('Provide a public HTTPS origin without credentials, path or query.');
   }
   if (runId && !/^run_[A-Za-z0-9_-]+$/.test(runId)) throw new Error('Invalid runId.');
+  if (runId && infrastructureOnly) throw new Error('Infrastructure-only checks cannot certify a shopping run.');
   const checks = [];
   const add = (name, passed, detail) => checks.push({ name, passed: Boolean(passed), detail });
   const get = async path => {
@@ -28,8 +29,8 @@ export async function checkCloudAcceptance(baseUrl, { runId, fetchImpl = fetch }
   };
   const health = await get('/api/v1/health');
   add('api-process', health?.status === 'ok' && health?.service === 'api-server', 'Expected api-server liveness');
-  const readiness = await get('/api/v1/health/readiness');
-  for (const dependency of ['database', 'cos', 'chat', 'vision', 'embedding']) {
+  const readiness = await get(infrastructureOnly ? '/api/v1/health/infrastructure' : '/api/v1/health/readiness');
+  for (const dependency of infrastructureOnly ? ['database', 'cos'] : ['database', 'cos', 'chat', 'vision', 'embedding']) {
     add(`readiness:${dependency}`, readiness?.available === true && readiness?.checks?.[dependency]?.available === true,
       'A real successful dependency probe is required');
   }
@@ -60,9 +61,9 @@ export async function checkCloudAcceptance(baseUrl, { runId, fetchImpl = fetch }
       'Missing/null transfer measurements remain an acceptance gap');
   }
   return { checkedAt: new Date().toISOString(), origin: url.origin, runId: runId ?? null,
-    scope: runId ? 'deployment-and-image-run-evidence' : 'deployment-readiness-only',
+    scope: infrastructureOnly ? 'infrastructure-only-models-not-accepted' : runId ? 'deployment-and-image-run-evidence' : 'deployment-readiness-only',
     passed: checks.every(check => check.passed), checks,
-    remaining: ['Native build and phone text/image UI evidence', 'Real failure, timeout and cancellation evidence',
+    remaining: [...(infrastructureOnly ? ['Model integration and successful shopping workflow evidence'] : []), 'Native build and phone text/image UI evidence', 'Real failure, timeout and cancellation evidence',
       'Product/index data compatibility and displayed result verification'] };
 }
 
@@ -72,13 +73,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const options = {};
     while (args.length) {
       const key = args.shift();
+      if (key === '--infrastructure-only') { options[key] = true; continue; }
       if (!['--base-url', '--run-id', '--output'].includes(key) || !args.length || args[0].startsWith('--')) {
-        throw new Error('Usage: npm run api:acceptance -- --base-url https://HOST [--run-id run_ID] [--output report.json]');
+        throw new Error('Usage: npm run api:acceptance -- --base-url https://HOST [--infrastructure-only | --run-id run_ID] [--output report.json]');
       }
       options[key] = args.shift();
     }
     if (!options['--base-url']) throw new Error('--base-url is required');
-    const report = await checkCloudAcceptance(options['--base-url'], { runId: options['--run-id'] });
+    const report = await checkCloudAcceptance(options['--base-url'], { runId: options['--run-id'], infrastructureOnly: options['--infrastructure-only'] === true });
     const output = JSON.stringify(report, null, 2) + '\n';
     if (options['--output']) await writeFile(options['--output'], output, { flag: 'wx' });
     console.log(output);

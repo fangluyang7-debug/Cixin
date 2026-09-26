@@ -7,15 +7,34 @@ import { TencentCosStorageAdapterService } from '../../src/adapters/storage/tenc
 describe('Cloud readiness', () => {
   const originalFetch = global.fetch;
   afterEach(() => { global.fetch = originalFetch; });
-  function fixture() {
+  function fixture(modelMode = 'required') {
     const model = { baseUrl: 'https://provider.invalid/v1', apiKey: 'test', modelName: 'model' };
     const prisma = { product: { findFirst: jest.fn().mockResolvedValue({ id: 'p' }) } };
     const storage = { probeReadWrite: jest.fn().mockResolvedValue(undefined) };
     const readiness = new CloudReadinessService(prisma as unknown as PrismaService,
-      new ConfigService({ modelProviders: { chat: model, vision: model }, embedding: model }),
+      new ConfigService({ runtime: { cloudModelMode: modelMode }, modelProviders: { chat: model, vision: model }, embedding: model }),
       storage as unknown as TencentCosStorageAdapterService);
     return { readiness, prisma, storage };
   }
+  it('defers model calls while retaining real infrastructure probes and shopping blocking', async () => {
+    global.fetch = jest.fn();
+    const { readiness, prisma, storage } = fixture('deferred');
+    const controller = new HealthController(readiness);
+    const infrastructure = await controller.getInfrastructure();
+    expect(infrastructure.data).toMatchObject({ available: true, shoppingAvailable: false, modelMode: 'deferred' });
+    await expect(controller.getReadiness()).rejects.toThrow();
+    expect((await readiness.check()).checks.embedding.reason).toBe('MODEL_INTEGRATION_DEFERRED');
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
+    expect(storage.probeReadWrite).toHaveBeenCalledTimes(1);
+  });
+  it('still fails infrastructure readiness if COS is unavailable in deferred mode', async () => {
+    global.fetch = jest.fn();
+    const { readiness, storage } = fixture('deferred');
+    storage.probeReadWrite.mockRejectedValue(new Error('unavailable'));
+    await expect(new HealthController(readiness).getInfrastructure()).rejects.toThrow();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
   it('requires successful DB, COS and model probes and coalesces concurrent checks', async () => {
     global.fetch = jest.fn().mockImplementation(async (url: string) => ({ ok: true,
       json: async () => url.endsWith('/embeddings/multimodal') ? { data: [{ embedding: [1, 2] }] } : { choices: [{ message: { content: 'OK' } }] } }));

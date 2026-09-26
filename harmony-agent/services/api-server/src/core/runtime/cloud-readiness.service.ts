@@ -7,6 +7,8 @@ import { TencentCosStorageAdapterService } from '../../adapters/storage/tencent-
 
 export interface CloudReadiness {
   available: boolean;
+  modelMode: 'required' | 'deferred';
+  infrastructureAvailable: boolean;
   checkedAt: string;
   checks: Record<string, { available: boolean; durationMs: number; reason?: string }>;
 }
@@ -30,6 +32,7 @@ export class CloudReadinessService {
 
   private async probe(): Promise<CloudReadiness> {
     const checks: CloudReadiness['checks'] = {};
+    const modelMode = this.config.get<string>('runtime.cloudModelMode') === 'deferred' ? 'deferred' : 'required';
     const measure = async (name: string, work: () => Promise<unknown>) => {
       const start = Date.now();
       let timer: ReturnType<typeof setTimeout> | undefined;
@@ -47,9 +50,17 @@ export class CloudReadinessService {
       measure('database', () => this.prisma.product.findFirst({ select: { id: true } })),
       measure('cos', () => RuntimeWorkScope.run(AbortSignal.timeout(9000),
         { storageReadMs: 0, storageWriteMs: 0, modelMs: 0 }, () => this.storage.probeReadWrite())),
-      ...['chat', 'vision', 'embedding'].map(kind => measure(kind, () => this.probeModel(kind))),
+      ...['chat', 'vision', 'embedding'].map(kind => {
+        if (modelMode === 'deferred') {
+          checks[kind] = { available: false, durationMs: 0, reason: 'MODEL_INTEGRATION_DEFERRED' };
+          return Promise.resolve();
+        }
+        return measure(kind, () => this.probeModel(kind));
+      }),
     ]);
-    return { available: Object.values(checks).every(item => item.available), checkedAt: new Date().toISOString(), checks };
+    return { available: Object.values(checks).every(item => item.available), modelMode,
+      infrastructureAvailable: checks.database.available && checks.cos.available,
+      checkedAt: new Date().toISOString(), checks };
   }
 
   private async probeModel(kind: string) {

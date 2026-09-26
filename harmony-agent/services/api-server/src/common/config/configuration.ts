@@ -6,6 +6,7 @@ export default () => ({
   corsOrigins: parseCsv(process.env.CORS_ORIGINS ?? ""),
   databaseUrl: process.env.DATABASE_URL,
   runtime: {
+    cloudModelMode: process.env.CLOUD_MODEL_MODE === 'deferred' ? 'deferred' : 'required',
     nodeEnv: process.env.NODE_ENV ?? "development",
     allowMockProviders: false,
     platformAdapter: process.env.RUNTIME_PLATFORM_ADAPTER ?? "auto",

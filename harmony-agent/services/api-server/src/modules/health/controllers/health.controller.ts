@@ -6,6 +6,15 @@ export class HealthController {
   constructor(private readonly readiness: CloudReadinessService) {}
   @Get()
   getHealth() { return ok({ status: 'ok', service: 'api-server' }); }
+  @Get('infrastructure')
+  async getInfrastructure() {
+    const health = await this.readiness.check();
+    const result = { available: health.infrastructureAvailable, scope: 'database-and-cos-only',
+      modelMode: health.modelMode, shoppingAvailable: health.available, checkedAt: health.checkedAt,
+      checks: { database: health.checks.database, cos: health.checks.cos } };
+    if (!result.available) throw new ServiceUnavailableException({ code: 'INFRASTRUCTURE_NOT_READY', ...result });
+    return ok(result);
+  }
   @Get('readiness')
   async getReadiness() {
     const result = await this.readiness.check();
