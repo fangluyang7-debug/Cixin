@@ -7,7 +7,7 @@ const finite = value => typeof value === 'number' && Number.isFinite(value) && v
 
 // GET only. Readiness itself performs the server's small COS/model probes.
 // Exported for fixture tests; no credentials, response bodies or signed URLs in the report.
-export async function checkCloudAcceptance(baseUrl, { runId, infrastructureOnly = false, fetchImpl = fetch } = {}) {
+export async function checkCloudAcceptance(baseUrl, { runId, infrastructureOnly = false, accessToken, fetchImpl = fetch } = {}) {
   const url = new URL(baseUrl);
   if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash || url.pathname !== '/') {
     throw new Error('Provide a public HTTPS origin without credentials, path or query.');
@@ -18,7 +18,7 @@ export async function checkCloudAcceptance(baseUrl, { runId, infrastructureOnly 
   const add = (name, passed, detail) => checks.push({ name, passed: Boolean(passed), detail });
   const get = async path => {
     try {
-      const response = await fetchImpl(url.origin + path, { redirect: 'error', signal: AbortSignal.timeout(20000) });
+      const response = await fetchImpl(url.origin + path, { headers: accessToken && path.startsWith('/api/v1/runtime/') ? { Authorization: 'Bearer ' + accessToken } : {}, redirect: 'error', signal: AbortSignal.timeout(20000) });
       const body = await response.json().catch(() => null);
       add(path, response.ok && body?.success === true, `HTTP ${response.status}; API envelope ${body?.success === true ? 'valid' : 'absent/failed'}`);
       return body?.success === true && response.ok ? body.data : null;
@@ -30,7 +30,7 @@ export async function checkCloudAcceptance(baseUrl, { runId, infrastructureOnly 
   const health = await get('/api/v1/health');
   add('api-process', health?.status === 'ok' && health?.service === 'api-server', 'Expected api-server liveness');
   const readiness = await get(infrastructureOnly ? '/api/v1/health/infrastructure' : '/api/v1/health/readiness');
-  for (const dependency of infrastructureOnly ? ['database', 'cos'] : ['database', 'cos', 'chat', 'vision', 'embedding']) {
+  for (const dependency of infrastructureOnly ? ['database', 'cos'] : ['database', 'cos', 'chat', 'vision', 'embedding', 'catalog']) {
     add(`readiness:${dependency}`, readiness?.available === true && readiness?.checks?.[dependency]?.available === true,
       'A real successful dependency probe is required');
   }
@@ -80,7 +80,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       options[key] = args.shift();
     }
     if (!options['--base-url']) throw new Error('--base-url is required');
-    const report = await checkCloudAcceptance(options['--base-url'], { runId: options['--run-id'], infrastructureOnly: options['--infrastructure-only'] === true });
+    const report = await checkCloudAcceptance(options['--base-url'], { runId: options['--run-id'], accessToken: process.env.CLOUD_ACCEPTANCE_ACCESS_TOKEN, infrastructureOnly: options['--infrastructure-only'] === true });
     const output = JSON.stringify(report, null, 2) + '\n';
     if (options['--output']) await writeFile(options['--output'], output, { flag: 'wx' });
     console.log(output);

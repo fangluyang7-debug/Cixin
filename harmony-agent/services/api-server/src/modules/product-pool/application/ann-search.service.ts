@@ -126,6 +126,7 @@ export class AnnSearchService implements AnnSearchPort {
           embeddingKind: input.embeddingKind,
           ...(input.provider ? { provider: input.provider } : {}),
           dimension: input.dimension,
+          modelName: this.config.get<string>('embedding.modelName') ?? '__unconfigured__',
           ...(input.productIds.length > 0 ? { productId: { in: input.productIds } } : {}),
           ...(cursorId ? { id: { gt: cursorId } } : {}),
         },
@@ -153,7 +154,7 @@ export class AnnSearchService implements AnnSearchPort {
 
       for (const embedding of embeddings) {
         const vector = fromJson<number[]>(embedding.vectorJson, []);
-        if (vector.length === 0) continue;
+        if (vector.length !== input.dimension || !vector.every(Number.isFinite) || !vector.some(value => value !== 0)) continue;
         const rawScore = this.cosine(input.queryVector, vector);
         const score = this.normalizeScore(rawScore);
         const key = `${embedding.productId}:${embedding.styleId ?? 'product'}`;

@@ -23,7 +23,7 @@ function fixture(work: (id: string, signal: AbortSignal) => Promise<unknown>, ti
   registry.register({ executorId: 'worker', toolIds: ['work'], execute: ctx => work(ctx.task.taskId, ctx.signal) });
   const telemetry = { record: jest.fn() } as unknown as TelemetryService;
   const runner = new RuntimeRunnerService(runs, registry, telemetry);
-  return { runner, run, plan, telemetry };
+  return { runner, run, plan, telemetry, runs };
 }
 
 describe('Runtime runner', () => {
@@ -49,7 +49,13 @@ describe('Runtime runner', () => {
     const { runner, run } = fixture(async (_, current) => { signal = current; return new Promise(r => { resolve = r; }); }, 5);
     await expect(runner.execute(run.runId, {})).rejects.toThrow();
     expect(signal.aborted).toBe(true); expect(run.status).toBe('timed_out');
-    resolve('late'); await Promise.resolve(); expect(run.status).toBe('timed_out');
+    expect(run.executionState).toBe('stop_requested');
+    expect(run.telemetry).toHaveLength(0);
+    expect(runner.cancel(run.runId)).toBe(true);
+    resolve('late'); await new Promise(resolve => setImmediate(resolve));
+    expect(run.status).toBe('timed_out'); expect(run.executionState).toBe('settled');
+    expect(run.telemetry).toHaveLength(1); expect(run.telemetry[0].success).toBe(false);
+    expect(runner.cancel(run.runId)).toBe(false);
   });
   it('cancels an active run', async () => {
     const { runner, run } = fixture(async () => new Promise(() => {}));
@@ -68,4 +74,24 @@ describe('Runtime runner', () => {
     run.status = 'blocked'; plan.status = 'blocked';
     await expect(runner.execute(run.runId, {})).rejects.toThrow(); expect(work).not.toHaveBeenCalled();
   });
+});
+
+it('retains unconfirmed stops beyond grace and history pressure until child work settles', async () => {
+  jest.useFakeTimers();
+  try {
+    let finish!: () => void;
+    const { runner, run, runs } = fixture(async () => new Promise<void>(resolve => { finish = resolve; }), 100000);
+    const result = runner.execute(run.runId, {});
+    const rejected = expect(result).rejects.toThrow();
+    runner.cancel(run.runId); await rejected;
+    jest.advanceTimersByTime(5001);
+    expect(run.executionState).toBe('stop_unconfirmed');
+    for (let i = 0; i < 30; i++) runs.startBlockedGoal('test', 'BLOCKED', 'test');
+    expect(runs.get(run.runId)).toBe(run);
+    expect(run.executionPlan!.assignments[0].finishedAt).toBeUndefined();
+    finish();
+    for (let i = 0; i < 12; i++) await Promise.resolve();
+    expect(run.executionState).toBe('settled');
+    expect(run.executionPlan!.assignments[0].finishedAt).toBeDefined();
+  } finally { jest.useRealTimers(); }
 });

@@ -8,3 +8,5 @@ process.env.SEARCH_PROVIDER = 'local_product_pool';
 process.env.EMBEDDING_PROVIDER = 'volcengine_doubao_vision';
 process.env.ENABLE_LOCAL_IMAGE_WORKER = 'false';
 process.env.PRODUCT_POOL_RESUME_IMPORT_ON_START = 'false';
+
+process.env.CLOUD_MODEL_MODE = 'deferred';

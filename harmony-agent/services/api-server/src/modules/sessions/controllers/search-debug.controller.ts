@@ -1,3 +1,5 @@
+import { Headers } from '@nestjs/common';
+import { AuthService } from '../../auth/application/auth.service';
 import {
   BadRequestException,
   Body,
@@ -17,6 +19,7 @@ import { NormalizedSubjectBoxDto } from '../dto/subject-selection.dto';
 export class SearchDebugController {
   constructor(
     private readonly assetsService: AssetsService,
+    private readonly auth: AuthService,
     private readonly shoppingRuntime: ShoppingRuntimeService,
   ) {}
 
@@ -29,7 +32,9 @@ export class SearchDebugController {
   async debugImageSearch(
     @Body() body: Record<string, unknown>,
     @UploadedFile() file?: UploadedImageFile,
+    @Headers("authorization") authorization?: string,
   ): Promise<unknown> {
+    const user = await this.auth.requireUserFromAuthorization(authorization);
     if (!file) {
       throw new BadRequestException('DEBUG_IMAGE_FILE_REQUIRED');
     }
@@ -40,10 +45,10 @@ export class SearchDebugController {
         sourceType: 'demo',
         isPrimaryRecognitionAsset: true,
       },
-      file,
+      file, user.userId,
     );
 
-    const result = await this.shoppingRuntime.execute('shopping.debug', { dto: {
+    const result = await this.shoppingRuntime.execute('shopping.debug', { userId: user.userId, dto: {
       assetId: asset.assetId,
       box: this.parseBox(body),
       categoryHint: this.optionalString(body.categoryHint),

@@ -31,8 +31,12 @@ try {
   prisma = new PrismaClient({ datasources: { db: { url: databaseUrl } } });
   const sentinel = { id: 'cloud-test-sentinel', email: 'sentinel@example.invalid' };
   await prisma.user.create({ data: sentinel });
+  await prisma.imageAsset.create({ data: { id: 'owned-asset', ownerUserId: sentinel.id,
+    assetGroupId: 'group', variantType: 'compressed_recognition', bucketGroup: 'test', objectKey: 'test', uploadStatus: 'uploaded' } });
   await prisma.$disconnect();
   initialize();
+  assert.equal((await prisma.imageAsset.findUnique({ where: { id: 'owned-asset' } }))?.ownerUserId, sentinel.id,
+    'Repeated initialization must preserve asset ownership');
   assert.equal((await prisma.user.findUnique({ where: { id: sentinel.id } }))?.email,
     sentinel.email, 'Repeated initialization must preserve rows');
   for (const model of Prisma.dmmf.datamodel.models) {

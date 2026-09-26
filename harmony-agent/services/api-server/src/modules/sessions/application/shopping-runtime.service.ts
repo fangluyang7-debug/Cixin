@@ -1,3 +1,5 @@
+import { PrismaService } from '../../../persistence/prisma/prisma.service';
+import { UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { clientRoute } from '../../../core/runtime/client-route';
 import { ShoppingImageStagesService } from './shopping-image-stages.service';
 import { buildImageSearchTaskGraph, IMAGE_STAGE_TOOLS } from '../../../core/runtime/image-search-task-graph';
@@ -27,7 +29,7 @@ export interface WorkflowRequest {
 export class ShoppingRuntimeService implements OnModuleInit {
   constructor(private readonly registry: ExecutorRegistryService, private readonly runner: RuntimeRunnerService,
     private readonly runs: RuntimeRunService, private readonly sessions: SessionsService,
-    private readonly debug: SearchDebugService, private readonly imageStages: ShoppingImageStagesService) {}
+    private readonly debug: SearchDebugService, private readonly imageStages: ShoppingImageStagesService, private readonly prisma: PrismaService) {}
 
   onModuleInit() {
     this.registry.register({ executorId: 'zeabur-shopping-workflow', toolIds: IMAGE_STAGE_TOOLS,
@@ -37,6 +39,13 @@ export class ShoppingRuntimeService implements OnModuleInit {
   }
 
   async execute(toolId: string, request: WorkflowRequest, signal?: AbortSignal) {
+    if (!request.userId) throw new UnauthorizedException('AUTH_REQUIRED');
+    if (request.sessionId) await this.assertSessionOwner(request.sessionId, request.userId);
+    const assetId = (request.dto as { assetId?: string } | undefined)?.assetId;
+    if (assetId) {
+      const asset = await this.prisma.imageAsset.findFirst({ where: { id: assetId, ownerUserId: request.userId }, select: { id: true } });
+      if (!asset) throw new NotFoundException('ASSET_NOT_FOUND');
+    }
     const image = toolId === 'shopping.image' || toolId === 'shopping.image_upload';
     const graph = image ? buildImageSearchTaskGraph((request.dto as { assetId?: string })?.assetId ?? request.taskId ?? 'upload')
       : buildShoppingWorkflowGraph(toolId, request.sessionId ? `session:${request.sessionId}` : 'request:body');
@@ -61,13 +70,19 @@ export class ShoppingRuntimeService implements OnModuleInit {
         task.constraints = { ...task.constraints, deadlineMs: Math.min(150000, profile.deadlineMs) };
       }
     }
-    const run = await this.runs.start(graph);
+    const run = await this.runs.start(graph, request.userId);
     const result = await this.runner.execute<Record<string, unknown>>(run.runId, request, signal);
     const session = result.session as { sessionId?: string } | undefined;
     return { ...result, runtimeRunId: run.runId, runId: run.runId, taskId: request.taskId ?? graph.nodes[0].taskId,
       status: 'succeeded', resultRef: result.resultRef ?? (session?.sessionId ? 'session:' + session.sessionId : undefined),
       serverTiming: { queueMs: 0, computeMs: run.telemetry.reduce((sum, record) => sum + record.latencyMs, 0) },
       runtime: run };
+  }
+
+  async assertSessionOwner(sessionId: string, userId: string) {
+    if (!userId) throw new UnauthorizedException('AUTH_REQUIRED');
+    const session = await this.prisma.querySession.findFirst({ where: { id: sessionId, userId }, select: { id: true } });
+    if (!session) throw new NotFoundException('SESSION_NOT_FOUND');
   }
 
   private async dispatch(context: RuntimeExecutionContext) {

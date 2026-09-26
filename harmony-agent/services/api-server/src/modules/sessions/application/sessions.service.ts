@@ -1,3 +1,4 @@
+import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
 import {
   BadRequestException,
   Inject,
@@ -364,7 +365,7 @@ export class SessionsService {
         queryImageUrl: event.queryImageUrl,
         box: event.selectedBox,
       });
-      void detailedProfilePromise;
+      void RuntimeWorkScope.track(detailedProfilePromise);
     };
 
     const preprocess = await this.queryImagePreprocess.createUserSelection({

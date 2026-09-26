@@ -3,6 +3,10 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 try {
+  if (await tableExists('ImageAsset')) {
+    const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("ImageAsset")');
+    if (!columns.some(column => column.name === 'ownerUserId')) await prisma.$executeRawUnsafe('ALTER TABLE "ImageAsset" ADD COLUMN "ownerUserId" TEXT');
+  }
   await ensureQuerySessionUserId();
   await ensureProductImageEmbeddingMetadata();
   await ensureQueryImagePreprocessSnapshot();

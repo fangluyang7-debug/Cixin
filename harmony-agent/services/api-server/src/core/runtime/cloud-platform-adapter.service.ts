@@ -86,7 +86,8 @@ export class CloudPlatformAdapterService implements PlatformAdapter {
     }
     return [...endpoints, marketplace, {
       executorId: 'zeabur-shopping-workflow', backend: 'cloud_api', placement: 'cloud',
-      available: health?.available === true,
+      available: health?.checks.database?.available === true,
+      toolAvailability: health?.capabilities,
       availabilityReason: health?.available ? undefined : 'ZEABUR_DEPENDENCIES_NOT_READY:' +
         Object.entries(health?.checks ?? {}).filter(([, value]) => !value.available).map(([key]) => key).join(','),
       supportedComputeClasses: ['network'], supportedModels: [], totalMemoryMb: null,

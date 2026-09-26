@@ -8,6 +8,7 @@ datasource db {
 }
 
 model ImageAsset {
+  ownerUserId               String?
   id                        String         @id
   assetGroupId              String
   variantType               String

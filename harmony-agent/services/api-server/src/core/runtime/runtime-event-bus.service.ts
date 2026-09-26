@@ -54,12 +54,13 @@ export class RuntimeEventBusService {
     return this.subject.asObservable();
   }
 
-  sse(): Observable<{ type: string; data: RuntimeEvent | { emittedAt: string } }> {
+  sse(visible: (event: RuntimeEvent) => boolean = () => true): Observable<{ type: string; data: RuntimeEvent | { emittedAt: string } }> {
     return new Observable((subscriber) => {
-      for (const event of this.replay()) {
+      for (const event of this.replay().filter(visible)) {
         subscriber.next({ type: event.type, data: event });
       }
       const subscription = this.subject.subscribe((event) => {
+        if (!visible(event)) return;
         subscriber.next({ type: event.type, data: event });
       });
       const heartbeat = setInterval(() => {

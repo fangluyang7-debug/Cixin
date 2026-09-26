@@ -81,13 +81,13 @@ export class ShoppingImageStagesService {
           if (!buffer.length || buffer.length > 6 * 1024 * 1024) throw new BadRequestException('IMAGE_SIZE_INVALID');
           const asset = await this.assets.createImageAsset({ variantType: 'compressed_recognition',
             sourceType: 'camera', isPrimaryRecognitionAsset: true },
-            { buffer, mimetype: state.dto.contentType!, originalname: 'capture', size: buffer.length });
+            { buffer, mimetype: state.dto.contentType!, originalname: 'capture', size: buffer.length }, state.userId ?? undefined);
           assetId = asset.assetId;
           // Release image bytes as soon as COS has accepted them.
           state.dto = { ...state.dto, imageBase64: undefined, assetId };
         }
         const asset = await this.prisma.imageAsset.findUnique({ where: { id: assetId } });
-        if (!asset || asset.uploadStatus !== 'uploaded') throw new NotFoundException('IMAGE_ASSET_NOT_UPLOADED');
+        if (!asset || !state.userId || asset.ownerUserId !== state.userId || asset.uploadStatus !== 'uploaded') throw new NotFoundException('IMAGE_ASSET_NOT_UPLOADED');
         state.asset = asset;
         state.imageUrl = await this.signedUrl(asset);
         break;

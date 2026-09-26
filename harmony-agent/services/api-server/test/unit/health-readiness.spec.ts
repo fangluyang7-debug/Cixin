@@ -9,13 +9,40 @@ describe('Cloud readiness', () => {
   afterEach(() => { global.fetch = originalFetch; });
   function fixture(modelMode = 'required') {
     const model = { baseUrl: 'https://provider.invalid/v1', apiKey: 'test', modelName: 'model' };
-    const prisma = { product: { findFirst: jest.fn().mockResolvedValue({ id: 'p' }) } };
+    const prisma = { productImageEmbedding: { findMany: jest.fn().mockResolvedValue([{ id: 'v', productId: 'p', vectorJson: '[1,2]' }]) }, product: { count: jest.fn().mockResolvedValue(1), findFirst: jest.fn().mockResolvedValue({ id: 'p' }) } };
     const storage = { probeReadWrite: jest.fn().mockResolvedValue(undefined) };
     const readiness = new CloudReadinessService(prisma as unknown as PrismaService,
-      new ConfigService({ runtime: { cloudModelMode: modelMode }, modelProviders: { chat: model, vision: model }, embedding: model }),
+      new ConfigService({ runtime: { cloudModelMode: modelMode }, modelProviders: { chat: model, vision: model }, embedding: { ...model, dimension: 2, provider: 'test' } }),
       storage as unknown as TencentCosStorageAdapterService);
     return { readiness, prisma, storage };
   }
+  it('does not equate an empty catalogue with failed infrastructure', async () => {
+    const { readiness, prisma } = fixture('deferred');
+    prisma.product.count.mockResolvedValue(0);
+    const result = await readiness.check();
+    expect(result.infrastructureAvailable).toBe(true);
+    expect(result.checks.catalog.reason).toBe('CATALOG_EMPTY');
+    expect(result.capabilities?.['shopping.read'].available).toBe(true);
+    expect(result.capabilities?.['shopping.image'].available).toBe(false);
+  });
+  it('rejects invalid vectors and incomplete product coverage', async () => {
+    for (const invalid of ['[]', '[1]', '[0,0]', '[1,"bad"]', 'broken']) {
+      const { readiness, prisma } = fixture('deferred');
+      prisma.productImageEmbedding.findMany.mockResolvedValue([{ id: 'v', productId: 'p', vectorJson: invalid }]);
+      expect((await readiness.check()).checks.catalog.reason).toBe('INDEX_VECTOR_INVALID');
+    }
+    const { readiness, prisma } = fixture('deferred');
+    prisma.product.count.mockResolvedValue(2);
+    expect((await readiness.check()).checks.catalog.reason).toBe('INDEX_COVERAGE_INCOMPLETE');
+  });
+  it('queries only the configured model space and rejects missing matching vectors', async () => {
+    const { readiness, prisma } = fixture('deferred');
+    prisma.productImageEmbedding.findMany.mockResolvedValue([]);
+    const result = await readiness.check();
+    expect(prisma.productImageEmbedding.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ provider: 'test', modelName: 'model', dimension: 2, embeddingKind: 'visual' }) }));
+    expect(result.checks.catalog.reason).toBe('INDEX_COMPATIBLE_VECTORS_MISSING');
+  });
   it('defers model calls while retaining real infrastructure probes and shopping blocking', async () => {
     global.fetch = jest.fn();
     const { readiness, prisma, storage } = fixture('deferred');

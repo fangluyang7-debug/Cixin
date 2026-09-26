@@ -17,7 +17,7 @@ export class ShoppingTaskController {
       throw new BadRequestException('SHOPPING_TASK_INVALID');
     }
     if (!body.taskProfile || !body.deviceProfile) throw new BadRequestException('SHOPPING_PROFILE_REQUIRED');
-    const user = await this.auth.getUserFromAuthorization(authorization);
+    const user = await this.auth.requireUserFromAuthorization(authorization);
     const controller = new AbortController();
     const disconnected = () => { if (!response.writableEnded) controller.abort(); };
     response.on('close', disconnected);

@@ -7,15 +7,15 @@ import { TelemetryRecord } from './runtime.contracts';
 
 @Injectable()
 export class RuntimeRunnerService {
-  private readonly active = new Map<string, AbortController>();
+  private readonly active = new Map<string, { controller: AbortController; pending?: Promise<void>; grace?: ReturnType<typeof setTimeout> }>();
   constructor(private readonly runs: RuntimeRunService,
     private readonly registry: ExecutorRegistryService,
     private readonly telemetry: TelemetryService) {}
 
   cancel(runId: string): boolean {
-    const controller = this.active.get(runId);
-    if (!controller) return false;
-    controller.abort(new Error('RUNTIME_CANCELLED'));
+    const active = this.active.get(runId);
+    if (!active) return false;
+    active.controller.abort(new Error('RUNTIME_CANCELLED'));
     return true;
   }
 
@@ -31,7 +31,24 @@ export class RuntimeRunnerService {
     const cancelExternal = () => controller.abort(new Error('RUNTIME_CANCELLED'));
     externalSignal?.addEventListener('abort', cancelExternal, { once: true });
     if (externalSignal?.aborted) cancelExternal();
-    this.active.set(runId, controller);
+    const active: { controller: AbortController; pending?: Promise<void>; grace?: ReturnType<typeof setTimeout> } = { controller };
+    this.active.set(runId, active);
+    run.executionState = 'running';
+    const requestStop = () => {
+      run.executionState = 'stop_requested';
+      run.stopRequestedAt ??= new Date().toISOString();
+      run.updatedAt = run.stopRequestedAt;
+      run.stopReason = controller.signal.reason?.message === 'RUNTIME_TIMEOUT' ? 'RUNTIME_TIMEOUT' : 'RUNTIME_CANCELLED';
+      active.grace = setTimeout(() => {
+        if (run.executionState === 'stop_requested') {
+          run.executionState = 'stop_unconfirmed';
+          run.updatedAt = new Date().toISOString();
+        }
+      }, 5000);
+      active.grace.unref?.();
+    };
+    controller.signal.addEventListener('abort', requestStop, { once: true });
+    if (controller.signal.aborted) requestStop();
     run.status = 'running';
     const started = Date.now();
     try {
@@ -62,6 +79,8 @@ export class RuntimeRunnerService {
         const measurements = { storageReadMs: 0, storageWriteMs: 0, modelMs: 0 };
         let timer: ReturnType<typeof setTimeout> | undefined;
         let abortListener: (() => void) | undefined;
+        let settled = true;
+        let settlement: Promise<void> | undefined;
         try {
           controller.signal.throwIfAborted();
           const deadline = new Promise<never>((_, reject) => {
@@ -69,11 +88,13 @@ export class RuntimeRunnerService {
             controller.signal.addEventListener('abort', abortListener, { once: true });
             timer = setTimeout(() => controller.abort(new Error('RUNTIME_TIMEOUT')), timeoutMs);
           });
-          const result = await Promise.race([
-            RuntimeWorkScope.run(controller.signal, measurements, () => this.registry.require(assignment.executorId, assignment.toolId).execute({
-              runId, task, assignment, input, outputs, signal: controller.signal,
-            })), deadline,
-          ]);
+          settled = false;
+          const work = RuntimeWorkScope.run(controller.signal, measurements, () => this.registry.require(assignment.executorId, assignment.toolId).execute({
+            runId, task, assignment, input, outputs, signal: controller.signal,
+          }));
+          settlement = work.then(() => { settled = true; }, () => { settled = true; });
+          active.pending = settlement;
+          const result = await Promise.race([work, deadline]);
           controller.signal.throwIfAborted();
           if (result && typeof result === 'object') {
             const value = result as { fallback?: unknown; session?: { degraded?: boolean } };
@@ -91,20 +112,25 @@ export class RuntimeRunnerService {
         } finally {
           if (timer) clearTimeout(timer);
           if (abortListener) controller.signal.removeEventListener('abort', abortListener);
-          assignment.finishedAt = new Date().toISOString();
-          const record: TelemetryRecord = {
-            executionId: `${runId}:${taskId}`, taskId, toolId: task.toolId,
-            executorId: assignment.executorId, startedAt: assignment.startedAt,
-            finishedAt: assignment.finishedAt, latencyMs: Date.now() - began,
-            latencyScope: 'execution_only', memoryPeakMb: process.memoryUsage().rss / 1048576,
-            metadata: { segmentedTiming: { ...measurements, queueMs: 0, uploadMs: null, downloadMs: null,
-              executionMs: Math.max(0, Date.now() - began - measurements.storageReadMs - measurements.storageWriteMs) },
-              segmentSource: 'server-monotonic-clock', memorySource: 'process-rss-at-stage-finish', transferTiming: 'not-observable-on-server',
-              cancellation: 'cooperative; completed side effects are not rolled back' },
-            fallbackOccurred, success: assignment.status === 'succeeded', errorCode: assignment.errorCode,
+          const recordSettled = () => {
+            assignment.finishedAt = new Date().toISOString();
+            const record: TelemetryRecord = {
+              executionId: `${runId}:${taskId}`, taskId, toolId: task.toolId,
+              executorId: assignment.executorId, startedAt: assignment.startedAt!,
+              finishedAt: assignment.finishedAt, latencyMs: Date.now() - began,
+              latencyScope: 'execution_only', memoryPeakMb: process.memoryUsage().rss / 1048576,
+              metadata: { segmentedTiming: { ...measurements, queueMs: 0, uploadMs: null, downloadMs: null,
+                executionMs: Math.max(0, Date.now() - began - measurements.storageReadMs - measurements.storageWriteMs) },
+                segmentSource: 'server-monotonic-clock', memorySource: 'process-rss-at-stage-finish', transferTiming: 'not-observable-on-server',
+                cancellation: 'executor promise settled; remote acknowledgement unavailable; committed side effects are not rolled back',
+                stopRequestedAt: run.stopRequestedAt ?? null },
+              fallbackOccurred, success: assignment.status === 'succeeded', errorCode: assignment.errorCode,
+            };
+            this.runs.recordTelemetry(runId, record);
+            this.telemetry.record(record);
           };
-          this.runs.recordTelemetry(runId, record);
-          this.telemetry.record(record);
+          if (settled) recordSettled();
+          else active.pending = settlement!.then(recordSettled);
         }
       }
       this.runs.complete(runId, 'workflow_completed');
@@ -125,7 +151,16 @@ export class RuntimeRunnerService {
       }
       throw new ServiceUnavailableException({ code, runId });
     } finally {
-      this.active.delete(runId);
+      const cleanup = () => {
+        if (active.grace) clearTimeout(active.grace);
+        run.executionState = 'settled';
+        run.executionSettledAt = new Date().toISOString();
+        run.updatedAt = run.executionSettledAt;
+        this.active.delete(runId);
+        controller.signal.removeEventListener('abort', requestStop);
+      };
+      if (active.pending) void active.pending.then(cleanup, cleanup);
+      else cleanup();
       externalSignal?.removeEventListener('abort', cancelExternal);
     }
   }

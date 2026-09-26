@@ -173,6 +173,7 @@ export interface ExecutorDescriptor {
   placement: "local" | "cloud";
   available: boolean;
   availabilityReason?: string;
+  toolAvailability?: Record<string, { available: boolean; reason?: string }>;
   supportedComputeClasses: ComputeClass[];
   supportedModels: string[];
   totalMemoryMb: number | null;
@@ -382,6 +383,11 @@ export interface RuntimeOperationStep {
 }
 
 export interface RuntimeRun {
+  ownerUserId?: string;
+  executionState?: "running" | "stop_requested" | "stop_unconfirmed" | "settled";
+  stopRequestedAt?: string;
+  executionSettledAt?: string;
+  stopReason?: string;
   clientTelemetry?: { taskId: string; observedAt: string; timing: Record<string, number | null>; events?: Record<string, unknown>[] };
   runId: string;
   goal: string;

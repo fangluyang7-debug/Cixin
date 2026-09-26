@@ -1,3 +1,7 @@
+import { HttpCode, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../../auth/auth.types';
+import { RuntimeMaintenanceGuard } from '../runtime-maintenance.guard';
 import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Sse } from "@nestjs/common";
 import { ok } from "../../../common/dto/api-response.dto";
 import {
@@ -20,6 +24,7 @@ import { RuntimeRunService } from "../../../core/runtime/runtime-run.service";
 import { RuntimeEventBusService } from "../../../core/runtime/runtime-event-bus.service";
 import { RuntimeRunnerService } from '../../../core/runtime/runtime-runner.service';
 
+@UseGuards(JwtAuthGuard)
 @Controller("api/v1/runtime")
 export class RuntimeController {
   constructor(
@@ -34,14 +39,18 @@ export class RuntimeController {
     private readonly runner: RuntimeRunnerService,
   ) {}
 
+  @HttpCode(202)
   @Post('runs/:runId/cancel')
-  cancelRun(@Param('runId') runId: string) {
-    return ok({ runId, cancellationRequested: this.runner.cancel(runId) });
+  cancelRun(@Param('runId') runId: string, @Req() request: AuthenticatedRequest) {
+    const run = this.runs.requireOwned(runId, request.user!.userId);
+    const cancellationRequested = this.runner.cancel(runId);
+    return ok({ runId, cancellationRequested, executionState: run.executionState ?? 'settled', stopRequestedAt: run.stopRequestedAt });
   }
 
   @Post('runs/:runId/client-telemetry')
-  recordClientTelemetry(@Param('runId') runId: string, @Body() body: unknown) {
+  recordClientTelemetry(@Param('runId') runId: string, @Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
+    this.runs.requireOwned(runId, request.user!.userId);
     const taskId = asNonEmptyString(input.taskId);
     const raw = asRecord(input.timing);
     if (!taskId) throw new BadRequestException('CLIENT_TASK_ID_REQUIRED');
@@ -81,46 +90,51 @@ export class RuntimeController {
   }
 
   @Get("snapshot")
-  async getSnapshot() {
-    return ok(await this.snapshot.getSnapshot());
+  async getSnapshot(@Req() request: AuthenticatedRequest) {
+    const snapshot = await this.snapshot.getSnapshot();
+    const runs = this.runs.listOwned(request.user!.userId);
+    return ok({ ...snapshot, performanceSamples: [], activeRun: runs[0] ?? null, recentRuns: runs });
   }
 
   @Sse("events")
-  streamEvents() {
-    return this.events.sse();
+  streamEvents(@Req() request: AuthenticatedRequest) {
+    return this.events.sse(event => Boolean(event.runId) && this.runs.get(event.runId!)?.ownerUserId === request.user!.userId);
   }
 
   @Get("runs")
-  listRuns() {
-    return ok({ runs: this.runs.list() });
+  listRuns(@Req() request: AuthenticatedRequest) {
+    return ok({ runs: this.runs.listOwned(request.user!.userId) });
   }
 
   @Get("runs/:runId")
-  getRun(@Param("runId") runId: string) {
-    const run = this.runs.get(runId);
+  getRun(@Param("runId") runId: string, @Req() request: AuthenticatedRequest) {
+    const run = this.runs.requireOwned(runId, request.user!.userId);
     if (!run) throw new NotFoundException("RUNTIME_RUN_NOT_FOUND");
     return ok(run);
   }
 
+  @UseGuards(RuntimeMaintenanceGuard)
   @Post("plan")
-  async plan(@Body() body: unknown) {
+  async plan(@Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
     const graph = parseTaskGraph(input.taskGraph ?? input);
     const runId = asNonEmptyString(input.runId);
     if (runId) {
+      this.runs.requireOwned(runId, request.user!.userId);
       const plan = await this.scheduler.plan(graph, { runId });
       this.runs.updatePlan(runId, plan, graph);
       return ok({ ...plan, runId });
     }
-    const run = await this.runs.start(graph);
+    const run = await this.runs.start(graph, request.user!.userId);
     return ok({ ...run.executionPlan!, runId: run.runId });
   }
 
+  @UseGuards(RuntimeMaintenanceGuard)
   @Post("agent/plan")
-  async planAgent(@Body() body: unknown) {
+  async planAgent(@Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
     if (input.taskGraph) {
-      const run = await this.runs.start(parseTaskGraph(input.taskGraph));
+      const run = await this.runs.start(parseTaskGraph(input.taskGraph), request.user!.userId);
       return ok({
         status: run.status,
         taskGraph: run.taskGraph,
@@ -134,7 +148,7 @@ export class RuntimeController {
       const run = this.runs.startBlockedGoal(
         "未提供 Agent 目标",
         "AGENT_GOAL_OR_TASK_GRAPH_REQUIRED",
-        "请求必须提供 goal 或 taskGraph。",
+        "请求必须提供 goal 或 taskGraph。", request.user!.userId,
       );
       return ok({
         status: run.status,
@@ -149,24 +163,26 @@ export class RuntimeController {
       context: isRecord(input.context) ? input.context : undefined,
     });
     if (result.taskGraph && result.executionPlan) {
-      const run = this.runs.createPlanned(result.taskGraph, result.executionPlan);
+      const run = this.runs.createPlanned(result.taskGraph, result.executionPlan, request.user!.userId);
       return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
     }
     const requirement = result.missingRequirements[0] ?? {
       code: "AGENT_PLAN_BLOCKED",
       message: "Agent 计划被阻断。",
     };
-    const run = this.runs.startBlockedGoal(goal, requirement.code, requirement.message);
+    const run = this.runs.startBlockedGoal(goal, requirement.code, requirement.message, request.user!.userId);
     return ok({ ...result, executionPlan: run.executionPlan, runId: run.runId });
   }
 
+  @UseGuards(RuntimeMaintenanceGuard)
   @Post("replan")
-  async replan(@Body() body: unknown) {
+  async replan(@Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
     const telemetry = parseTelemetryArray(input.telemetry);
     const runId = asNonEmptyString(input.runId);
     const reason = asNonEmptyString(input.reason) ?? "runtime_observation";
     if (runId) {
+      this.runs.requireOwned(runId, request.user!.userId);
       this.events.emit({
         type: "replan_requested",
         runId,
@@ -191,12 +207,13 @@ export class RuntimeController {
     return ok({ ...result, runId: runId ?? null });
   }
 
+  @UseGuards(RuntimeMaintenanceGuard)
   @Post("telemetry")
-  recordTelemetry(@Body() body: unknown) {
+  recordTelemetry(@Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
     const record = parseTelemetry(input);
     const runId = asNonEmptyString(input.runId);
-    if (runId) this.runs.recordTelemetry(runId, record);
+    if (runId) { this.runs.requireOwned(runId, request.user!.userId); this.runs.recordTelemetry(runId, record); }
     return ok({
       sample: this.telemetry.record(record),
       performanceSamples: this.performance.list(),
@@ -204,8 +221,9 @@ export class RuntimeController {
     });
   }
 
+  @UseGuards(RuntimeMaintenanceGuard)
   @Post("verify")
-  verify(@Body() body: unknown) {
+  verify(@Body() body: unknown, @Req() request: AuthenticatedRequest) {
     const input = asRecord(body);
     const assignment = parseAssignment(input.assignment);
     const tool = this.tools.require(assignment.toolId);
@@ -213,6 +231,7 @@ export class RuntimeController {
     const verification = this.agent.verify(assignment, tool, telemetry);
     const runId = asNonEmptyString(input.runId);
     if (runId) {
+      this.runs.requireOwned(runId, request.user!.userId);
       this.runs.recordTelemetry(runId, telemetry);
       this.runs.recordVerification(
         runId,

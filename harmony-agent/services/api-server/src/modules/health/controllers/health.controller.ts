@@ -15,6 +15,12 @@ export class HealthController {
     if (!result.available) throw new ServiceUnavailableException({ code: 'INFRASTRUCTURE_NOT_READY', ...result });
     return ok(result);
   }
+  @Get('capabilities')
+  async getCapabilities() {
+    const result = await this.readiness.check();
+    return ok({ modelMode: result.modelMode, checkedAt: result.checkedAt, capabilities: result.capabilities,
+      catalog: result.catalog, checks: result.checks });
+  }
   @Get('readiness')
   async getReadiness() {
     const result = await this.readiness.check();

@@ -23,10 +23,11 @@ export class RuntimeRunService {
     private readonly events: RuntimeEventBusService,
   ) {}
 
-  async start(taskGraph: TaskGraph): Promise<RuntimeRun> {
+  async start(taskGraph: TaskGraph, ownerUserId?: string): Promise<RuntimeRun> {
     const now = new Date().toISOString();
     const run: RuntimeRun = {
       runId: createId("run"),
+      ownerUserId,
       goal: taskGraph.goal,
       taskGraph,
       executionPlan: null,
@@ -57,10 +58,11 @@ export class RuntimeRunService {
     return this.updatePlan(runId, plan, taskGraph);
   }
 
-  createPlanned(taskGraph: TaskGraph, plan: ExecutionPlan): RuntimeRun {
+  createPlanned(taskGraph: TaskGraph, plan: ExecutionPlan, ownerUserId?: string): RuntimeRun {
     const now = new Date().toISOString();
     const run: RuntimeRun = {
       runId: createId("run"),
+      ownerUserId,
       goal: taskGraph.goal,
       taskGraph,
       executionPlan: plan,
@@ -76,10 +78,11 @@ export class RuntimeRunService {
     return run;
   }
 
-  startBlockedGoal(goal: string, code: string, message: string): RuntimeRun {
+  startBlockedGoal(goal: string, code: string, message: string, ownerUserId?: string): RuntimeRun {
     const now = new Date().toISOString();
     const run: RuntimeRun = {
       runId: createId("run"),
+      ownerUserId,
       goal,
       taskGraph: null,
       executionPlan: {
@@ -106,7 +109,7 @@ export class RuntimeRunService {
 
   updatePlan(runId: string, plan: ExecutionPlan, taskGraph?: TaskGraph): RuntimeRun {
     const run = this.require(runId);
-    if (run.status === 'running') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
+    if (run.status === 'running' || run.executionState === 'stop_requested' || run.executionState === 'stop_unconfirmed') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
     if (taskGraph) {
       run.taskGraph = taskGraph;
       run.goal = taskGraph.goal;
@@ -181,7 +184,7 @@ export class RuntimeRunService {
 
   recordReplan(runId: string, reason: string, telemetryCount: number, plan: ExecutionPlan) {
     const run = this.require(runId);
-    if (run.status === 'running') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
+    if (run.status === 'running' || run.executionState === 'stop_requested' || run.executionState === 'stop_unconfirmed') throw new ConflictException('RUNTIME_REPLAN_REQUIRES_STAGE_BOUNDARY');
     const event: RuntimeReplanEvent = {
       reason,
       telemetryCount,
@@ -224,6 +227,16 @@ export class RuntimeRunService {
     return run;
   }
 
+  requireOwned(runId: string, userId: string) {
+    const run = this.get(runId);
+    if (!userId || !run || run.ownerUserId !== userId) throw new NotFoundException('RUNTIME_RUN_NOT_FOUND');
+    return run;
+  }
+
+  listOwned(userId: string) {
+    return this.list().filter(run => Boolean(userId) && run.ownerUserId === userId);
+  }
+
   get(runId: string) {
     return this.runs.get(runId) ?? null;
   }
@@ -249,7 +262,7 @@ export class RuntimeRunService {
   private store(run: RuntimeRun) {
     this.runs.set(run.runId, run);
     if (this.runs.size <= this.maxRecentRuns) return;
-    const oldest = [...this.runs.values()].filter(item => !['planning', 'ready', 'running'].includes(item.status)).sort((left, right) =>
+    const oldest = [...this.runs.values()].filter(item => !['planning', 'ready', 'running'].includes(item.status) && !['stop_requested', 'stop_unconfirmed'].includes(item.executionState ?? '')).sort((left, right) =>
       left.updatedAt.localeCompare(right.updatedAt),
     )[0];
     if (oldest) this.runs.delete(oldest.runId);

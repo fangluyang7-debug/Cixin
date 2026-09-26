@@ -34,7 +34,7 @@ export class SessionsController {
     @Body() dto: CreateSessionDto,
     @Headers("authorization") authorization?: string,
   ) {
-    const user = await this.auth.getUserFromAuthorization(authorization);
+    const user = await this.auth.requireUserFromAuthorization(authorization);
     return ok(
       await this.runtime.execute('shopping.image', { dto, userId: user?.userId ?? null }),
     );
@@ -45,24 +45,27 @@ export class SessionsController {
     @Body() dto: CreateTextSessionDto,
     @Headers("authorization") authorization?: string,
   ) {
-    const user = await this.auth.getUserFromAuthorization(authorization);
+    const user = await this.auth.requireUserFromAuthorization(authorization);
     return ok(
       await this.runtime.execute('shopping.text', { dto, userId: user?.userId ?? null }),
     );
   }
 
   @Get(":sessionId")
-  async getSession(@Param("sessionId") sessionId: string) {
-    return ok(await this.runtime.execute('shopping.read', { sessionId }));
+  async getSession(@Param("sessionId") sessionId: string, @Headers("authorization") authorization?: string) {
+    const user = await this.auth.requireUserFromAuthorization(authorization);
+    return ok(await this.runtime.execute('shopping.read', { sessionId, userId: user.userId }));
   }
 
   @Post(":sessionId/subject-selection")
   async updateSubjectSelection(
     @Param("sessionId") sessionId: string,
     @Body() dto: UpdateSubjectSelectionDto,
+    @Headers("authorization") authorization?: string,
   ) {
+    const user = await this.auth.requireUserFromAuthorization(authorization);
     return ok(
-      await this.runtime.execute('shopping.subject', { sessionId, dto }),
+      await this.runtime.execute('shopping.subject', { sessionId, dto, userId: user.userId }),
     );
   }
 
@@ -70,22 +73,27 @@ export class SessionsController {
   async updateProductProfile(
     @Param("sessionId") sessionId: string,
     @Body() dto: UpdateProductProfileDto,
+    @Headers("authorization") authorization?: string,
   ) {
-    return ok(await this.runtime.execute('shopping.profile', { sessionId, dto }));
+    const user = await this.auth.requireUserFromAuthorization(authorization);
+    return ok(await this.runtime.execute('shopping.profile', { sessionId, dto, userId: user.userId }));
   }
 
   @Post(":sessionId/candidates/refine")
-  async refineCandidates(@Param("sessionId") sessionId: string) {
-    return ok(await this.runtime.execute('shopping.refine', { sessionId }));
+  async refineCandidates(@Param("sessionId") sessionId: string, @Headers("authorization") authorization?: string) {
+    const user = await this.auth.requireUserFromAuthorization(authorization);
+    return ok(await this.runtime.execute('shopping.refine', { sessionId, userId: user.userId }));
   }
 
   @Sse(":sessionId/search-events")
   searchEventStream(
     @Param("sessionId") sessionId: string,
+    @Headers("authorization") authorization?: string,
   ): Observable<{ type: string; data: SessionSearchEvent }> {
     return new Observable((subscriber) => {
-      this.searchEvents
-        .buildReplayEvents(sessionId)
+      this.auth.requireUserFromAuthorization(authorization)
+        .then(user => this.runtime.assertSessionOwner(sessionId, user.userId))
+        .then(() => this.searchEvents.buildReplayEvents(sessionId))
         .then((events) => {
           for (const event of events) {
             subscriber.next({ type: event.type, data: event });

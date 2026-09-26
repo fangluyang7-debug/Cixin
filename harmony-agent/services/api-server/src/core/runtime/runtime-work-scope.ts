@@ -5,12 +5,27 @@ export interface RuntimeWorkMeasurements {
   storageWriteMs: number;
   modelMs: number;
 }
-interface WorkScope { signal: AbortSignal; measurements: RuntimeWorkMeasurements; }
+interface WorkScope { pending: Set<Promise<unknown>>; signal: AbortSignal; measurements: RuntimeWorkMeasurements; }
 const scopes = new AsyncLocalStorage<WorkScope>();
 
 export class RuntimeWorkScope {
   static run<T>(signal: AbortSignal, measurements: RuntimeWorkMeasurements, work: () => Promise<T>): Promise<T> {
-    return scopes.run({ signal, measurements }, work);
+    const scope: WorkScope = { signal, measurements, pending: new Set() };
+    return scopes.run(scope, async () => {
+      try { return await work(); }
+      finally {
+        // A business timeout must not detach database or explicitly tracked child work.
+        while (scope.pending.size) await Promise.allSettled([...scope.pending]);
+      }
+    });
+  }
+  static track<T>(work: Promise<T>): Promise<T> {
+    const scope = scopes.getStore();
+    if (scope) {
+      scope.pending.add(work);
+      void work.then(() => scope.pending.delete(work), () => scope.pending.delete(work));
+    }
+    return work;
   }
   static checkpoint(): void { scopes.getStore()?.signal.throwIfAborted(); }
   static signal(timeoutMs: number): AbortSignal {

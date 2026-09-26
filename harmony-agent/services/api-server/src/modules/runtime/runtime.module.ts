@@ -1,3 +1,5 @@
+import { AuthModule } from '../auth/auth.module';
+import { RuntimeMaintenanceGuard } from './runtime-maintenance.guard';
 import { RuntimeProbeController } from './controllers/runtime-probe.controller';
 import { Injectable, Module, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -33,8 +35,9 @@ class ShoppingPluginRegistration implements OnModuleInit {
 }
 
 @Module({
+  imports: [AuthModule],
   controllers: [RuntimeController, RuntimeProbeController],
-  providers: [
+  providers: [RuntimeMaintenanceGuard,
     ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService, TencentCosStorageAdapterService,
     ToolRegistryService,
     PerformanceRegistryService,

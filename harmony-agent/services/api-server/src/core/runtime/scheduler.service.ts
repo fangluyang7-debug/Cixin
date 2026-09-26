@@ -205,6 +205,8 @@ export class ResourceAwareSchedulerService {
       executor.executorId,
       tool.resourceHints.modelId,
     );
+    const capability = executor.toolAvailability?.[task.toolId];
+    if (executor.toolAvailability && !capability?.available) reasons.push('TOOL_DEPENDENCIES_UNAVAILABLE:' + (capability?.reason ?? 'UNKNOWN_TOOL'));
     if (!executor.available) {
       reasons.push(`EXECUTOR_UNAVAILABLE:${executor.availabilityReason ?? "UNKNOWN"}`);
     }

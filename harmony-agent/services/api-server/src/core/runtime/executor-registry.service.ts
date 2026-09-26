@@ -13,6 +13,8 @@ export interface RuntimeExecutionContext {
 export interface RuntimeExecutor {
   executorId: string;
   toolIds: string[];
+  // Settlement acknowledges local execution has ended. Await child work or register
+  // it with RuntimeWorkScope.track; never detach untracked side effects.
   execute(context: RuntimeExecutionContext): Promise<unknown>;
 }
 

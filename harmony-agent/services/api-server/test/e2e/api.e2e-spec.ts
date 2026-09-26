@@ -6,10 +6,16 @@ import { PrismaService } from '../../src/persistence/prisma/prisma.service';
 describe('API HTTP contract', () => {
   let app: NestExpressApplication;
   let prisma: PrismaService;
+  let authorization: string;
+  let userId: string;
 
   beforeAll(async () => {
     app = await createTestApp();
     prisma = app.get(PrismaService);
+    const registered = await request(app.getHttpServer()).post('/api/v1/auth/register')
+      .send({ email: 'contract@example.test', password: 'test-contract-password' }).expect(201);
+    authorization = 'Bearer ' + registered.body.data.accessToken;
+    userId = registered.body.data.user.userId;
   });
 
   afterAll(async () => {
@@ -42,29 +48,11 @@ describe('API HTTP contract', () => {
     expect(response.body.requestId).toMatch(/^req_/);
   });
 
-  it('returns clarification with an empty candidate contract and no snapshot', async () => {
-    const response = await request(app.getHttpServer())
-      .post('/api/v1/sessions/text')
-      .send({
-        message: '推荐一下',
-        entrySource: 'android_app',
-        filters: { searchPipelineMode: 'light_tag_ann_fusion' },
-      })
-      .expect(201);
-
-    expect(response.body.data).toMatchObject({
-      intent: 'ask_clarification',
-      effectiveFilter: { searchPipelineMode: 'light_tag_ann_fusion' },
-      candidates: {
-        candidateSnapshotId: null,
-        degraded: false,
-        items: [],
-      },
-      textQuery: {
-        candidateSnapshotId: null,
-        stateChangingTurn: false,
-      },
-    });
+  it('requires authentication and does not run model-dependent tasks in deferred mode', async () => {
+    await request(app.getHttpServer()).post('/api/v1/sessions/text').send({ message: '推荐一下' }).expect(401);
+    const response = await request(app.getHttpServer()).post('/api/v1/sessions/text')
+      .set('Authorization', authorization).send({ message: '推荐一下' }).expect(503);
+    expect(response.body.error.code).toBe('RUNTIME_BLOCKED');
   });
 
   it('protects maintenance endpoints with the configured token', async () => {
@@ -108,6 +96,7 @@ describe('API HTTP contract', () => {
     await prisma.querySession.create({
       data: {
         id: 'session_contract',
+        userId,
         assetId: 'asset_contract',
         status: 'ready',
         stage: 'candidate_ready',
@@ -145,7 +134,7 @@ describe('API HTTP contract', () => {
     });
 
     const response = await request(app.getHttpServer())
-      .get('/api/v1/sessions/session_contract/candidates')
+      .get('/api/v1/sessions/session_contract/candidates').set('Authorization', authorization)
       .expect(200);
 
     expect(response.body.data).toMatchObject({
@@ -169,7 +158,7 @@ describe('API HTTP contract', () => {
 
   it('rejects invalid candidate pagination input through the HTTP boundary', async () => {
     const response = await request(app.getHttpServer())
-      .post('/api/v1/sessions/session_contract/candidates/more')
+      .post('/api/v1/sessions/session_contract/candidates/more').set('Authorization', authorization)
       .send({ limit: 0 })
       .expect(400);
 

@@ -11,7 +11,7 @@ function fixture(overrides = {}) {
     const data = {
       '/api/v1/health': { service: 'api-server', status: 'ok' },
       '/api/v1/health/readiness': { available: true, checks: Object.fromEntries(
-        ['database', 'cos', 'chat', 'vision', 'embedding'].map(id => [id, { available: true }])) },
+        ['database', 'cos', 'chat', 'vision', 'embedding', 'catalog'].map(id => [id, { available: true }])) },
       '/api/v1/runtime/tools': { tools: tools.map(toolId => ({ toolId })) },
       ...overrides,
     }[path];

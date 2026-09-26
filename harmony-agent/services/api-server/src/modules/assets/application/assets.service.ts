@@ -20,7 +20,7 @@ export class AssetsService {
     private readonly imageAssetAdapter: ImageAssetAdapter,
   ) {}
 
-  async createImageAsset(dto: CreateImageAssetDto, file?: UploadedImageFile) {
+  async createImageAsset(dto: CreateImageAssetDto, file?: UploadedImageFile, ownerUserId?: string) {
     const input = this.imageAssetAdapter.normalizeCreateInput(dto, file);
 
     const assetId = createId('asset');
@@ -38,6 +38,7 @@ export class AssetsService {
     const asset = await this.prisma.imageAsset.create({
       data: {
         id: assetId,
+        ownerUserId,
         assetGroupId,
         variantType,
         isPrimaryRecognitionAsset: input.isPrimaryRecognitionAsset ?? variantType === 'compressed_recognition',

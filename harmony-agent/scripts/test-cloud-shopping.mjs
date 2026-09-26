@@ -121,3 +121,15 @@ assert.equal((await preparingHandle.result).status,types.TaskStatus.CANCELLED);
 assert.equal(submissions,0);assert.equal(phantomSignals,0);
 await prepClient.dispose();
 console.log('PASS cancellation during pre-plan probing prevents submission without signalling nonexistent tasks');
+
+CloudApiConfig.logout();
+assert.equal(CloudApiConfig.isAuthenticated(), false);
+replies = [{ responseCode: 200, result: JSON.stringify({ success: true, data: { accessToken: 'test-user-token' } }) }];
+await CloudApiConfig.authenticate('user@example.test', 'test-password');
+assert.equal(CloudApiConfig.requestHeaders().Authorization, 'Bearer test-user-token');
+assert.ok(calls.at(-1).url.endsWith('/api/v1/auth/login'));
+assert.equal([...pref.values()].some(value => String(value).includes('test-password') || String(value).includes('test-user-token')), false);
+await CloudApiConfig.save({}, 'https://different.example.test');
+assert.equal(CloudApiConfig.isAuthenticated(), false);
+assert.equal(CloudApiConfig.requestHeaders().Authorization, undefined);
+console.log('PASS cloud login attaches user JWT without persisting credentials; changing origin clears identity');

@@ -26,6 +26,10 @@ struct Index {
   private expiryTimer: number = -1;
   private readyTimer: number = -1;
   private photoGeneration: number = 0;
+  @State cloudEmail: string = '';
+  @State cloudPassword: string = '';
+  @State cloudAuthStatus: string = '请登录云端账号';
+  @State cloudAuthBusy: boolean = false;
   @State cloudEndpoint: string = '';
   @State cloudStatus: string = '请配置 Zeabur HTTPS API 地址';
   private contentScroller: Scroller = new Scroller();
@@ -91,6 +95,16 @@ struct Index {
     this.initialStatus = '商品由 Zeabur 云端检索';
     try { this.cloudEndpoint = CloudApiConfig.getBaseUrl(); this.cloudStatus = '云端 API 已配置'; } catch (_) {}
   }
+  private async authenticateCloud(register: boolean): Promise<void> {
+    if (this.cloudAuthBusy) { return; }
+    this.cloudAuthBusy = true;
+    try {
+      await CloudApiConfig.authenticate(this.cloudEmail, this.cloudPassword, register);
+      this.cloudAuthStatus = '云端账号已登录（重启 App 后需重新登录）';
+    } catch (_) { this.cloudAuthStatus = '登录失败，请检查已保存的服务地址、账号和密码'; }
+    finally { this.cloudPassword = ''; this.cloudAuthBusy = false; }
+  }
+
   private async saveCloudEndpoint(): Promise<void> {
     try {
       const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
@@ -355,6 +369,15 @@ struct Index {
         .onChange((value: string) => { this.cloudEndpoint = value; })
       Button('保存云端地址').onClick(() => this.saveCloudEndpoint())
       Text(this.cloudStatus).fontSize(12)
+      TextInput({ text: this.cloudEmail, placeholder: '云端账号邮箱' }).onChange((value: string) => { this.cloudEmail = value; })
+      TextInput({ text: this.cloudPassword, placeholder: '密码（注册至少 8 位）' }).type(InputType.Password)
+        .onChange((value: string) => { this.cloudPassword = value; })
+      Row({ space: 12 }) {
+        Button('登录').enabled(!this.cloudAuthBusy).onClick(() => { this.authenticateCloud(false); })
+        Button('注册').enabled(!this.cloudAuthBusy).onClick(() => { this.authenticateCloud(true); })
+        Button('退出登录').onClick(() => { CloudApiConfig.logout(); this.cloudAuthStatus = '已退出登录'; })
+      }
+      Text(this.cloudAuthStatus).fontSize(12)
       Text('电脑实时监控').fontSize(18).fontWeight(FontWeight.Medium).width('100%')
       Text('电脑和手机连接同一可信 Wi-Fi 后，运行电脑端监控服务，再填写电脑局域网地址与配对码。只推送调度状态、资源指标和任务事件，不包含搜索内容、图片或商品列表。')
         .fontSize(12).fontColor('#747878').width('100%')

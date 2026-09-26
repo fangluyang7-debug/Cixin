@@ -1,3 +1,4 @@
+import { AuthModule } from '../auth/auth.module';
 import { Module } from '@nestjs/common';
 import { TencentCosStorageAdapterService } from '../../adapters/storage/tencent-cos-storage-adapter.service';
 import { OBJECT_STORAGE_ADAPTER } from '../../adapters/storage/storage.constants';
@@ -7,6 +8,7 @@ import { StandardImageAssetAdapterService } from './application/standard-image-a
 import { AssetsController } from './controllers/assets.controller';
 
 @Module({
+  imports: [AuthModule],
   controllers: [AssetsController],
   providers: [
     AssetsService,

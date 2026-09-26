@@ -1,3 +1,5 @@
+import { APP_GUARD } from '@nestjs/core';
+import { ResourceOwnershipGuard } from './modules/auth/resource-ownership.guard';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import configuration from './common/config/configuration';
@@ -19,6 +21,7 @@ import { TrendOutfitModule } from './modules/trend-outfit/trend-outfit.module';
 import { RuntimeModule } from './modules/runtime/runtime.module';
 
 @Module({
+  providers: [{ provide: APP_GUARD, useClass: ResourceOwnershipGuard }],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
