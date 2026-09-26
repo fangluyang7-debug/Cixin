@@ -1,3 +1,5 @@
+import { CancellationController } from '../executor/CancellationController';
+import { ExecutionTelemetry } from './RemoteRouteProfile';
 import {
   AccuracyPreference, CancellationSignal, DependencyFailurePolicy, DuplicatePolicy, ExecutionPlan,
   DeviceState, ExecutorResult, InferenceLocation, Interruptibility, ModelTier, PrivacyPolicy, TaskCheckpoint,
@@ -22,6 +24,7 @@ export interface SchedulerRuntime {
 }
 
 interface ActiveWorkflow {
+  preparation: CancellationController;
   id: string;
   key: string;
   context: TaskContext;
@@ -66,8 +69,8 @@ class ScopedExecutor<TInput, TOutput> implements WorkloadExecutor<TInput, TOutpu
     if (this.delegate.warmup !== undefined) { await this.delegate.warmup(plan); }
   }
   public execute(input: TInput, plan: ExecutionPlan, signal: CancellationSignal,
-    checkpoint?: TaskCheckpoint): Promise<ExecutorResult<TOutput>> {
-    return this.delegate.execute(input, plan, signal, checkpoint);
+    checkpoint?: TaskCheckpoint, onProgress?: (event: ExecutionTelemetry) => void): Promise<ExecutorResult<TOutput>> {
+    return this.delegate.execute(input, plan, signal, checkpoint, onProgress);
   }
   public dispose(): Promise<void> { return this.delegate.dispose(); }
 }
@@ -80,6 +83,7 @@ export class SchedulerClient {
   private readonly templates: Map<string, TaskTemplate> = new Map<string, TaskTemplate>();
   private readonly workflows: Map<string, ActiveWorkflow> = new Map<string, ActiveWorkflow>();
   private readonly executorCapabilities: string[] = [];
+  private readonly preparers: Map<string, WorkloadExecutor<Object, Object>> = new Map<string, WorkloadExecutor<Object, Object>>();
   private nextWorkflow: number = 0;
   private disposed: boolean = false;
 
@@ -99,6 +103,7 @@ export class SchedulerClient {
     if (template.workflow !== undefined || template.inferenceLocation !== executor.inferenceLocation) {
       this.invalid('Executor must match a leaf template and its execution location.');
     }
+    this.preparers.set(executor.capability, executor as WorkloadExecutor<Object, Object>);
     this.runtime.registerExecutor(new ScopedExecutor<TInput, TOutput>(this.scope, executor));
     if (this.executorCapabilities.indexOf(executor.capability) < 0) {
       this.executorCapabilities.push(executor.capability);
@@ -141,7 +146,7 @@ export class SchedulerClient {
       }
     );
     const run: ActiveWorkflow = {
-      id: id, key: key, context: snapshot, submittedAt: Date.now(), cancelled: false,
+      preparation: new CancellationController(), id: id, key: key, context: snapshot, submittedAt: Date.now(), cancelled: false,
       finished: false, taskIds: [], outputTaskId: `${id}:${template.outputNodeId ?? 'task'}`,
       handle: handle as WorkflowHandle<Object>
     };
@@ -247,7 +252,6 @@ export class SchedulerClient {
       nodeContext.parentTaskId = run.id;
       nodeContext.dependencyTaskIds = node.dependsOn.map((dependency: string) => `${run.id}:${dependency}`);
       const taskId: string = `${run.id}:${node.id}`;
-      run.taskIds.push(taskId);
       const dependencyOutputs: Record<string, Object> = {};
       node.dependsOn.forEach((dependency: string) => { dependencyOutputs[dependency] = outputs[dependency]; });
       const workflowInput: WorkflowInput<TInput> = { input: input, outputs: dependencyOutputs };
@@ -262,6 +266,12 @@ export class SchedulerClient {
         remoteOptions: leaf.remoteOptions
       };
       try {
+        const preparer = this.preparers.get(leaf.capability);
+        if (preparer?.prepare !== undefined) {
+          await preparer.prepare(request.input, nodeContext, run.preparation.signal);
+          if (run.cancelled) { skipped.push(node.id); continue; }
+        }
+        run.taskIds.push(taskId);
         const handle: TaskHandle<Object> = await this.runtime.submitTask<Object, Object>(request);
         if (run.cancelled) { await this.runtime.signalTask(taskId, { type: TaskSignalType.CANCEL }); }
         const result: TaskResult<Object> = await handle.result;
@@ -274,7 +284,8 @@ export class SchedulerClient {
         }
       } catch (error) {
         if (node.failurePolicy === DependencyFailurePolicy.CANCEL_WORKFLOW) {
-          failure = error instanceof SchedulerError ? error.code : SchedulerErrorCode.INTERNAL_ERROR;
+          failure = error instanceof SchedulerError ? error.code :
+            error instanceof Error && /^[A-Z][A-Z0-9_]{1,100}$/.test(error.message) ? error.message : SchedulerErrorCode.INTERNAL_ERROR;
         }
         skipped.push(node.id);
       }
@@ -302,6 +313,7 @@ export class SchedulerClient {
     if (signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.PAGE_LEFT ||
       signal.type === TaskSignalType.INPUT_REPLACED) {
       run.cancelled = true;
+      run.preparation.cancel();
       run.reason = signal.type;
     }
     if (signal.type === TaskSignalType.WAITING_CHANGED) { run.context.userWaiting = signal.value === true; }

@@ -194,3 +194,25 @@ test('DAG privacy inherited from dependencies prevents disclosure by later publi
   assert.equal(done.nodes.b.targetDeviceId, 'p1-controller');
   assert.equal(done.nodes.b.decision.candidates.find(c => c.deviceId === 'board-b').accepted, false);
 });
+
+test('measured weak bandwidth reverses placement regardless of configured bandwidth', async t => {
+  const { runtime, local } = await fleet(t);
+  const peer = local.config.peers[0];
+  const measured = await runtime.transport.probe(peer, 5000);
+  assert.equal(measured.source, 'measured-effective-throughput');
+  runtime.transport.probe = async () => ({ ...measured, uplinkMbps: 0.001, downlinkMbps: 0.001 });
+  const slow = await runtime.plan(task({ allowRemote: true }));
+  assert.equal(slow.selectedDeviceId, 'p1-controller');
+  assert.equal(slow.candidates.find(c => c.deviceId === 'board-b').accepted, false);
+  runtime.transport.probe = async () => ({ ...measured, uplinkMbps: 1000, downlinkMbps: 1000 });
+  peer.bytesPerSecond = 1;
+  const fast = await runtime.plan(task({ allowRemote: true }));
+  assert.equal(fast.selectedDeviceId, 'board-b');
+});
+test('probe failures never fall back to declared peer bandwidth', async t => {
+  const { runtime } = await fleet(t);
+  runtime.transport.probe = async () => { throw new Error('PROBE_TIMEOUT'); };
+  const plan = await runtime.plan(task({ allowRemote: true }));
+  assert.equal(plan.selectedDeviceId, 'p1-controller');
+  assert.deepEqual(plan.candidates.find(c=>c.deviceId==='board-b').reasons, ['PROBE_TIMEOUT']);
+});

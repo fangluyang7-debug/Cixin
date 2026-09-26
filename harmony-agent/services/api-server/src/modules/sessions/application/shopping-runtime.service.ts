@@ -1,3 +1,4 @@
+import { clientRoute } from '../../../core/runtime/client-route';
 import { ShoppingImageStagesService } from './shopping-image-stages.service';
 import { buildImageSearchTaskGraph, IMAGE_STAGE_TOOLS } from '../../../core/runtime/image-search-task-graph';
 import { Injectable, OnModuleInit } from '@nestjs/common';
@@ -40,6 +41,9 @@ export class ShoppingRuntimeService implements OnModuleInit {
     const graph = image ? buildImageSearchTaskGraph((request.dto as { assetId?: string })?.assetId ?? request.taskId ?? 'upload')
       : buildShoppingWorkflowGraph(toolId, request.sessionId ? `session:${request.sessionId}` : 'request:body');
     graph.clientTaskId = request.taskId;
+    if (request.taskId !== undefined) {
+      graph.nodes[0].cloudRoutes = [clientRoute(request.networkProfile, Buffer.byteLength(JSON.stringify(request.dto ?? {})))];
+    }
     for (const node of graph.nodes) {
       node.deviceProfile = safeProfile(request.deviceProfile);
       node.networkProfile = safeProfile(request.networkProfile);
@@ -62,6 +66,7 @@ export class ShoppingRuntimeService implements OnModuleInit {
     const session = result.session as { sessionId?: string } | undefined;
     return { ...result, runtimeRunId: run.runId, runId: run.runId, taskId: request.taskId ?? graph.nodes[0].taskId,
       status: 'succeeded', resultRef: result.resultRef ?? (session?.sessionId ? 'session:' + session.sessionId : undefined),
+      serverTiming: { queueMs: 0, computeMs: run.telemetry.reduce((sum, record) => sum + record.latencyMs, 0) },
       runtime: run };
   }
 

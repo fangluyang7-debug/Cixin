@@ -1,3 +1,4 @@
+import { RouteCandidate, ExecutionTelemetry } from '../scheduler/api/RemoteRouteProfile';
 import { ToolDescriptor, TaskConstraints, TaskGraph } from './cixin';
 import { DeviceState, ExecutionPlan, TaskContext, TaskResult, TaskTemplate,
   WorkloadExecutor, RealDeviceStatePatch, CloudClientTiming } from '../scheduler/api/SchedulerTypes';
@@ -109,6 +110,7 @@ export interface ProcessWorkerConfig {
   args: string[];
 }
 export interface Candidate {
+  route?: RouteCandidate;
   deviceId: string;
   accepted: boolean;
   reasons: string[];
@@ -125,6 +127,7 @@ export interface FleetDecision {
   candidates: Candidate[];
 }
 export interface RunRecord {
+  routeEvents?: ExecutionTelemetry[];
   runId: string;
   clientTaskId?: string;
   clientTelemetry?: { taskId: string; observedAt: number; timing: CloudClientTiming };

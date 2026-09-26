@@ -261,7 +261,8 @@ function createWorkflowTools(): import('./runtime.contracts').ToolDescriptor[] {
     preconditions: ['cloud readiness passed'], postconditions: ['business result returned'],
     quality: {}, constraints: { privacy: 'internal', locality: 'cloud_only', allowLocal: false,
       allowCloud: true, maxLatencyMs: 120000 },
-    resourceHints: { computeClass: 'network', estimatedMemoryMb: 0 },
+    resourceHints: { computeClass: 'network', estimatedMemoryMb: 0,
+      estimatedComputeMs: toolId.startsWith('shopping.stage.') ? 1000 : 10000 },
     execution: { supportsPause: false, supportsRetry: false, maxAttempts: 1, compensationActions: [] },
     defaultWeights: { latency: 0.5, reliability: 0.5, quality: 0, energy: 0 }, allowColdStart: true,
   }));

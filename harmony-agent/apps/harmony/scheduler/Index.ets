@@ -76,3 +76,6 @@ export {
   FeedbackAvailability, ActiveTaskSnapshot,
   StateObservation, PolicyStateStore, PolicyMetricsGroup
 } from './src/main/ets/api/SchedulerTypes';
+
+export { RemoteTaskProfile, RouteCandidate, ExecutionTelemetry, RouteProbePort, RemoteRouteRegistry, routeStatus } from './src/main/ets/api/RemoteRouteProfile';
+export { HttpRouteProbe } from './src/main/ets/network/HttpRouteProbe';

@@ -53,16 +53,21 @@ function fixture(healthy = true) {
   return { runtime, runs, performance, content, profiles, search, sessions, assets };
 }
 
+const measuredRoute = () => ({ source: 'measured', transferAuthorized: true, observedAt: new Date().toISOString(),
+  inputBytes: 1024, outputBytes: 1024, roundTripMs: 20, uploadMbps: 10, downloadMbps: 20, queueMs: 1 });
+
 describe('Shopping Runtime integration', () => {
   it('plans and executes every image stage, then learns only from real execution', async () => {
     const test = fixture();
     expect(test.performance.list()).toEqual([]);
-    const result = await test.runtime.execute('shopping.image', { taskId: 'phone_test', dto: { assetId: 'asset_test' },
+    const result = await test.runtime.execute('shopping.image', { taskId: 'phone_test', networkProfile: measuredRoute(), dto: { assetId: 'asset_test' },
       deviceProfile: { batteryPercent: 70, secretKey: 'not-for-graph' } });
     const run = test.runs.get(result.runtimeRunId)!;
     expect(run.executionPlan?.executionOrder).toEqual([...IMAGE_SEARCH_STAGES]);
     expect(run.executionPlan?.assignments.every(item => item.status === 'succeeded')).toBe(true);
     expect(run.telemetry).toHaveLength(12);
+    expect(run.taskGraph?.nodes.filter(node => node.cloudRoutes?.[0].inputResidence === 'device')).toHaveLength(1);
+    expect(run.executionPlan?.assignments[0].cloudOverheadMs).toBeGreaterThan(20);
     expect(test.performance.list()).toHaveLength(12);
     expect(test.profiles.classifyProductCategory).toHaveBeenCalledTimes(1);
     expect(test.search.searchFastAnnShoes).toHaveBeenCalledTimes(1);
@@ -99,4 +104,13 @@ describe('Shopping Runtime integration', () => {
     expect(test.assets.createImageAsset).toHaveBeenCalledTimes(1);
     expect(test.runs.latest()?.executionPlan?.assignments[1].taskId).toBe('asset');
   });
+});
+
+it('rejects missing client measurements and slow measured uploads before business execution', async () => {
+  const test = fixture();
+  await expect(test.runtime.execute('shopping.image', { taskId: 'phone_missing', dto: { assetId: 'a' } })).rejects.toThrow('CLIENT_ROUTE_REQUIRED');
+  await expect(test.runtime.execute('shopping.image', { taskId: 'phone_slow', dto: { assetId: 'a' },
+    networkProfile: { ...measuredRoute(), inputBytes: 6 * 1024 * 1024, uploadMbps: 0.001 } })).rejects.toThrow();
+  expect(test.runs.latest()?.status).toBe('blocked');
+  expect(test.content.readMetadata).not.toHaveBeenCalled();
 });

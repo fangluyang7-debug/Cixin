@@ -7,14 +7,16 @@ const root = path.resolve(import.meta.dirname, '../apps/harmony').replaceAll('\\
 const virtual = root + '/cloud-check.d.ts';
 const scheduler = root + '/cloud-scheduler.ts';
 const files = new Map([
-  [scheduler, `export * from './scheduler/src/main/ets/api/SchedulerTypes';
+  [scheduler, `export * from './scheduler/src/main/ets/network/HttpRouteProbe';
+export * from './scheduler/src/main/ets/api/RemoteRouteProfile';
+export * from './scheduler/src/main/ets/api/SchedulerTypes';
 export * from './scheduler/src/main/ets/api/SchedulerClient';
 export * from './scheduler/src/main/ets/placement/PlacementPolicy';`],
   [virtual, `declare module '@kit.AbilityKit' { export namespace common { interface Context {} } }
 declare module '@kit.ArkData' { export const preferences: { getPreferences(context: Object, options: { name: string }): Promise<{ get(key: string, value: string): Promise<string>; put(key: string, value: string): Promise<void>; flush(): Promise<void> }> }; }
 declare module '@kit.CoreFileKit' { export const fileIo: { OpenMode: { READ_ONLY: number }; openSync(uri: string, mode: number): { fd: number }; statSync(fd: number): { size: number }; readSync(fd: number, buffer: ArrayBuffer): number; closeSync(file: { fd: number }): void }; }
 declare module '@kit.ArkTS' { export namespace util { class Base64Helper { encodeToStringSync(bytes: Uint8Array): string; } } }
-declare module '@kit.NetworkKit' { export namespace http {
+declare module '@kit.NetworkKit' { export namespace connection { interface NetConnection { on(event: string, callback: () => void): void; register(callback: (error?: Object) => void): void; unregister(callback: () => void): void; } function createNetConnection(): NetConnection; } export namespace http {
   enum RequestMethod { GET, POST }
   interface DataSendProgressInfo { sendSize: number; totalSize: number; }
   interface HttpResponse { responseCode: number; result: string | Object | ArrayBuffer;

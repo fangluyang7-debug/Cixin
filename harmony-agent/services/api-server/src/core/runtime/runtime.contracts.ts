@@ -51,6 +51,8 @@ export interface ToolConstraints {
 }
 
 export interface ToolResourceHints {
+  // Declared cold-start compute prior, never a measured sample.
+  estimatedComputeMs?: number;
   computeClass: ComputeClass;
   estimatedMemoryMb: number;
   modelId?: string;
@@ -145,7 +147,7 @@ export interface CloudRouteObservation {
   estimatedFeeMinorUnits?: number;
   accessExpiresAt?: string;
   observedAt: string;
-  source: "measured" | "declared";
+  source: "measured" | "declared" | "in_process";
 }
 
 export interface TaskGraph {
@@ -380,7 +382,7 @@ export interface RuntimeOperationStep {
 }
 
 export interface RuntimeRun {
-  clientTelemetry?: { taskId: string; observedAt: string; timing: Record<string, number | null> };
+  clientTelemetry?: { taskId: string; observedAt: string; timing: Record<string, number | null>; events?: Record<string, unknown>[] };
   runId: string;
   goal: string;
   taskGraph: TaskGraph | null;

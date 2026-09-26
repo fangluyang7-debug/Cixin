@@ -1,0 +1,642 @@
+(node:34308) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[32minstall completed in 0s 131ms[39m
+> hvigor [32mFinished :entry:default@PreBuild... after 327 ms [39m
+> hvigor [32mFinished :scheduler:default@PreBuild... after 192 ms [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 3 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateMetadata...  [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 2 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 25 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateHarBuildProfile...  [39m
+> hvigor [32mFinished :scheduler:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@MergeProfile... after 10 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 66 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 16 ms [39m
+> hvigor [32mFinished :entry:default@ProcessShareConfig... after 18 ms [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 7 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 9 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithCmake... after 2 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 25 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 60 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MakePackInfo...  [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 349 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@ProcessLibs...  [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 12 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@DoNativeStrip...  [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 769 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 1 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 9 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessLibs...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@DoNativeStrip...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CacheNativeLibs...  [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:19:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:20:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:25:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:26:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:27:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:86:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:88:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:91:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:97:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:185:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:62:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:63:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:64:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:65:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:71:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:72:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:73:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:74:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:75:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:80:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:153:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:170:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:176:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:180:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:194:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:254:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:262:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:262:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:263:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:263:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:264:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:264:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:265:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:265:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:266:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:266:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:267:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:267:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:268:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:268:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:269:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:269:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:270:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:270:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:271:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:271:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:272:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:272:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/MindSporeEmbeddingEngine.ets:36:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:223:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:260:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:273:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:141:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:142:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:142:52
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/pages/SchedulerPanelPage.ets:488:24
+ 'showToast' has been deprecated.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/pages/SchedulerPanelPage.ets:1393:20
+ 'back' has been deprecated.
+
+
+> hvigor [32mFinished :entry:default@CompileArkTS... after 16 s 7 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 8 ms [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 1 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 810 ms [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 19 ms [39m
+> hvigor WARN: Will skip sign 'hos_hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in E:\learning_resource\Harmony_Creation\HarmonyOS\Cixin\Cixin\harmony-agent\apps\harmony\build-profile.json5.
+> hvigor [32mFinished :entry:default@SignHap... after 5 ms [39m
+> hvigor [32mFinished :entry:default@CollectDebugSymbol... after 3 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 39 s 580 ms [39m
+> hvigor [32mFinished :scheduler:default@PreBuild... after 277 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessOHPackageJson... after 6 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateHarBuildProfile...  [39m
+> hvigor [32mFinished :scheduler:default@CreateHarModuleInfo... after 8 ms [39m
+> hvigor [32mFinished :scheduler:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@MergeProfile...  [39m
+> hvigor [32mFinished :scheduler:default@GeneratePkgContextInfo... after 27 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessIntegratedHsp... after 3 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessModulePrivacyProfile... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessProfile... after 169 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessRouterMap... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessShareConfig... after 6 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessStartupConfig... after 8 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessResource... after 11 ms [39m
+> hvigor [32mFinished :scheduler:default@GenerateLoaderJson... after 40 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@ProcessLibs...  [39m
+> hvigor [32mFinished :scheduler:default@CompileResource... after 5 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@DoNativeStrip...  [39m
+> hvigor [32mFinished :scheduler:default@ProcessObfuscationFiles... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CacheNativeLibs...  [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:38
+ To use this API, you need to apply for the permissions: ohos.permission.INTERNET
+
+
+> hvigor [32mFinished :scheduler:default@HarCompileArkTS... after 11 s 727 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessHarArtifacts... after 197 ms [39m
+> hvigor [32mFinished :scheduler:default@PackageHar... after 192 ms [39m
+> hvigor WARN: Will skip sign 'har'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in E:\learning_resource\Harmony_Creation\HarmonyOS\Cixin\Cixin\harmony-agent\apps\harmony\build-profile.json5.
+> hvigor [32mFinished :scheduler:default@PackageSignHar... after 3 ms [39m
+> hvigor [32mFinished :scheduler:default@PackingCheckHar... after 7 ms [39m
+> hvigor [32mFinished :scheduler:default@CollectDebugSymbol... after 3 ms [39m
+> hvigor [32mFinished :scheduler:assembleHar... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 25 s 933 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@PreBuild...  [39m
+> hvigor [32mFinished :scheduler:default@CreateHarModuleInfo... after 3 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateBuildProfile...  [39m
+> hvigor [32mFinished :scheduler:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@GenerateUnitTestTemplate...  [39m
+> hvigor [32mFinished :scheduler:default@GeneratePkgContextInfo... after 23 ms [39m
+> hvigor [32mFinished :scheduler:default@MergeProfile... after 11 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessRouterMap... after 8 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessShareConfig... after 6 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessStartupConfig... after 8 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessProfile... after 176 ms [39m
+> hvigor [32mFinished :scheduler:default@GenerateLoaderJson... after 73 ms [39m
+> hvigor [32mFinished :scheduler:default@UnitTestProcessProfile... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessResource... after 13 ms [39m
+> hvigor [32mFinished :scheduler:default@CompileResource... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@ReplaceUnitTestIndexFile... after 6 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildUnitTestHook... after 1 ms [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:38
+ To use this API, you need to apply for the permissions: ohos.permission.INTERNET
+
+
+> hvigor [32mFinished :scheduler:default@UnitTestArkTS... after 10 s 117 ms [39m
+> hvigor [32mWindows_NT[39m
+[32m[2026-09-26T22:08:25.672] [INFO] default - [39mFinished write html report
+> hvigor [32mFinished :scheduler:default@GenerateUnitTestResult... after 8 s 872 ms [39m
+> hvigor [32mFinished :scheduler:test... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 32 s 220 ms [39m
+[32m[2026-09-26T22:08:25.778] [INFO] default - [39mFinished file written successfully
+scheduler Tests run: 170, Failure: 0, Error: 0, Pass: 170, Ignore: 0
+> hvigor [32mFinished :entry:default@PreBuild... after 335 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@PreBuild...  [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 2 ms [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateUnitTestTemplate...  [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 21 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateHarBuildProfile...  [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@GenerateUnitTestTemplate...  [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 7 ms [39m
+> hvigor [32mFinished :entry:default@ProcessShareConfig... after 12 ms [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 6 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 8 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@MergeProfile...  [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 36 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 31 ms [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 199 ms [39m
+> hvigor [32mFinished :entry:default@UnitTestProcessProfile... after 11 ms [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 12 ms [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 542 ms [39m
+> hvigor [32mFinished :entry:default@ReplaceUnitTestIndexFile... after 9 ms [39m
+> hvigor [32mFinished :entry:default@BuildUnitTestHook... after 1 ms [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:19:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:20:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:25:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:26:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:27:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:86:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:88:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:91:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:97:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:185:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:62:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:63:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:64:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:65:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:71:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:72:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:73:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:74:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:75:11
+ Function may throw exceptions. Special handling is required.
+
+
+> hvigor [32mFinished :entry:default@UnitTestArkTS... after 11 s 118 ms [39m
+> hvigor [32mWindows_NT[39m
+[32m[2026-09-26T22:09:01.811] [INFO] default - [39mFinished write html report
+> hvigor [32mFinished :entry:default@GenerateUnitTestResult... after 8 s 81 ms [39m
+> hvigor [32mFinished :entry:test... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 32 s 874 ms [39m
+[32m[2026-09-26T22:09:02.006] [INFO] default - [39mFinished file written successfully
+entry Tests run: 26, Failure: 0, Error: 0, Pass: 26, Ignore: 0
+(node:42424) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[32minstall completed in 0s 106ms[39m
+> hvigor [32mFinished :entry:default@PreBuild... after 370 ms [39m
+> hvigor [32mFinished :scheduler:default@PreBuild... after 234 ms [39m
+> hvigor [32mFinished :entry:default@CreateModuleInfo... after 3 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@GenerateMetadata...  [39m
+> hvigor [32mFinished :entry:default@PreCheckSyscap... after 2 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgContextInfo... after 33 ms [39m
+> hvigor [32mFinished :entry:default@ProcessIntegratedHsp... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateHarBuildProfile...  [39m
+> hvigor [32mFinished :scheduler:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@MergeProfile... after 13 ms [39m
+> hvigor [32mFinished :entry:default@SyscapTransform... after 54 ms [39m
+> hvigor [32mFinished :entry:default@ProcessRouterMap... after 12 ms [39m
+> hvigor [32mFinished :entry:default@ProcessShareConfig... after 11 ms [39m
+> hvigor [32mFinished :entry:default@ProcessStartupConfig... after 8 ms [39m
+> hvigor [32mFinished :entry:default@CreateBuildProfile... after 10 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :entry:default@MergeProfile... after 14 ms [39m
+> hvigor [32mFinished :entry:default@GenerateLoaderJson... after 43 ms [39m
+> hvigor [32mFinished :entry:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@MakePackInfo...  [39m
+> hvigor [32mFinished :entry:default@ProcessProfile... after 262 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@ProcessLibs...  [39m
+> hvigor [32mFinished :entry:default@ProcessResource... after 13 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@DoNativeStrip...  [39m
+> hvigor [32mFinished :entry:default@CompileResource... after 581 ms [39m
+> hvigor [32mFinished :entry:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mFinished :entry:default@BuildJS... after 13 ms [39m
+> hvigor [32mUP-TO-DATE :entry:default@ProcessLibs...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@DoNativeStrip...  [39m
+> hvigor [32mUP-TO-DATE :entry:default@CacheNativeLibs...  [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:19:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:20:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:25:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:26:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudApiConfig.ets:27:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:86:20
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:88:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:91:22
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:97:19
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/CloudShoppingExecutor.ets:185:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:62:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:63:28
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:64:31
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:65:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:71:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:72:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:73:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:74:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/SchedulerMonitorPublisher.ets:75:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:80:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:153:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:170:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:176:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:180:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:194:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:254:9
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:262:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:262:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:263:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:263:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:264:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:264:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:265:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:265:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:266:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:266:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:267:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:267:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:268:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:268:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:269:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:269:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:270:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:270:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:271:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:271:27
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:272:7
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/database/StoreManager.ets:272:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/MindSporeEmbeddingEngine.ets:36:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:223:25
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:260:38
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/NeuralEmbeddingIndex.ets:273:13
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:141:18
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:142:11
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/services/ExperimentService.ets:142:52
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/pages/SchedulerPanelPage.ets:488:24
+ 'showToast' has been deprecated.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/entry/src/main/ets/pages/SchedulerPanelPage.ets:1393:20
+ 'back' has been deprecated.
+
+
+> hvigor [32mFinished :entry:default@CompileArkTS... after 18 s 114 ms [39m
+> hvigor [32mFinished :entry:default@GeneratePkgModuleJson... after 10 ms [39m
+> hvigor [32mFinished :entry:default@ProcessCompiledResources... after 2 ms [39m
+> hvigor [32mFinished :entry:default@PackageHap... after 1 s 178 ms [39m
+> hvigor [32mFinished :entry:default@PackingCheck... after 23 ms [39m
+> hvigor WARN: Will skip sign 'hos_hap'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in E:\learning_resource\Harmony_Creation\HarmonyOS\Cixin\Cixin\harmony-agent\apps\harmony\build-profile.json5.
+> hvigor [32mFinished :entry:default@SignHap... after 4 ms [39m
+> hvigor [32mFinished :entry:default@CollectDebugSymbol... after 2 ms [39m
+> hvigor [32mFinished :entry:assembleHap... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 47 s 124 ms [39m
+> hvigor [32mFinished :scheduler:default@PreBuild... after 313 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessOHPackageJson... after 3 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CreateHarBuildProfile...  [39m
+> hvigor [32mFinished :scheduler:default@CreateHarModuleInfo... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@ConfigureCmake... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@MergeProfile...  [39m
+> hvigor [32mFinished :scheduler:default@GeneratePkgContextInfo... after 21 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessIntegratedHsp... after 2 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessModulePrivacyProfile... after 2 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithCmake... after 1 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessProfile... after 180 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessRouterMap... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessShareConfig... after 7 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessStartupConfig... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@BuildNativeWithNinja... after 2 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessResource... after 9 ms [39m
+> hvigor [32mFinished :scheduler:default@GenerateLoaderJson... after 48 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@ProcessLibs...  [39m
+> hvigor [32mFinished :scheduler:default@CompileResource... after 5 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@DoNativeStrip...  [39m
+> hvigor [32mFinished :scheduler:default@ProcessObfuscationFiles... after 1 ms [39m
+> hvigor [32mUP-TO-DATE :scheduler:default@CacheNativeLibs...  [39m
+> hvigor WARN: WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:30
+ Function may throw exceptions. Special handling is required.
+
+WARN: ArkTS:WARN File: E:/learning_resource/Harmony_Creation/HarmonyOS/Cixin/Cixin/harmony-agent/apps/harmony/scheduler/src/main/ets/network/HttpRouteProbe.ets:49:38
+ To use this API, you need to apply for the permissions: ohos.permission.INTERNET
+
+
+> hvigor [32mFinished :scheduler:default@HarCompileArkTS... after 13 s 437 ms [39m
+> hvigor [32mFinished :scheduler:default@ProcessHarArtifacts... after 611 ms [39m
+> hvigor [32mFinished :scheduler:default@PackageHar... after 449 ms [39m
+> hvigor WARN: Will skip sign 'har'. No signingConfigs profile is configured in current project.
+             If needed, configure the signingConfigs in E:\learning_resource\Harmony_Creation\HarmonyOS\Cixin\Cixin\harmony-agent\apps\harmony\build-profile.json5.
+> hvigor [32mFinished :scheduler:default@PackageSignHar... after 5 ms [39m
+> hvigor [32mFinished :scheduler:default@PackingCheckHar... after 15 ms [39m
+> hvigor [32mFinished :scheduler:default@CollectDebugSymbol... after 7 ms [39m
+> hvigor [32mFinished :scheduler:assembleHar... after 1 ms [39m
+> hvigor [32mBUILD SUCCESSFUL in 28 s 922 ms [39m

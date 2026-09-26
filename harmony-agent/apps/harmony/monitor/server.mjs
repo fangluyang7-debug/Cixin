@@ -67,6 +67,31 @@ function cleanPrediction(prediction) {
     'thermalRisk', 'deadlineMissRisk', 'confidence', 'sampleCount', 'source']);
 }
 
+function cleanRoute(route) {
+  if (!route) return undefined;
+  const result = {};
+  for (const key of ['rttMs', 'uplinkMbps', 'downlinkMbps', 'cloudQueueMs', 'estimatedUploadMs',
+    'estimatedDownloadMs', 'estimatedTotalMs', 'observedAt', 'bandwidthAt', 'dependenciesAt', 'costEstimate']) {
+    result[key] = typeof route[key] === 'number' && Number.isFinite(route[key]) ? route[key] : null;
+  }
+  return { ...result, routeId: safeCapability(route.routeId), backend: safeCapability(route.backend),
+    source: safeCapability(route.source), invalidationReason: safeReason(route.invalidationReason) };
+}
+function cleanActual(actual) {
+  if (!actual) return undefined;
+  const timing = {};
+  for (const key of ['requestMs', 'uploadMs', 'downloadMs', 'inputBytes', 'outputBytes']) {
+    const v = actual.cloudTiming?.[key]; timing[key] = typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : null;
+  }
+  return { ...pick(actual, ['profileId', 'actualModelTier', 'actualBackend', 'actualThreads',
+    'workerCount', 'executionPath', 'peakMemoryMb', 'candidateCount', 'retrievalDimensions']),
+    cloudRunId: safeCapability(actual.cloudRunId), cloudTiming: timing,
+    routeEvents: Array.isArray(actual.routeEvents) ? actual.routeEvents.slice(-64).map(event => ({
+      phase: safeCapability(event.phase), timestamp: Number.isFinite(event.timestamp) ? event.timestamp : null,
+      durationMs: Number.isFinite(event.durationMs) ? event.durationMs : null,
+      errorCode: safeReason(event.errorCode) })) : [] };
+}
+
 function cleanPlan(plan) {
   if (!plan) return null;
   return {
@@ -75,6 +100,7 @@ function cleanPlan(plan) {
     executionProfile: cleanProfile(plan.executionProfile),
     reasonCodes: Array.isArray(plan.reasonCodes) ? plan.reasonCodes.slice(0, 24).map(safeReason).filter(Boolean) : [],
     prediction: cleanPrediction(plan.prediction),
+    routeCandidate: cleanRoute(plan.routeCandidate),
     policyAudit: pick(plan.policyAudit, ['mode', 'version', 'baselineProfileId', 'shadowProfileId',
       'actualProfileId', 'cohort', 'stateBucket', 'actualConfirmed'])
       && { ...pick(plan.policyAudit, ['mode', 'version', 'baselineProfileId', 'shadowProfileId',
@@ -108,8 +134,7 @@ function cleanEvent(event) {
     telemetry: telemetry ? {
       ...pick(telemetry, ['endToEndDurationMs', 'softDeadlineMissed', 'deadlineMissed', 'resultDisplayed',
         'resultConsumed', 'checkpointCount', 'mixedExecution']),
-      actual: pick(telemetry.actual, ['profileId', 'actualModelTier', 'actualBackend', 'actualThreads',
-        'workerCount', 'executionPath', 'peakMemoryMb', 'candidateCount', 'retrievalDimensions']),
+      actual: cleanActual(telemetry.actual),
     } : undefined
   };
 }

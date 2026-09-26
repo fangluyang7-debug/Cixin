@@ -1,3 +1,4 @@
+import { ExecutionTelemetry } from './RemoteRouteProfile';
 import {
   CancellationSignal,
   DebugStatePatch,
@@ -466,7 +467,17 @@ export class SchedulerService implements SchedulerRuntime {
         throw new SchedulerError(SchedulerErrorCode.TASK_CANCELLED, 'Task stopped during warmup.');
       }
       const executorResult: ExecutorResult<TOutput> = await currentExecutor.execute(request.input,
-        JSON.parse(JSON.stringify(currentPlan)) as ExecutionPlan, signal, checkpoint);
+        JSON.parse(JSON.stringify(currentPlan)) as ExecutionPlan, signal, checkpoint, (event: ExecutionTelemetry): void => {
+          const active = this.tasks.get(taskId);
+          if (active === undefined) { return; }
+          if (active.actual === undefined) { active.actual = {}; }
+          active.actual.routeEvents = [...(active.actual.routeEvents ?? []).slice(-63), event];
+          this.appendLogEntry({ taskId: taskId, taskType: active.taskType, capability: active.capability,
+            deviceState: this.getDeviceState(), executionPlan: currentPlan, status: active.status,
+            queuedAt: active.queuedAt, startedAt: active.startedAt, finishedAt: null,
+            queueDurationMs: active.queueDurationMs, executionDurationMs: null, totalDurationMs: null,
+            telemetry: { actual: active.actual, checkpointCount: active.checkpointCount, deadlineMissed: false } });
+        });
       return { output: executorResult.output as Object, completed: executorResult.completed,
         checkpoint: executorResult.checkpoint, telemetry: executorResult.telemetry };
     };

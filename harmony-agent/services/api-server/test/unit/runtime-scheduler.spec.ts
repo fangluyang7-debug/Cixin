@@ -15,6 +15,84 @@ import { RuntimeEventBusService } from "../../src/core/runtime/runtime-event-bus
 import { estimateCloudRoute } from "../../src/core/runtime/cloud-route-cost";
 
 describe("ResourceAwareSchedulerService", () => {
+  it.each([
+    { taskMinimum: 0.9, toolMinimum: 0.5 },
+    { taskMinimum: 0.5, toolMinimum: 0.9 },
+  ])("enforces the stricter quality floor before scoring: %j", async ({ taskMinimum, toolMinimum }) => {
+    const registry = new ToolRegistryService();
+    const tool = toolWithLocalCpu();
+    tool.quality.minimumScore = toolMinimum;
+    tool.defaultWeights = { latency: 1, quality: 0, energy: 0, reliability: 0 };
+    registry.register(tool);
+    const performance = new PerformanceRegistryService(
+      new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }),
+    );
+    for (const [executorId, latencyMs, quality] of [
+      ["fast-low-quality", 1, 0.8], ["slower-qualified", 100, 0.9],
+    ] as const) {
+      performance.record({
+        executionId: executorId, taskId: "task-1", toolId: tool.toolId, executorId,
+        startedAt: new Date().toISOString(), finishedAt: new Date().toISOString(),
+        latencyMs, memoryPeakMb: 10, quality, success: true, fallbackOccurred: false,
+      });
+    }
+    const scheduler = createScheduler(registry,
+      [localSnapshot([executor("fast-low-quality"), executor("slower-qualified")])], performance);
+    const taskGraph = graph(tool.toolId);
+    taskGraph.nodes[0].constraints = { minimumQuality: taskMinimum };
+
+    const plan = await scheduler.plan(taskGraph);
+
+    expect(plan.status).toBe("ready");
+    expect(plan.assignments[0].executorId).toBe("slower-qualified");
+    expect(plan.evaluations["task-1"][0]).toMatchObject({
+      accepted: false, score: null, reasons: ["QUALITY_THRESHOLD_NOT_MET"],
+    });
+    expect(plan.evaluations["task-1"][1].accepted).toBe(true);
+
+    taskGraph.nodes[0].constraints.minimumQuality = 0.95;
+    const stricterPlan = await scheduler.plan(taskGraph);
+    expect(stricterPlan.status).toBe("blocked");
+    expect(stricterPlan.assignments).toHaveLength(0);
+    expect(stricterPlan.missingRequirements[0]).toMatchObject({
+      code: "NO_FEASIBLE_EXECUTOR",
+      evidence: { reasons: ["QUALITY_THRESHOLD_NOT_MET"] },
+    });
+  });
+
+  it.each(["no-history", "failed-only", "missing-quality"] as const)(
+    "does not let cold start bypass a quality floor with %s",
+    async (history) => {
+      const registry = new ToolRegistryService();
+      const tool = toolWithLocalCpu();
+      tool.allowColdStart = true;
+      tool.defaultWeights = { latency: 1, quality: 0, energy: 0, reliability: 0 };
+      registry.register(tool);
+      const performance = new PerformanceRegistryService(new ConfigService());
+      if (history !== "no-history") {
+        performance.record({
+          executionId: "sample-1", taskId: "task-1", toolId: tool.toolId,
+          executorId: "host-cpu", startedAt: new Date().toISOString(),
+          finishedAt: new Date().toISOString(), latencyMs: 10, memoryPeakMb: 10,
+          quality: history === "failed-only" ? 1 : undefined,
+          success: history !== "failed-only", fallbackOccurred: false,
+        });
+      }
+      const scheduler = createScheduler(registry, [localSnapshot()], performance);
+      const taskGraph = graph(tool.toolId);
+      expect((await scheduler.plan(taskGraph)).status).toBe("ready");
+      taskGraph.nodes[0].constraints = { minimumQuality: 0 };
+      expect((await scheduler.plan(taskGraph)).status).toBe("ready");
+      taskGraph.nodes[0].constraints = { minimumQuality: 0.9 };
+
+      const plan = await scheduler.plan(taskGraph);
+
+      expect(plan.status).toBe("blocked");
+      expect(plan.assignments).toHaveLength(0);
+      expect(plan.evaluations["task-1"][0].reasons).toEqual(["QUALITY_METRIC_MISSING"]);
+    },
+  );
+
   it("blocks a local neural task until real performance data exists", async () => {
     const registry = new ToolRegistryService();
     registry.registerPlugin(createShoppingPlugin(new ConfigService()));
@@ -397,3 +475,27 @@ function unavailable(source: string) {
     observedAt: "2026-09-06T00:00:00.000Z",
   };
 }
+
+it('real bandwidth reverses local/cloud selection and cold start cannot bypass network evidence', async () => {
+  const registry = new ToolRegistryService(); const tool = toolWithLocalCpu();
+  tool.constraints = { ...tool.constraints, allowCloud: true, locality: 'auto' };
+  tool.defaultWeights = { latency: 1, quality: 0, energy: 0, reliability: 0 };
+  registry.register(tool);
+  const performance = new PerformanceRegistryService(new ConfigService({ runtime: { minimumPerformanceSamples: 1 } }));
+  for (const executorId of ['cpu', 'cloud']) performance.record({
+    executionId: executorId, taskId: 't', toolId: tool.toolId, executorId,
+    startedAt: new Date().toISOString(), finishedAt: new Date().toISOString(),
+    latencyMs: executorId === 'cpu' ? 1000 : 10, latencyScope: 'execution_only', memoryPeakMb: 1,
+    quality: 1, energyMah: 1, success: true, fallbackOccurred: false });
+  const scheduler = createScheduler(registry, [localSnapshot([executor('cpu')], [executor('cloud','cloud')])], performance);
+  const g = graph(tool.toolId);
+  g.nodes[0].cloudRoutes = [{ executorId:'cloud', inputResidence:'device', outputDestination:'device', accessMode:'inline_transfer',
+    transferAuthorized:true, inputBytes:1000000,outputBytes:1000,roundTripMs:10,uploadMbps:100,downloadMbps:100,
+    storageReadMs:0,queueMs:0,observedAt:new Date().toISOString(),source:'measured' }];
+  expect((await scheduler.plan(g)).assignments[0].executorId).toBe('cloud');
+  g.nodes[0].cloudRoutes[0].uploadMbps = 0.1;
+  expect((await scheduler.plan(g)).assignments[0].executorId).toBe('cpu');
+  tool.allowColdStart = true;
+  g.nodes[0].cloudRoutes[0].source = 'declared';
+  expect((await scheduler.plan(g)).evaluations['task-1'].find(item=>item.executorId==='cloud')?.reasons).toContain('CLOUD_ROUTE_NOT_MEASURED');
+});

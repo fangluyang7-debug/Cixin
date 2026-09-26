@@ -1,12 +1,14 @@
-import { http } from '@kit.NetworkKit';
+import { http, connection } from '@kit.NetworkKit';
 import { fileIo } from '@kit.CoreFileKit';
 import { util } from '@kit.ArkTS';
 import { CancellationSignal, CloudClientTiming, DeviceState, ExecutionPlan, ExecutorResult, InferenceLocation,
-  RemoteExecutionPlan, TaskContext, TaskTemplate, WorkloadExecutor } from 'scheduler';
+  RemoteRouteRegistry, HttpRouteProbe, RouteCandidate, routeStatus, ExecutionTelemetry,
+  RemoteExecutionPlan, TaskContext, TaskTemplate, TaskCheckpoint, WorkloadExecutor } from 'scheduler';
 import { Product } from '../models/Product';
 import { CloudApiConfig } from './CloudApiConfig';
 
 export interface CloudShoppingInput {
+  preparedBody?: CloudRequestInput;
   taskId: string;
   operation: string;
   query: string;
@@ -23,7 +25,8 @@ interface CloudCandidate {
   shopName: string; shopType: string; stockStatus: string; coverImageUrl: string; productUrl: string;
 }
 interface CloudCandidates { items: CloudCandidate[]; }
-interface CloudShoppingResponse { runtimeRunId: string; candidates?: CloudCandidates; }
+interface ServerTiming { queueMs: number; computeMs: number; }
+interface CloudShoppingResponse { runtimeRunId: string; candidates?: CloudCandidates; serverTiming?: ServerTiming; }
 interface CloudErrorDetails { runId?: string; }
 interface CloudError { code: string; details?: CloudErrorDetails; }
 interface CloudErrorEnvelope { error?: CloudError; }
@@ -31,10 +34,10 @@ interface CloudEnvelope { success: boolean; data: CloudShoppingResponse; }
 interface CloudHttpResult { body: string; timing: CloudClientTiming; }
 interface CloudRouteProfile {
   executorId: string; inputResidence: string; outputDestination: string; accessMode: string;
-  transferAuthorized: boolean; inputBytes: number; outputBytes: number | null;
-  roundTripMs: number | null; uploadMbps: number | null; downloadMbps: number | null;
-  storageReadMs: number | null; storageWriteMs: number | null; queueMs: number | null;
-  estimatedFeeMinorUnits: number | null; accessExpiresAt: string | null; source: string; observedAt: number;
+  transferAuthorized: boolean; inputBytes: number; outputBytes: number;
+  roundTripMs: number; uploadMbps: number; downloadMbps: number;
+  storageReadMs: number; storageWriteMs: number; queueMs: number;
+  source: string; observedAt: string;
 }
 interface CloudTaskProfile {
   cloudRoutes: CloudRouteProfile[];
@@ -55,17 +58,29 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
     return plan.inferenceLocation === InferenceLocation.REMOTE_CLOUD &&
       (plan as RemoteExecutionPlan).provider === 'cloud-shopping-api' && !(plan as RemoteExecutionPlan).allowLocalFallback;
   }
-  public async execute(input: CloudShoppingInput, plan: ExecutionPlan, signal: CancellationSignal): Promise<ExecutorResult<Product[]>> {
-    if (!this.supports(plan)) { throw new Error('CLOUD_PLAN_REQUIRED'); }
-    const remote = plan as RemoteExecutionPlan;
-    const baseUrl = CloudApiConfig.getBaseUrl();
-    // A read-only probe may retry. Mutating workflow submissions are never replayed automatically.
-    let healthy: boolean = false;
-    for (let attempt = 0; attempt <= remote.maxRetries; attempt++) {
-      try { await this.request(baseUrl + '/api/v1/health/readiness', '', 10000, signal); healthy = true; break; }
-      catch (error) { if (signal.isCancellationRequested || attempt === remote.maxRetries) { throw new Error((error as Error).message); } }
-    }
-    if (!healthy) { throw new Error('CLOUD_UNAVAILABLE'); }
+  private readonly routes: RemoteRouteRegistry = new RemoteRouteRegistry();
+  private networkObserver: connection.NetConnection | undefined = undefined;
+  private networkEpoch: number = 0;
+  private observedNetwork: boolean = false;
+  private lastRouteKey: string = '';
+  private async watchNetwork(): Promise<void> {
+    if (this.networkObserver !== undefined) { return; }
+    try {
+      const observer = connection.createNetConnection();
+      const changed = (): void => {
+        this.networkEpoch++;
+        this.routes.invalidate(this.lastRouteKey, 'NETWORK_CHANGED');
+      };
+      observer.on('netAvailable', changed);
+      observer.on('netLost', changed);
+      observer.on('netCapabilitiesChange', changed);
+      observer.on('netConnectionPropertiesChange', changed);
+      this.networkObserver = observer;
+      await new Promise<void>((resolve) => observer.register((error) => { this.observedNetwork = !error; resolve(); }));
+    } catch (_) { this.observedNetwork = false; }
+  }
+  public async prepare(input: CloudShoppingInput, context: TaskContext, signal?: CancellationSignal): Promise<void> {
+    if (context.networkAllowed !== true) { throw new Error('NETWORK_NOT_ALLOWED'); }
     const body: CloudRequestInput = { message: input.query, assetId: input.assetId };
     if (input.photoUri !== undefined) {
       const file = fileIo.openSync(input.photoUri, fileIo.OpenMode.READ_ONLY);
@@ -81,40 +96,89 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
         body.imageBase64 = new util.Base64Helper().encodeToStringSync(view);
       } finally { fileIo.closeSync(file); }
     }
-    const route: CloudRouteProfile = { executorId: 'cloud-shopping-api', inputResidence: 'device', outputDestination: 'device',
-      accessMode: 'inline_transfer', transferAuthorized: true, inputBytes: utf8Bytes(JSON.stringify(body)), outputBytes: null,
-      roundTripMs: null, uploadMbps: null, downloadMbps: null, storageReadMs: null, storageWriteMs: null,
-      queueMs: null, estimatedFeeMinorUnits: null, accessExpiresAt: null, source: 'unavailable-before-first-transfer', observedAt: Date.now() };
+    input.preparedBody = body;
+    context.remoteTask = { taskKind: input.photoUri === undefined ? 'text' : 'vision', latencyClass: 'interactive',
+      input: { modality: input.photoUri === undefined ? 'text' : 'image', bytes: utf8Bytes(JSON.stringify(body)) + 8192,
+        requiresUpload: true }, estimatedResultBytes: 512 * 1024, allowCloud: true };
+    await this.watchNetwork();
+    const endpoint = CloudApiConfig.getBaseUrl();
+    const deadlineAt = Date.now() + Math.min(30000, context.deadlineMs ?? 30000);
+    for (let attempt: number = 0; attempt < 2; attempt++) {
+      const key = endpoint + ':' + this.networkEpoch;
+      this.lastRouteKey = key;
+      if (!this.observedNetwork) { this.routes.invalidate(key, 'NETWORK_IDENTITY_UNAVAILABLE_REFRESH'); }
+      context.routeCandidate = await this.routes.prepare(key, context.remoteTask,
+        new HttpRouteProbe(endpoint, 'cloud-shopping-api', CloudApiConfig.requestHeaders(), signal, deadlineAt), 10000);
+      context.routeCandidate.networkKey = key;
+      if (key === endpoint + ':' + this.networkEpoch) { return; }
+      this.routes.invalidate(key, 'NETWORK_CHANGED_DURING_PROBE');
+    }
+    throw new Error('NETWORK_CHANGED_DURING_PROBE');
+  }
+  public async execute(input: CloudShoppingInput, plan: ExecutionPlan, signal: CancellationSignal, checkpoint?: TaskCheckpoint, onProgress?: (event: ExecutionTelemetry) => void): Promise<ExecutorResult<Product[]>> {
+    if (!this.supports(plan)) { throw new Error('CLOUD_PLAN_REQUIRED'); }
+    const remote = plan as RemoteExecutionPlan;
+    const selected = remote.routeCandidate;
+    if (selected === undefined || routeStatus(selected) !== 'fresh' || this.routes.status(selected.networkKey) !== 'fresh' || input.preparedBody === undefined) {
+      throw new Error('REMOTE_ROUTE_EXPIRED_OR_MISSING');
+    }
+    const baseUrl = CloudApiConfig.getBaseUrl();
+    if (selected.networkKey !== baseUrl + ':' + this.networkEpoch || selected.routeId !== remote.provider) { throw new Error('REMOTE_ROUTE_CHANGED'); }
+    const body = input.preparedBody;
+    const route: CloudRouteProfile = { executorId: remote.provider, inputResidence: 'device', outputDestination: 'device',
+      accessMode: 'inline_transfer', transferAuthorized: true, inputBytes: utf8Bytes(JSON.stringify(body)) + 8192,
+      outputBytes: 512 * 1024, roundTripMs: selected.rttMs, uploadMbps: selected.uplinkMbps,
+      downloadMbps: selected.downlinkMbps, storageReadMs: 0, storageWriteMs: 0, queueMs: selected.cloudQueueMs,
+      source: 'measured', observedAt: new Date(selected.observedAt).toISOString() };
+    const events: ExecutionTelemetry[] = [];
     const request: CloudTaskRequest = { taskId: input.taskId, operation: input.operation,
       sessionId: input.sessionId, input: body, networkProfile: route, deviceProfile: input.deviceProfile, executionPlan: remote,
       taskProfile: { cloudRoutes: [route], taskId: input.taskId, toolId: 'product_search',
         inputRef: input.photoUri === undefined ? 'request:text' : 'request:image', outputType: 'Product[]',
         allowCloud: true, privacy: 'internal', inputBytes: route.inputBytes,
         deadlineMs: remote.timeoutMs, template: input.template, context: input.context } };
-    const resultText = await this.request(baseUrl + '/api/v1/shopping/tasks', JSON.stringify(request), remote.timeoutMs, signal);
+    let resultText: CloudHttpResult;
+    try {
+      resultText = await this.request(baseUrl + '/api/v1/shopping/tasks', JSON.stringify(request), remote.timeoutMs, signal,
+        events, input.taskId, selected.routeId, onProgress);
+    } catch (error) {
+      this.routes.invalidate(selected.networkKey, (error as Error).message);
+      onProgress?.({ taskId: input.taskId, routeId: selected.routeId, phase: 'failed', timestamp: Date.now(), errorCode: (error as Error).message });
+      throw new Error((error as Error).message);
+    }
     const envelope = JSON.parse(resultText.body) as CloudEnvelope;
     if (!envelope.success || !envelope.data.runtimeRunId) { throw new Error('CLOUD_INVALID_RESULT'); }
+    this.routes.observe(selected.networkKey, selected, resultText.timing.requestMs, resultText.timing.uploadMs,
+      resultText.timing.downloadMs, resultText.timing.inputBytes, resultText.timing.outputBytes, envelope.data.serverTiming?.computeMs);
+    if (envelope.data.serverTiming !== undefined) {
+      events.push({ taskId: input.taskId, routeId: selected.routeId, phase: 'queue', timestamp: Date.now(), durationMs: envelope.data.serverTiming.queueMs });
+      events.push({ taskId: input.taskId, routeId: selected.routeId, phase: 'compute', timestamp: Date.now(), durationMs: envelope.data.serverTiming.computeMs });
+    }
+    events.push({ taskId: input.taskId, routeId: selected.routeId, phase: 'complete', timestamp: Date.now(), durationMs: resultText.timing.requestMs });
+    events.filter((event: ExecutionTelemetry) => event.phase === 'queue' || event.phase === 'compute' || event.phase === 'complete').forEach((event: ExecutionTelemetry) => onProgress?.(event));
     try {
       await this.request(baseUrl + '/api/v1/runtime/runs/' + envelope.data.runtimeRunId + '/client-telemetry',
-        JSON.stringify({ taskId: input.taskId, timing: resultText.timing }), 3000, signal);
+        JSON.stringify({ taskId: input.taskId, timing: resultText.timing, events: events }), 3000, signal);
     } catch (_) { /* Result remains usable if the optional telemetry acknowledgement is unavailable. */ }
     const items: CloudCandidate[] = envelope.data.candidates?.items ?? [];
     return { output: items.map((item: CloudCandidate): Product => new Product(item.candidateItemId,
       item.platformName, item.title, String(item.price.amount), item.price.currency,
       item.stockStatus, item.shopName, item.shopType, item.productUrl, item.coverImageUrl)),
-      telemetry: { executionPath: 'cloud-shopping-api', cloudRunId: envelope.data.runtimeRunId,
+      telemetry: { routeEvents: events, executionPath: 'cloud-shopping-api', cloudRunId: envelope.data.runtimeRunId,
         cloudTaskId: input.taskId, cloudTiming: resultText.timing } };
   }
 
-  private async request(url: string, body: string, timeoutMs: number, signal: CancellationSignal): Promise<CloudHttpResult> {
+  private async request(url: string, body: string, timeoutMs: number, signal: CancellationSignal, events?: ExecutionTelemetry[], taskId: string = '', routeId: string = '', onProgress?: (event: ExecutionTelemetry) => void): Promise<CloudHttpResult> {
     if (signal.isCancellationRequested) { throw new Error('CLOUD_CANCELLED'); }
     const request = http.createHttp();
     const began: number = Date.now();
+    const publish = (event: ExecutionTelemetry): void => { events?.push(event); onProgress?.(event); };
     let sentBytes: number = 0;
     let sentAt: number | null = null;
     request.on('dataSendProgress', (progress: http.DataSendProgressInfo) => {
-      sentBytes += progress.sendSize;
-      if (progress.totalSize > 0 && sentBytes >= progress.totalSize) { sentAt = Date.now() - began; }
+      sentBytes = progress.sendSize;
+      if (sentAt === null && progress.totalSize > 0 && sentBytes >= progress.totalSize) { sentAt = Date.now() - began;
+        publish({ taskId: taskId, routeId: routeId, phase: 'upload', timestamp: Date.now(), bytesSent: sentBytes }); }
     });
     const unsubscribe = signal.onCancelled(() => request.destroy());
     try {
@@ -137,11 +201,17 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       const timing = response.performanceTiming;
       const uploadMs: number | null = timing !== undefined && sentAt !== null && sentAt >= timing.firstSendTiming ? sentAt - timing.firstSendTiming : null;
       const downloadMs: number | null = timing !== undefined && timing.totalFinishTiming >= timing.firstReceiveTiming ? timing.totalFinishTiming - timing.firstReceiveTiming : null;
+      publish({ taskId: taskId, routeId: routeId, phase: 'download', timestamp: Date.now(), durationMs: downloadMs ?? undefined, bytesReceived: utf8Bytes(String(response.result)) });
       return { body: String(response.result), timing: { requestMs: Date.now() - began, uploadMs: uploadMs,
         downloadMs: downloadMs, inputBytes: utf8Bytes(body), outputBytes: utf8Bytes(String(response.result)) } };
     } finally { unsubscribe(); request.off('dataSendProgress'); request.destroy(); }
   }
-  public async dispose(): Promise<void> {}
+  public async dispose(): Promise<void> {
+    if (this.networkObserver !== undefined) {
+      await new Promise<void>((resolve) => this.networkObserver!.unregister(() => resolve()));
+      this.networkObserver = undefined;
+    }
+  }
 }
 
 function utf8Bytes(value: string): number {

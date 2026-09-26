@@ -1,3 +1,4 @@
+import { routeStatus } from '../scheduler/api/RemoteRouteProfile';
 import { AttemptRecord, Candidate, NodeSnapshot, RunRecord } from '../contracts/fleet';
 import { ExecutionPlan, TaskResult } from '../scheduler/api/SchedulerTypes';
 import { FleetRuntime } from './fleet-runtime';
@@ -49,6 +50,11 @@ function candidateView(candidate: Candidate) {
     transferMs: candidate.accepted ? candidate.transferMs : null,
     totalMs: candidate.accepted ? candidate.totalMs : null,
     uncertaintyMs: candidate.accepted ? candidate.uncertaintyMs : null,
+    route: candidate.route ? { routeId: candidate.route.routeId, source: candidate.route.source,
+      rttMs: candidate.route.rttMs, uplinkMbps: candidate.route.uplinkMbps, downlinkMbps: candidate.route.downlinkMbps,
+      estimatedUploadMs: candidate.route.estimatedUploadMs, estimatedDownloadMs: candidate.route.estimatedDownloadMs,
+      observedAt: candidate.route.observedAt, status: routeStatus(candidate.route),
+      invalidationReason: candidate.route.invalidationReason ?? null } : null,
     quote: quote ? {
       receivedAt: quote.receivedAtMs ?? null, accepted: quote.accepted, reasons: quote.reasons,
       queueMs: quote.accepted ? quote.queueMs : null,
@@ -63,6 +69,7 @@ function runBase(run: RunRecord) {
     runId: run.runId, status: run.status, reason: run.reason ?? null,
     createdAt: run.createdAt, updatedAt: run.updatedAt,
     targetDeviceId: run.targetDeviceId ?? null,
+    routeEvents: run.routeEvents ?? [],
     decision: run.decision ? {
       mode: run.decision.mode, status: run.decision.status,
       selectedDeviceId: run.decision.selectedDeviceId, suggestedDeviceId: run.decision.suggestedDeviceId,

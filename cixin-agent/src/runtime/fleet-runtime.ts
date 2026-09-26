@@ -1,3 +1,4 @@
+import { routeStatus } from '../scheduler/api/RemoteRouteProfile';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -71,6 +72,12 @@ export class FleetRuntime {
       try {
         if (request.constraints.allowedDeviceIds) invariant(request.constraints.allowedDeviceIds.includes(deviceId), 'DEVICE_NOT_ALLOWED');
         if (peer) invariant(remoteAllowed(tool, request.constraints, deviceId), 'REMOTE_DATA_POLICY_REJECTED');
+        if (peer) {
+          invariant(this.transport.probe, 'MEASURED_ROUTE_PROBE_REQUIRED');
+          candidate.route = await this.transport.probe(peer, remainingMs - (performance.now() - started));
+          invariant(candidate.route.routeId === peer.deviceId && routeStatus(candidate.route) === 'fresh' &&
+            candidate.route.source === 'measured-effective-throughput', 'REMOTE_ROUTE_INVALID_OR_EXPIRED');
+        }
         const before = performance.now();
         const quote = peer ? await this.transport.quote(peer, request) : await this.node.quote(request);
         const elapsed = performance.now() - before;
@@ -79,10 +86,11 @@ export class FleetRuntime {
         invariant(quote.accepted, quote.reasons.join(','));
         // Real local execution samples are mandatory before automatic remote placement.
         if (peer && this.node.config.mode === 'ACTIVE') invariant(quote.sampleCount >= this.node.config.minRemoteSamples, 'INSUFFICIENT_REMOTE_SAMPLES');
-        if (peer) links.push({ fromDeviceId: localId, toDeviceId: deviceId, receivedAtMs: Date.now(), sampleAgeMs: 0,
-          rttMs: elapsed, bytesPerSecond: peer.bytesPerSecond, protocolMs: 0 });
+        if (peer) links.push({ fromDeviceId: localId, toDeviceId: deviceId, receivedAtMs: Date.now(), sampleAgeMs: Math.max(0, Date.now() - candidate.route!.observedAt),
+          rttMs: candidate.route!.rttMs,
+          bytesPerSecond: Math.min(candidate.route!.uplinkMbps, candidate.route!.downlinkMbps) * 125000, protocolMs: 0 });
         candidate.accepted = true;
-      } catch (error) { candidate.reasons.push(errorMessage(error)); }
+      } catch (error) { if (peer) this.transport.invalidate?.(peer, errorMessage(error)); candidate.reasons.push(errorMessage(error)); }
     };
     await Promise.all([collect(localId), ...(this.node.config.mode === 'LOCAL_ONLY' ? [] :
       this.node.config.peers.map(peer => collect(peer.deviceId, peer)))]);
@@ -116,6 +124,12 @@ export class FleetRuntime {
     for (const c of candidates) if (c.accepted) {
       const estimate = result.estimates.find(e => e.deviceId === c.deviceId);
       if (!estimate) { c.accepted = false; c.reasons.push('STALE_OR_UNAVAILABLE_DEVICE_METRICS'); continue; }
+      if (c.route) {
+        c.route.cloudQueueMs = c.quote!.queueMs;
+        c.route.estimatedUploadMs = request.inputBytes * 8 / (c.route.uplinkMbps * 1000);
+        c.route.estimatedDownloadMs = 512 * 1024 * 8 / (c.route.downlinkMbps * 1000);
+        c.route.estimatedTotalMs = estimate.totalMs;
+      }
       c.transferMs = estimate.transferMs; c.totalMs = estimate.totalMs; c.uncertaintyMs = estimate.uncertaintyMs;
       if (estimate.totalMs + estimate.uncertaintyMs > budget) { c.accepted = false; c.reasons.push('DEADLINE_INFEASIBLE'); }
     }
@@ -158,6 +172,13 @@ export class FleetRuntime {
       originDeviceId: this.node.config.deviceId, epoch: this.epoch, attemptId: run.runId,
       targetDeviceId: target, bootId: candidate.quote!.bootId };
     run.attemptKey = attemptKey(request); run.targetDeviceId = target; run.status = 'running'; this.save(run);
+    run.routeEvents = [];
+    const event = (phase: 'upload' | 'queue' | 'compute' | 'download' | 'complete' | 'failed', durationMs?: number) => {
+      if (phase === 'failed' && candidate.route) { candidate.route.invalidationReason = 'REMOTE_EXECUTION_FAILED'; candidate.route.cloudReachability = false; }
+      run.routeEvents!.push({ taskId: run.runId, routeId: target, phase, timestamp: Date.now(), durationMs });
+      this.save(run);
+    };
+    event('upload');
     // Once sent, a lost response is ambiguous. Never send an automatic replacement elsewhere.
     try {
       let attempt = peer ? await this.transport.submit(peer, request) : await this.node.submit(request);
@@ -171,9 +192,18 @@ export class FleetRuntime {
         if (!finished(attempt)) await (peer ? this.transport.cancel(peer, run.attemptKey) : this.node.cancel(run.attemptKey));
         run.status = finished(attempt) ? 'failed' : 'unknown';
         run.reason = 'SOURCE_DEADLINE_EXCEEDED_RESULT_DISCARDED';
+        event('failed', performance.now() - start);
+        if (peer) this.transport.invalidate?.(peer, 'REQUEST_TIMEOUT');
         // Do not expose an output that arrived beyond the source budget.
         run.result = { ...attempt, result: attempt.result ? { ...attempt.result, output: null } : undefined };
       } else {
+        event('download');
+        if (attempt.result) {
+          event('queue', attempt.result.queueDurationMs);
+          event('compute', attempt.result.executionDurationMs);
+        }
+        event(attempt.status === 'completed' ? 'complete' : 'failed', performance.now() - start);
+        if (peer && attempt.status !== 'completed') this.transport.invalidate?.(peer, attempt.reason ?? 'REMOTE_EXECUTION_FAILED');
         run.result = attempt;
         run.status = attempt.status === 'completed' ? 'completed' : attempt.status === 'unknown' ? 'unknown' : 'failed';
         if (attempt.status === 'completed' && attempt.result?.executionPlan.policyAudit?.actualConfirmed) {
@@ -183,7 +213,7 @@ export class FleetRuntime {
             queueMs: attempt.result.queueDurationMs, modelLoadMs: 0, computeMs: attempt.result.executionDurationMs });
         }
       }
-    } catch (error) { run.status = 'unknown'; run.reason = `DISPATCH_STATE_UNKNOWN:${errorMessage(error)}`; }
+    } catch (error) { event('failed'); if (peer) this.transport.invalidate?.(peer, errorMessage(error)); run.status = 'unknown'; run.reason = `DISPATCH_STATE_UNKNOWN:${errorMessage(error)}`; }
     this.save(run);
   }
 

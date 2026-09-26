@@ -53,7 +53,25 @@ export class RuntimeController {
       }
       timing[key] = value as number | null;
     }
-    this.runs.recordClientTelemetry(runId, taskId, timing);
+    const events: Record<string, unknown>[] = [];
+    if (input.events !== undefined) {
+      if (!Array.isArray(input.events) || input.events.length > 64) throw new BadRequestException('CLIENT_EVENTS_INVALID');
+      for (const item of input.events) {
+        const event = asRecord(item);
+        if (event.taskId !== taskId || !asNonEmptyString(event.routeId) || event.routeId.length > 100 ||
+            !['upload', 'queue', 'compute', 'download', 'complete', 'failed'].includes(event.phase) ||
+            typeof event.timestamp !== 'number' || !Number.isFinite(event.timestamp)) throw new BadRequestException('CLIENT_EVENT_INVALID');
+        const clean: Record<string, unknown> = { taskId, routeId: event.routeId, phase: event.phase, timestamp: event.timestamp };
+        for (const key of ['durationMs', 'bytesSent', 'bytesReceived']) {
+          if (event[key] !== undefined) {
+            if (typeof event[key] !== 'number' || !Number.isFinite(event[key]) || event[key] < 0 || event[key] > 128 * 1024 * 1024) throw new BadRequestException('CLIENT_EVENT_INVALID');
+            clean[key] = event[key];
+          }
+        }
+        events.push(clean);
+      }
+    }
+    this.runs.recordClientTelemetry(runId, taskId, timing, events);
     return ok({ runId, recorded: true });
   }
 

@@ -1,3 +1,4 @@
+import { routeStatus } from '../api/RemoteRouteProfile';
 import {
   AppVisibility, Backend, DeviceState, ExecutionPlan, InferenceLocation, LocalExecutionPlan, MemoryPressure,
   ModelTier, PolicyMode, PrivacyPolicy, QualityLevel, QueueAction, ResourcePrediction,
@@ -57,6 +58,12 @@ export class SemanticPolicy {
     } else if (remote && context.networkAllowed !== true) {
       rejection = 'NETWORK_NOT_ALLOWED';
     }
+    const route = context.routeCandidate;
+    if (remote && context.remoteTask !== undefined) {
+      if (!context.remoteTask.allowCloud) { rejection = 'PRIVACY_CONSTRAINT'; }
+      else if (route === undefined) { rejection = 'REMOTE_ROUTE_MISSING'; }
+      else if (routeStatus(route, context.remoteTask.latencyClass) !== 'fresh') { rejection = routeStatus(route, context.remoteTask.latencyClass); }
+    }
     const lowBattery: boolean = state.batteryPercent !== null && state.batteryPercent <= 20 &&
       state.isCharging !== true;
     const constrained: boolean = lowBattery || state.thermalLevel === ThermalLevel.HOT ||
@@ -92,6 +99,7 @@ export class SemanticPolicy {
       if (!remote && choices.length === 0) { continue; }
       const count: ThreadCount = choices.length === 0 ? 1 : choices[choices.length - 1];
       const estimate: ResourcePrediction = this.predict(profile, state, level, targetBackend, count, deadline);
+      if (remote && route !== undefined) { estimate.latencyMs = route.estimatedTotalMs; }
       if (estimate.memoryMb !== null && state.availableMemoryMb !== null &&
         estimate.memoryMb > state.availableMemoryMb * 0.5) { continue; }
       if (estimatedWorkflowCompletion(context, estimate.latencyMs) > Math.min(deadline, freshness)) { continue; }
@@ -141,7 +149,8 @@ export class SemanticPolicy {
     if (remote) {
       return {
         inferenceLocation: InferenceLocation.REMOTE_CLOUD,
-        provider: profile.remoteOptions!.provider, timeoutMs: profile.timeoutMs,
+        routeCandidate: route,
+        provider: profile.remoteOptions!.provider, timeoutMs: Math.max(1, Math.min(profile.timeoutMs, deadline, freshness)),
         maxRetries: profile.remoteOptions!.maxRetries, maxConcurrency: profile.remoteOptions!.maxConcurrency,
         allowLocalFallback: false, priority: priority, queueAction: action, reasonCodes: reasons,
         policyVersion: 'semantic-1.0', utilityScore: utility, prediction: prediction, qualityLevelId: selected.id

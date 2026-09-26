@@ -92,7 +92,9 @@ function decisionView(run) {
     `<div class="table-scroll"><table><thead><tr><th>候选节点</th><th>准入</th><th>预测总耗时</th><th>不确定余量</th></tr></thead><tbody>${decision.candidates.map(candidate => `<tr><td>${escape(candidate.deviceId)}</td><td>${candidate.accepted ? '通过' : '拒绝'}</td><td>${ms(candidate.totalMs)}</td><td>${ms(candidate.uncertaintyMs)}</td></tr>`).join('')}</tbody></table></div>` +
     `<ul class="reason-list">${decision.candidates.map(candidate => {
       const quote = candidate.quote;
-      return `<li><strong>${escape(candidate.deviceId)}</strong> · 预测计算 ${ms(quote?.computeMs)} · 预测传输 ${ms(candidate.transferMs)} · 样本 ${escape(quote?.sampleCount ?? '--')}<br>预测来源 ${escape(quote?.plan?.prediction?.source ?? '--')} · 报价接收 ${time(quote?.receivedAt)}<br>${escape([...new Set([...candidate.reasons, ...(quote?.reasons ?? [])])].join(' / ') || '--')}</li>`;
+      const route = candidate.route;
+      const network = route ? `RTT ${ms(route.rttMs)} · 上行 ${number(route.uplinkMbps)} Mbps · 下行 ${number(route.downlinkMbps)} Mbps · TTL ${escape(route.status)} · ${escape(route.invalidationReason ?? route.source)}` : '本地路径 / 尚无网络测量';
+      return `<li><strong>${escape(candidate.deviceId)}</strong> · 预测计算 ${ms(quote?.computeMs)} · 预测传输 ${ms(candidate.transferMs)} · 样本 ${escape(quote?.sampleCount ?? '--')}<br>${network}<br>预测来源 ${escape(quote?.plan?.prediction?.source ?? '--')} · 报价接收 ${time(quote?.receivedAt)}<br>${escape([...new Set([...candidate.reasons, ...(quote?.reasons ?? [])])].join(' / ') || '--')}</li>`;
     }).join('')}</ul>`;
 }
 

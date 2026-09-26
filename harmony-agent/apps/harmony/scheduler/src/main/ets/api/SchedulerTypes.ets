@@ -1,3 +1,4 @@
+import { RemoteTaskProfile, RouteCandidate, ExecutionTelemetry } from './RemoteRouteProfile';
 export enum PolicyMode {
   ADAPTIVE = 'ADAPTIVE',
   FIXED_PERFORMANCE = 'FIXED_PERFORMANCE',
@@ -204,6 +205,7 @@ export interface LocalExecutionPlan extends BaseExecutionPlan {
 }
 
 export interface RemoteExecutionPlan extends BaseExecutionPlan {
+  routeCandidate?: RouteCandidate;
   inferenceLocation: InferenceLocation.REMOTE_CLOUD;
   provider: string;
   timeoutMs: number;
@@ -230,9 +232,10 @@ export interface WorkloadExecutor<TInput, TOutput> {
   capability: string;
   inferenceLocation: InferenceLocation;
   supports(plan: ExecutionPlan): boolean;
+  prepare?(input: TInput, context: TaskContext, signal?: CancellationSignal): Promise<void>;
   warmup?(plan: ExecutionPlan): Promise<void>;
   execute(input: TInput, plan: ExecutionPlan, signal: CancellationSignal,
-    checkpoint?: TaskCheckpoint): Promise<ExecutorResult<TOutput>>;
+    checkpoint?: TaskCheckpoint, onProgress?: (event: ExecutionTelemetry) => void): Promise<ExecutorResult<TOutput>>;
   dispose(): Promise<void>;
 }
 
@@ -397,6 +400,8 @@ export interface TaskTemplate {
 }
 
 export interface TaskContext {
+  remoteTask?: RemoteTaskProfile;
+  routeCandidate?: RouteCandidate;
   // Derived by SchedulerClient from its current serial workflow executor; not a new deadline.
   workflowCriticalPathMs?: number;
   workflowRemainingSerialMs?: number;
@@ -463,6 +468,7 @@ export interface CloudClientTiming {
 }
 
 export interface ExecutorTelemetry {
+  routeEvents?: ExecutionTelemetry[];
   cloudTiming?: CloudClientTiming;
   cloudRunId?: string;
   cloudTaskId?: string;

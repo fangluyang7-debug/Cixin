@@ -50,6 +50,8 @@ export async function serve(runtime: FleetRuntime, token: string, host = runtime
       if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) { respond(response, 401, { error: 'UNAUTHORIZED' }); return; }
       const path = url.pathname;
       if (request.method === 'GET') {
+        if (path === '/api/v1/runtime/probe/ping') { respond(response, 200, { available: true }); return; }
+        if (path === '/api/v1/runtime/probe/download') { respond(response, 200, { padding: 'x'.repeat(32768) }); return; }
         if (path === '/api/v1/runtime/dashboard') { respond(response, 200, await readDashboard()); return; }
         if (path === '/api/v1/node/snapshot' || path === '/api/v1/runtime/snapshot') {
           respond(response, 200, { ...(await runtime.node.snapshot()), mode: runtime.node.config.mode,
@@ -63,6 +65,11 @@ export async function serve(runtime: FleetRuntime, token: string, host = runtime
       }
       if (request.method === 'POST') {
         const input = await body(request);
+        if (path === '/api/v1/runtime/probe/upload') {
+          const payload = (input as { payload?: unknown })?.payload;
+          invariant(typeof payload === 'string' && payload.length <= 65536 && /^x*$/.test(payload), 'INVALID_PROBE_PAYLOAD');
+          respond(response, 200, { receivedBytes: Buffer.byteLength(payload) }); return;
+        }
         if (path === '/api/v1/node/quote') { respond(response, 200, await runtime.node.quote(input as QuoteRequest)); return; }
         if (path === '/api/v1/node/attempts') { respond(response, 202, await runtime.node.submit(input as AttemptRequest)); return; }
         if (path === '/api/v1/runtime/plan') { respond(response, 200, await runtime.plan(input as TaskSubmission)); return; }

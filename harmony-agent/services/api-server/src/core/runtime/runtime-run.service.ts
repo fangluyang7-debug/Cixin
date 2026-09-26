@@ -215,10 +215,10 @@ export class RuntimeRunService {
     return run;
   }
 
-  recordClientTelemetry(runId: string, taskId: string, timing: Record<string, number | null>) {
+  recordClientTelemetry(runId: string, taskId: string, timing: Record<string, number | null>, events?: Record<string, unknown>[]) {
     const run = this.require(runId);
     if (run.taskGraph?.clientTaskId !== taskId) throw new ConflictException('RUNTIME_CLIENT_TASK_MISMATCH');
-    run.clientTelemetry = { taskId, timing, observedAt: new Date().toISOString() };
+    run.clientTelemetry = { taskId, timing, events, observedAt: new Date().toISOString() };
     run.updatedAt = new Date().toISOString();
     this.store(run);
     return run;

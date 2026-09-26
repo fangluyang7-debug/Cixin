@@ -9,7 +9,7 @@ export function shoppingTask(taskId: string, toolId: string, inputRef: string, d
     cloudRoutes: [{ executorId: 'zeabur-shopping-workflow', inputResidence: 'zeabur_volume',
       outputDestination: 'zeabur_volume', accessMode: 'co_located', transferAuthorized: true,
       inputBytes: 0, outputBytes: 0, roundTripMs: 0, uploadMbps: 0, downloadMbps: 0,
-      storageReadMs: 0, storageWriteMs: 0, queueMs: 0, observedAt: new Date().toISOString(), source: 'declared' }],
+      storageReadMs: 0, storageWriteMs: 0, queueMs: 0, observedAt: new Date().toISOString(), source: 'in_process' }],
   };
 }
 

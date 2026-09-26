@@ -282,6 +282,14 @@ function renderLatestEvent(event) {
   byId('actualConfig').textContent = confirmed ?
     `${actual.actualModelTier ?? '--'} · ${actual.actualBackend ?? '--'} · ${value(actual.actualThreads ?? actual.workerCount)} workers` :
     '没有执行器实际配置回执';
+  const route = plan.routeCandidate;
+  if (route) {
+    const age = Date.now() - route.observedAt;
+    const routeState = route.invalidationReason ?? (age > 30000 ? '已过期' : '有效');
+    byId('plannedConfig').textContent = `预测总耗时 ${milliseconds(route.estimatedTotalMs)} · 上传 ${milliseconds(route.estimatedUploadMs)} · RTT ${milliseconds(route.rttMs)} · 上/下行 ${value(route.uplinkMbps)} / ${value(route.downlinkMbps)} Mbps · TTL ${routeState}`;
+    byId('actualProfile').textContent = actual.cloudRunId ?? '等待云端回执';
+    byId('actualConfig').textContent = `实际请求 ${milliseconds(actual.cloudTiming?.requestMs)} · 上传 ${milliseconds(actual.cloudTiming?.uploadMs)} · 下载 ${milliseconds(actual.cloudTiming?.downloadMs)} · 阶段 ${(actual.routeEvents ?? []).map(item => item.phase).join(' → ') || '--'}`;
+  }
   byId('decisionReason').textContent = audit.fallbackReason ?? plan.reasonCodes?.join(' · ') ?? '未提供原因码';
   byId('decisionTime').textContent = `TIME ${clock(event.finishedAt ?? event.startedAt ?? event.queuedAt)}`;
   renderDecisionFlags(event);

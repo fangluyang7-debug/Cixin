@@ -1,3 +1,4 @@
+import { RuntimeProbeController } from './controllers/runtime-probe.controller';
 import { Injectable, Module, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AgentRuntimeService } from "../../core/runtime/agent-runtime.service";
@@ -32,7 +33,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
 }
 
 @Module({
-  controllers: [RuntimeController],
+  controllers: [RuntimeController, RuntimeProbeController],
   providers: [
     ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService, TencentCosStorageAdapterService,
     ToolRegistryService,

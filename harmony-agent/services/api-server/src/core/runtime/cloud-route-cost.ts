@@ -18,7 +18,10 @@ export function estimateCloudRoute(task: TaskIntent, executorId: string,
 
   const reasons: string[] = [];
   if (!route.transferAuthorized) reasons.push("CLOUD_DATA_TRANSFER_NOT_AUTHORIZED");
-  if (route.source !== "measured") reasons.push("CLOUD_ROUTE_NOT_MEASURED");
+  const coLocated = route.accessMode === 'co_located' && route.inputResidence === 'zeabur_volume' &&
+    route.outputDestination === 'zeabur_volume' && route.inputBytes === 0 && route.outputBytes === 0 &&
+    route.roundTripMs === 0 && route.queueMs === 0 && route.storageReadMs === 0 && (route.storageWriteMs ?? 0) === 0;
+  if (route.source !== "measured" && !(route.source === "in_process" && coLocated)) reasons.push("CLOUD_ROUTE_NOT_MEASURED");
   const observedAt = Date.parse(route.observedAt);
   if (!Number.isFinite(observedAt) || observedAt > now + 5_000 ||
       now - observedAt > MAX_OBSERVATION_AGE_MS) {

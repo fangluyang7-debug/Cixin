@@ -23,6 +23,8 @@ import { ToolRegistryService } from "./tool-registry.service";
 import { RuntimeEventBusService } from "./runtime-event-bus.service";
 import { estimateCloudRoute } from "./cloud-route-cost";
 
+type EffectiveConstraints = ToolConstraints & Pick<TaskConstraints, "minimumQuality">;
+
 @Injectable()
 export class ResourceAwareSchedulerService {
   private readonly lastSelections = new Map<string, string>();
@@ -190,15 +192,14 @@ export class ResourceAwareSchedulerService {
   private async evaluateCandidate(
     task: TaskIntent,
     tool: ToolDescriptor,
-    constraints: ToolConstraints,
+    constraints: EffectiveConstraints,
     executor: ExecutorDescriptor,
     snapshot: PlatformSnapshot,
   ): Promise<CandidateEvaluation> {
     const reasons: string[] = [];
     const cloudRoute = executor.placement === "cloud"
       ? estimateCloudRoute(task, executor.executorId) : null;
-    if (cloudRoute) reasons.push(...cloudRoute.reasons.filter(reason =>
-      !(tool.allowColdStart && reason === 'CLOUD_ROUTE_NOT_MEASURED')));
+    if (cloudRoute) reasons.push(...cloudRoute.reasons);
     const sample = this.performance.get(
       task.toolId,
       executor.executorId,
@@ -256,6 +257,18 @@ export class ResourceAwareSchedulerService {
       reasons.push('ENERGY_BUDGET_NOT_VERIFIABLE');
     }
     const weights = normalizeWeights(tool.defaultWeights);
+    const minimumQuality = minimumQualityFor(tool, constraints);
+    // Cold-start permission does not waive an explicit quality requirement.
+    if (minimumQuality !== undefined) {
+      if (!Number.isFinite(minimumQuality) || minimumQuality < 0) {
+        reasons.push("QUALITY_THRESHOLD_INVALID");
+      } else if (!sample || sample.sampleCount === 0 || sample.quality == null ||
+          !Number.isFinite(sample.quality)) {
+        if (minimumQuality > 0) reasons.push("QUALITY_METRIC_MISSING");
+      } else if (sample.quality < minimumQuality) {
+        reasons.push("QUALITY_THRESHOLD_NOT_MET");
+      }
+    }
     let estimatedEndToEndMs: number | undefined;
     if (!sample || (tool.allowColdStart && sample.sampleCount === 0)) {
       if (!tool.allowColdStart) reasons.push("REAL_PERFORMANCE_PROFILE_MISSING");
@@ -273,7 +286,8 @@ export class ResourceAwareSchedulerService {
       if (sample.energyMah === null && weights.energy > 0) {
         reasons.push("ENERGY_METRIC_MISSING");
       }
-      if (sample.quality === null && weights.quality > 0) {
+      if (sample.quality === null && weights.quality > 0 &&
+          !reasons.includes("QUALITY_METRIC_MISSING")) {
         reasons.push("QUALITY_METRIC_MISSING");
       }
       if (sample.p95LatencyMs !== null) {
@@ -284,10 +298,6 @@ export class ResourceAwareSchedulerService {
           } else if (sample.latencyScope === "execution_only" && cloudRoute?.overheadMs !== null &&
               cloudRoute?.overheadMs !== undefined) {
             estimatedEndToEndMs = sample.p95LatencyMs + cloudRoute.overheadMs;
-          } else if (tool.allowColdStart && sample.latencyScope === 'execution_only') {
-            estimatedEndToEndMs = sample.p95LatencyMs;
-          } else if (tool.allowColdStart && sample.latencyScope === 'execution_only') {
-            estimatedEndToEndMs = sample.p95LatencyMs;
           } else {
             reasons.push("CLOUD_EXECUTION_BREAKDOWN_MISSING");
           }
@@ -316,14 +326,6 @@ export class ResourceAwareSchedulerService {
       ) {
         reasons.push("P95_LATENCY_BUDGET_EXCEEDED");
       }
-      const minimumQuality = minimumQualityFor(tool, constraints);
-      if (
-        minimumQuality !== undefined &&
-        sample.quality !== null &&
-        sample.quality < minimumQuality
-      ) {
-        reasons.push("QUALITY_THRESHOLD_NOT_MET");
-      }
       if (
         constraints.energyBudgetMah !== undefined &&
         sample.energyMah !== null &&
@@ -333,6 +335,14 @@ export class ResourceAwareSchedulerService {
       }
     }
 
+    if (estimatedEndToEndMs === undefined && cloudRoute?.overheadMs != null &&
+        Number.isFinite(tool.resourceHints.estimatedComputeMs) && tool.resourceHints.estimatedComputeMs! >= 0) {
+      estimatedEndToEndMs = cloudRoute.overheadMs + tool.resourceHints.estimatedComputeMs!;
+    }
+    const deadline = Math.min(task.constraints?.deadlineMs ?? Infinity, constraints.maxLatencyMs ?? Infinity);
+    if (Math.max(estimatedEndToEndMs ?? 0, cloudRoute?.overheadMs ?? 0) > deadline && !reasons.includes('P95_LATENCY_BUDGET_EXCEEDED')) {
+      reasons.push('P95_LATENCY_BUDGET_EXCEEDED');
+    }
     return {
       executorId: executor.executorId,
       placement: executor.placement,
@@ -391,13 +401,14 @@ export class ResourceAwareSchedulerService {
     const samples = candidates
       .map((candidate) => candidate.sample)
       .filter((sample): sample is PerformanceSample => sample !== null);
-    const latencies = candidates.map((candidate) => candidate.estimatedEndToEndMs as number);
+    const latencies = candidates.map((candidate) => candidate.estimatedEndToEndMs as number).filter(Number.isFinite);
     const qualities = samples.map((sample) => sample.quality as number);
     const energies = samples.map((sample) => sample.energyMah as number);
     for (const candidate of candidates) {
       const sample = candidate.sample;
       if (!sample || sample.sampleCount === 0) {
-        candidate.score = { latencyScore: 0, qualityScore: 0, energyScore: 0, reliabilityScore: 0, totalScore: 0 };
+        const latencyScore = candidate.estimatedEndToEndMs === undefined ? 0 : lowerIsBetter(candidate.estimatedEndToEndMs, latencies);
+        candidate.score = { latencyScore, qualityScore: 0, energyScore: 0, reliabilityScore: 0, totalScore: weights.latency * latencyScore };
         candidate.reasons.push('COLD_START_NO_PERFORMANCE_ESTIMATE');
         continue;
       }
@@ -464,7 +475,7 @@ export class ResourceAwareSchedulerService {
 function mergeConstraints(
   tool: ToolConstraints,
   task: TaskConstraints | undefined,
-): ToolConstraints {
+): EffectiveConstraints {
   const maxLatencyCandidates = [tool.maxLatencyMs, task?.maxLatencyMs].filter(
     (value): value is number => value !== undefined,
   );
@@ -475,6 +486,7 @@ function mergeConstraints(
     (value): value is number => value !== undefined,
   );
   return {
+    minimumQuality: task?.minimumQuality,
     privacy: stricterPrivacy(tool.privacy, task?.privacy),
     locality: task?.locality ?? tool.locality,
     allowLocal: tool.allowLocal,
@@ -506,8 +518,9 @@ function placementAllowed(
   return true;
 }
 
-function minimumQualityFor(tool: ToolDescriptor, constraints: ToolConstraints) {
+function minimumQualityFor(tool: ToolDescriptor, constraints: EffectiveConstraints) {
   const qualityValues = [
+    constraints.minimumQuality,
     tool.quality.minimumConfidence,
     tool.quality.minimumScore,
   ].filter((value): value is number => value !== undefined);
