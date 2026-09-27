@@ -16,6 +16,10 @@ interface FeedbackCandidate {
   priority: number;
 }
 
+// Immediate questions are answered on the result screen; deferred ones wait for the next idle/foreground.
+const INVITATION_TTL_MS: number = 120000;
+const DEFERRED_INVITATION_TTL_MS: number = 30 * 60000;
+
 export class FeedbackController {
   private enabled: boolean = false;
   private quota: FeedbackQuota = { day: -1, count: 0, lastAskedAt: 0, types: [] };
@@ -26,14 +30,18 @@ export class FeedbackController {
 
   public inspect(log: SchedulerLogEntry, now: number = Date.now()): FeedbackAvailability {
     if (!this.enabled) { return { eligible: false, reason: 'CONSENT_REQUIRED' }; }
-    if (log.status !== TaskStatus.SUCCEEDED) { return { eligible: false, reason: 'TASK_NOT_SUCCESSFUL' }; }
     if (log.taskType === TaskType.FOREGROUND_REALTIME || log.taskType === TaskType.BACKGROUND_BATCH) {
       return { eligible: false, reason: 'TASK_TYPE_EXCLUDED' };
     }
     if (log.telemetry?.userFeedback !== undefined) { return { eligible: false, reason: 'ALREADY_ANSWERED' }; }
-    if (log.telemetry?.resultDisplayed !== true) { return { eligible: false, reason: 'RESULT_NOT_DISPLAYED' }; }
+    // Success is not required: any terminal step that can adjust scheduling parameters may ask.
+    // Only steps without a controlled execution profile cannot be learned from.
     if (log.executionPlan.executionProfile === undefined) { return { eligible: false, reason: 'PROFILE_REQUIRED' }; }
-    const existing = log.telemetry.feedbackRequest;
+    // A produced result still has to be shown before asking on the success path.
+    if (log.status === TaskStatus.SUCCEEDED && log.telemetry?.resultDisplayed !== true) {
+      return { eligible: false, reason: 'RESULT_NOT_DISPLAYED' };
+    }
+    const existing = log.telemetry?.feedbackRequest;
     if (existing !== undefined) { return { eligible: existing.expiresAtMs > now, reason: existing.expiresAtMs > now ? 'READY' : 'INVITATION_EXPIRED' }; }
     if (this.selectQuestion(log) === null) { return { eligible: false, reason: 'NO_QUESTION_NEEDED' }; }
     const day = Math.floor(now / 86400000);
@@ -61,8 +69,12 @@ export class FeedbackController {
     // Ask only for the highest-priority experience signal that the runtime cannot infer.
     const candidate = this.selectQuestion(log);
     if (candidate === null) { return null; }
-    const request: FeedbackRequest = { taskRunId: log.taskId, kind: candidate.kind, suggestedAfter: 'RESULT_DISPLAYED',
-      options: this.optionsFor(candidate.kind), expiresAtMs: now + 120000,
+    // Non-success steps (timeout, cancellation, failure) are asked on the next idle or foreground,
+    // so a user who left because it took too long can still answer when they return.
+    const deferred: boolean = log.status !== TaskStatus.SUCCEEDED;
+    const suggestedAfter: 'RESULT_DISPLAYED' | 'NEXT_IDLE' = deferred ? 'NEXT_IDLE' : 'RESULT_DISPLAYED';
+    const request: FeedbackRequest = { taskRunId: log.taskId, kind: candidate.kind, suggestedAfter: suggestedAfter,
+      options: this.optionsFor(candidate.kind), expiresAtMs: now + (deferred ? DEFERRED_INVITATION_TTL_MS : INVITATION_TTL_MS),
       selectionReason: candidate.reason, priority: candidate.priority };
     this.quota.count++; this.quota.lastAskedAt = now; this.quota.types.push(typeKey);
     log.telemetry!.feedbackRequest = request;
@@ -93,6 +105,10 @@ export class FeedbackController {
   private selectQuestion(log: SchedulerLogEntry): FeedbackCandidate | null {
     const telemetry = log.telemetry!;
     const app = telemetry.appExperience;
+    // A failed, timed-out or cancelled step has no result to judge; the perceivable signal is the wait.
+    if (log.status !== TaskStatus.SUCCEEDED) {
+      return { kind: FeedbackKind.RESPONSE_TIME, reason: 'NO_RESULT_ACCEPTABILITY_UNKNOWN', priority: 90 };
+    }
     const appSlow = app?.responseReadyMs !== undefined && telemetry.softDeadlineMs !== undefined &&
       app.responseReadyMs > telemetry.softDeadlineMs;
     if (telemetry.softDeadlineMissed === true || appSlow) {

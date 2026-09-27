@@ -26,6 +26,8 @@ struct Index {
   private expiryTimer: number = -1;
   private readyTimer: number = -1;
   private photoGeneration: number = 0;
+  private feedbackWorkflowId: string = '';
+  private pendingWorkflowId: string = '';
   @State cloudEmail: string = '';
   @State cloudPassword: string = '';
   @State cloudAuthStatus: string = '请登录云端账号';
@@ -89,6 +91,7 @@ struct Index {
     }
     if (!this.feedbackEnabled && this.feedback !== null) { this.clearFeedback(); }
     this.refreshFeedbackStatus();
+    this.maybeAskPendingFeedback();
   }
   private async loadCatalog(): Promise<void> {
     this.catalog = [];
@@ -153,7 +156,14 @@ struct Index {
   }
   private invalidate(type: TaskSignalType = TaskSignalType.INPUT_REPLACED): void {
     this.generation++; this.photoGeneration++; this.clearFeedback();
-    if (this.activeSearch !== null) { this.activeSearch.signal({ type: type }).catch(() => {}); this.activeSearch = null; }
+    if (this.activeSearch !== null) {
+      // Leaving or cancelling can be the strongest "too slow" signal; remember it for a deferred question.
+      if (type === TaskSignalType.PAGE_LEFT || type === TaskSignalType.CANCEL) {
+        this.pendingWorkflowId = this.activeSearch.workflowId;
+      }
+      this.activeSearch.signal({ type: type }).catch(() => {});
+      this.activeSearch = null;
+    }
     if (this.loading) { this.summary = '搜索已停止'; }
     this.loading = false;
   }
@@ -186,41 +196,60 @@ struct Index {
       }
       if (result.status !== TaskStatus.SUCCEEDED || result.output === null) {
         this.summary = result.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : '当前设备状态或任务约束不允许完成搜索';
-        await handle.signal({ type: TaskSignalType.RESULT_IGNORED }); return;
+        await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
+        this.pendingWorkflowId = '';
+        // A timeout or failure is still a perceivable wait; ask if the user is still here and opted in.
+        if (generation === this.generation && this.feedbackEnabled) { this.requestFeedback(handle.workflowId); }
+        return;
       }
       this.products = result.output;
       this.summary = `找到 ${result.output.length} 件云端商品 · ${Date.now() - started} ms`;
       this.histories = [query].concat(this.histories.filter((item: string) => item !== query)).slice(0, 20);
       await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED,
         experience: { responseReadyMs: Date.now() - started } });
-      if (generation === this.generation) { this.requestFeedback(); }
+      this.pendingWorkflowId = '';
+      if (generation === this.generation) { this.requestFeedback(handle.workflowId); }
     } catch (_) {
       if (generation === this.generation) { this.summary = '搜索暂不可用，请稍后重试'; }
     } finally { if (generation === this.generation) { this.loading = false; } }
   }
-  private requestFeedback(): void {
-    if (this.activeSearch === null) { return; }
+  private requestFeedback(workflowId: string = ''): void {
+    const id = workflowId !== '' ? workflowId : (this.activeSearch !== null ? this.activeSearch.workflowId : this.pendingWorkflowId);
+    if (id === '') { return; }
     clearTimeout(this.expiryTimer);
-    this.feedback = this.tasks.feedbackRequest(this.activeSearch.workflowId);
+    this.feedbackWorkflowId = id;
+    this.feedback = this.tasks.feedbackRequest(id);
     this.refreshFeedbackStatus();
     if (this.feedback !== null) {
       this.expiryTimer = setTimeout(() => { this.clearFeedback(); this.refreshFeedbackStatus(); }, Math.max(1, this.feedback.expiresAtMs - Date.now()));
     }
   }
+  private maybeAskPendingFeedback(): void {
+    if (!this.ready || !this.feedbackEnabled || this.loading || this.feedback !== null || this.pendingWorkflowId === '') { return; }
+    try {
+      const availability = this.tasks.feedbackAvailability(this.pendingWorkflowId);
+      if (availability.eligible) { this.requestFeedback(this.pendingWorkflowId); }
+      else if (availability.reason !== 'WORKFLOW_NOT_READY' && availability.reason !== 'APP_BACKGROUND') {
+        this.pendingWorkflowId = '';
+      }
+    } catch (_) { this.pendingWorkflowId = ''; }
+  }
   private refreshFeedbackStatus(): void {
     if (!this.ready) { this.feedbackStatus = '调度器尚未就绪'; return; }
-    if (this.activeSearch === null) { this.feedbackStatus = this.feedbackEnabled ? '等待本次任务完成' : '体验题未开启：需要你的授权'; return; }
-    try { this.feedbackStatus = feedbackAvailabilityText(this.tasks.feedbackAvailability(this.activeSearch.workflowId)); }
+    const id = this.activeSearch !== null ? this.activeSearch.workflowId : this.pendingWorkflowId;
+    if (id === '') { this.feedbackStatus = this.feedbackEnabled ? '等待本次任务完成' : '体验题未开启：需要你的授权'; return; }
+    try { this.feedbackStatus = feedbackAvailabilityText(this.tasks.feedbackAvailability(id)); }
     catch (_) { this.feedbackStatus = '无法读取反馈状态'; }
   }
   private answer(option: FeedbackOption): void {
-    if (this.answering || this.feedback === null || this.activeSearch === null) { return; }
+    if (this.answering || this.feedback === null || this.feedbackWorkflowId === '') { return; }
     this.answering = true;
     try {
       const request = this.feedback;
-      const receipt = this.tasks.submitFeedback(this.activeSearch.workflowId,
+      const receipt = this.tasks.submitFeedback(this.feedbackWorkflowId,
         { taskRunId: request.taskRunId, kind: request.kind, option: option });
       this.receiptText = feedbackReceiptText(receipt); this.clearFeedback();
+      this.pendingWorkflowId = '';
       this.refreshFeedbackStatus();
     } catch (_) { this.receiptText = '反馈提交失败，请稍后重试'; }
     finally { this.answering = false; }
@@ -230,7 +259,10 @@ struct Index {
     this.scheduler.setFeedbackEnabled(enabled); this.feedbackEnabled = enabled;
     if (!enabled) { this.clearFeedback(); }
     this.refreshFeedbackStatus();
-    if (enabled && this.activeSearch !== null && !this.loading) { this.requestFeedback(); }
+    if (enabled && !this.loading) {
+      if (this.activeSearch !== null) { this.requestFeedback(this.activeSearch.workflowId); }
+      else { this.maybeAskPendingFeedback(); }
+    }
   }
   private openProduct(product: Product): void {
     this.selected = product;

@@ -6,7 +6,7 @@ export function feedbackAvailabilityText(status: FeedbackAvailability): string {
     case 'CONSENT_REQUIRED': return '体验题未开启：需要你的授权';
     case 'APP_BACKGROUND': return '应用在后台，暂不询问';
     case 'WORKFLOW_NOT_READY': return '等待本次任务完成';
-    case 'TASK_NOT_SUCCESSFUL': return '任务未成功，不询问结果体验';
+    case 'TASK_NOT_SUCCESSFUL': return '任务未成功，改为询问等待感受';
     case 'TASK_TYPE_EXCLUDED': return '后台或实时预览任务不弹体验题';
     case 'RESULT_NOT_DISPLAYED': return '结果未展示或已被忽略';
     case 'PROFILE_REQUIRED': return '该任务没有受控配置，不参与校准';

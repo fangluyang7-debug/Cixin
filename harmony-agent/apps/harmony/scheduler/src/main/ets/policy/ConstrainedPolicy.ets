@@ -292,8 +292,12 @@ export class ConstrainedPolicy {
       reason: 'SAMPLE_NOT_ELIGIBLE', policyVersion: audit?.version, mode: this.getConfig().mode,
       minimumSamples: this.config.minimumSampleCount };
     const sample = this.samples.find((item: TrialSample) => item.taskId === log.taskId);
+    // A wait answer is valid even when a timeout or cancellation stopped the run before the executor
+    // confirmed the profile; quality answers still require a confirmed real execution.
+    const speedFeedback: boolean = log.telemetry?.userFeedback?.kind === FeedbackKind.RESPONSE_TIME;
     if (sample === undefined || log.telemetry?.userFeedback === undefined || audit === undefined ||
-      audit.version !== this.config.version || audit.actualConfirmed !== true || log.telemetry.mixedExecution === true) { return receipt; }
+      audit.version !== this.config.version || (audit.actualConfirmed !== true && !speedFeedback) ||
+      log.telemetry.mixedExecution === true) { return receipt; }
     const before = this.calibration(sample.stratum, sample.profileId);
     sample.negative = [FeedbackOption.SLOW, FeedbackOption.NO_RESULT, FeedbackOption.INACCURATE,
       FeedbackOption.IRRELEVANT, FeedbackOption.TOO_HOT].indexOf(log.telemetry.userFeedback.option) >= 0;

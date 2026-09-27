@@ -656,8 +656,12 @@ export class SchedulerService implements SchedulerRuntime {
         }
         if (signal.type === TaskSignalType.PAGE_LEFT || signal.type === TaskSignalType.INPUT_REPLACED ||
           signal.type === TaskSignalType.CANCEL || signal.type === TaskSignalType.RESULT_IGNORED) {
-          log.telemetry.feedbackRequest = undefined;
-          log.telemetry.resultDisplayed = false;
+          // A successful result the user walked away from no longer needs a question. An abandoned,
+          // failed or timed-out run keeps its invitation so the wait question can be asked on next idle.
+          if (signal.type === TaskSignalType.RESULT_IGNORED || log.status === TaskStatus.SUCCEEDED) {
+            log.telemetry.feedbackRequest = undefined;
+            log.telemetry.resultDisplayed = false;
+          }
         }
         if (signal.type === TaskSignalType.RESULT_CONSUMED || signal.type === TaskSignalType.RESULT_IGNORED) {
           this.semanticPolicy.observeConsumption(log.capability, signal.type === TaskSignalType.RESULT_CONSUMED,

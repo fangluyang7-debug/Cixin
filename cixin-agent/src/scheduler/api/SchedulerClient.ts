@@ -163,14 +163,15 @@ export class SchedulerClient {
 
   public getFeedbackRequest(workflowId: string): FeedbackRequest | null {
     const run = this.workflows.get(workflowId);
-    if (run === undefined || !run.finished || run.cancelled || this.runtime.getFeedbackRequest === undefined) { return null; }
+    // A cancelled/failed workflow can still be asked about the wait; the runtime decides eligibility.
+    if (run === undefined || !run.finished || this.runtime.getFeedbackRequest === undefined) { return null; }
     return this.runtime.getFeedbackRequest(run.outputTaskId);
   }
 
   public submitFeedback(workflowId: string, feedback: UserFeedback): FeedbackReceipt {
     this.assertOpen();
     const run = this.workflows.get(workflowId);
-    if (run === undefined || !run.finished || run.cancelled || run.outputTaskId !== feedback.taskRunId ||
+    if (run === undefined || !run.finished || run.outputTaskId !== feedback.taskRunId ||
       this.runtime.submitFeedback === undefined) {
       return { accepted: false, taskRunId: feedback.taskRunId, effect: 'REJECTED', reason: 'WORKFLOW_NOT_ELIGIBLE' };
     }
@@ -180,7 +181,7 @@ export class SchedulerClient {
   public getFeedbackAvailability(workflowId: string): FeedbackAvailability {
     this.assertOpen();
     const run = this.workflows.get(workflowId);
-    if (run === undefined || !run.finished || run.cancelled) { return { eligible: false, reason: 'WORKFLOW_NOT_READY' }; }
+    if (run === undefined || !run.finished) { return { eligible: false, reason: 'WORKFLOW_NOT_READY' }; }
     if (this.runtime.getFeedbackAvailability === undefined) { return { eligible: false, reason: 'RUNTIME_UNSUPPORTED' }; }
     return this.runtime.getFeedbackAvailability(run.outputTaskId);
   }

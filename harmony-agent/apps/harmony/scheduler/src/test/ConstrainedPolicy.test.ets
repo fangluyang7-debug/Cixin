@@ -155,14 +155,32 @@ export default function constrainedPolicyTest(): void {
       expect(client.getFeedbackAvailability(next.workflowId).reason).assertEqual('CAPABILITY_DAILY_LIMIT');
     });
 
-    it('availabilityDistinguishesRunningFailedAndBackgroundTasks', 0, async () => {
+    it('availabilityTreatsFailedStepAsEligibleButBackgroundAsBlocked', 0, async () => {
       register(); service.setFeedbackEnabled(true); executor.fail = true;
       const handle = client.submit<string, string>('generic-profiled', 'input', context());
       expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('WORKFLOW_NOT_READY');
       await handle.result;
-      expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('TASK_NOT_SUCCESSFUL');
+      // A failed step can still adjust scheduling parameters, so success is not required to ask.
+      expect(client.getFeedbackAvailability(handle.workflowId).eligible).assertTrue();
       service.updateRealDeviceState({ appVisibility: AppVisibility.BACKGROUND });
       expect(client.getFeedbackAvailability(handle.workflowId).reason).assertEqual('APP_BACKGROUND');
+    });
+
+    it('asksAboutWaitForCancelledOrTimedOutStepsWithoutRequiringSuccess', 0, async () => {
+      register(); service.setFeedbackEnabled(true); executor.delayMs = 40;
+      const handle = client.submit<string, string>('generic-profiled', 'input', context());
+      await new Promise<void>((resolve) => setTimeout(resolve, 5));
+      await handle.signal({ type: TaskSignalType.PAGE_LEFT });
+      expect((await handle.result).status).assertEqual(TaskStatus.CANCELLED);
+      const request = client.getFeedbackRequest(handle.workflowId)!;
+      expect(request !== null).assertTrue();
+      expect(request.kind).assertEqual(FeedbackKind.RESPONSE_TIME);
+      expect(request.selectionReason).assertEqual('NO_RESULT_ACCEPTABILITY_UNKNOWN');
+      // A user who left is asked on the next idle/foreground, not on the abandoned screen.
+      expect(request.suggestedAfter).assertEqual('NEXT_IDLE');
+      expect(request.options.indexOf(FeedbackOption.NO_RESULT) >= 0).assertTrue();
+      expect(client.submitFeedback(handle.workflowId, { taskRunId: request.taskRunId,
+        kind: request.kind, option: FeedbackOption.NO_RESULT }).accepted).assertTrue();
     });
 
     it('asksAboutToleranceBeforeUncertainQualityAndNeverAboutDeviceMetrics', 0, async () => {
