@@ -72,11 +72,19 @@ export function assertImportReadiness(readiness) {
 }
 
 export function assertBatch(batch, count) {
-  if (batch.status !== 'completed' || batch.failedCount !== 0 || batch.succeededCount !== count ||
-      batch.productCount !== count || batch.searchableProductCount !== count ||
-      batch.productsWithEmbeddingCount !== count || batch.embeddingCount < count * 2) {
-    throw new Error('Batch incomplete: inspect cloud batch quality before retrying; no automatic re-import');
+  const terminal = ['completed', 'completed_with_errors'].includes(batch.status);
+  const succeededCount = Number(batch.succeededCount ?? 0);
+  const failedCount = Number(batch.failedCount ?? 0);
+  if (!terminal || succeededCount + failedCount !== count) {
+    throw new Error('Batch did not finish processing all items; inspect cloud batch before retrying');
   }
+  return {
+    skippedCount: failedCount,
+    missingEmbeddingProducts: Math.max(0, Number(batch.productCount ?? 0) -
+      Number(batch.productsWithEmbeddingCount ?? 0)),
+    missingEmbeddingVectors: Math.max(0, Number(batch.productCount ?? 0) * 2 -
+      Number(batch.embeddingCount ?? 0)),
+  };
 }
 
 async function loadEnv() {
@@ -198,14 +206,21 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
       for (let poll = 0; poll < 360; poll++) {
         const batch = await request(`/api/v1/product-pool/batches/${encodeURIComponent(record.batchId)}`);
         if (['completed', 'completed_with_errors', 'failed'].includes(batch.status)) {
+          const quality = assertBatch(batch, chunk.items.length);
           record.summary = { status: batch.status, succeededCount: batch.succeededCount, failedCount: batch.failedCount,
             productCount: batch.productCount, searchableProductCount: batch.searchableProductCount,
-            productsWithEmbeddingCount: batch.productsWithEmbeddingCount, embeddingCount: batch.embeddingCount };
+            productsWithEmbeddingCount: batch.productsWithEmbeddingCount, embeddingCount: batch.embeddingCount,
+            ...quality };
           await saveJson(journalPath, journal);
-          assertBatch(batch, chunk.items.length);
           record.complete = true;
           await saveJson(journalPath, journal);
-          console.log(`${chunk.batchSource}: ${chunk.items.length} products verified with embeddings`);
+          const warnings = [];
+          if (quality.skippedCount > 0) warnings.push(`${quality.skippedCount} item(s) skipped`);
+          if (quality.missingEmbeddingProducts > 0) {
+            warnings.push(`${quality.missingEmbeddingProducts} product(s) missing embeddings`);
+          }
+          console.log(`${chunk.batchSource}: ${batch.succeededCount}/${chunk.items.length} products processed` +
+            (warnings.length ? ` (${warnings.join(', ')})` : ''));
           completed = true;
           break;
         }

@@ -26,12 +26,18 @@ test('allows an empty catalog for bootstrap but blocks missing infrastructure/mo
   assert.throws(() => assertImportReadiness({ ...ready, modelMode: 'deferred' }));
 });
 
-test('does not equate accepted/completed batches with searchable vector coverage', () => {
+test('accepts item-level failures and missing embeddings without re-importing the batch', () => {
   const batch = { status: 'completed', failedCount: 0, succeededCount: 25, productCount: 25,
     searchableProductCount: 25, productsWithEmbeddingCount: 25, embeddingCount: 50 };
   assert.doesNotThrow(() => assertBatch(batch, 25));
-  for (const change of [{ status: 'queued' }, { failedCount: 1 }, { productCount: 24 },
-    { searchableProductCount: 24 }, { productsWithEmbeddingCount: 24 }, { embeddingCount: 25 }]) {
+  assert.doesNotThrow(() => assertBatch({
+    ...batch, status: 'completed_with_errors', succeededCount: 24, failedCount: 1,
+  }, 25));
+  assert.doesNotThrow(() => assertBatch({
+    ...batch, productsWithEmbeddingCount: 24, embeddingCount: 49,
+  }, 25));
+  for (const change of [{ status: 'queued' }, { status: 'failed' },
+    { succeededCount: 23, failedCount: 1 }, { succeededCount: 24, failedCount: 0 }]) {
     assert.throws(() => assertBatch({ ...batch, ...change }, 25));
   }
 });

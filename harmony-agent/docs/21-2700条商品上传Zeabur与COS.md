@@ -46,9 +46,9 @@ npm run data:upload
 - `progress.json`：批次 ID、提交状态和验收结果；重跑同一命令跳过成功批次，继续查询已提交批次。
 - `cloud-result.json`：全部批次通过后的云端就绪状态和商品池统计。
 
-脚本逐批等待完成，检查成功数量、可搜索商品数量、向量覆盖和至少两条向量/商品；服务端最终就绪检查校验 visual 与 multimodal 两个索引空间。
+脚本逐批等待完成。批次内单条商品导入或模型生成失败时，服务端记录失败并跳过该条，脚本记录告警后继续后续批次；只有批次未处理完全部条目或处于失败状态时才会停止。服务端最终就绪检查仍会校验 visual 与 multimodal 两个索引空间。
 
-提交前先写进度。如果网络断开发生在服务端收件后、客户端拿到 batchId 前，脚本会停止为“提交结果不确定”，不会自动重复 POST。按输出的 batchSource 在云端批次接口查询，确认 batchId 后补入 progress.json 对应记录；不要直接删除进度重跑。批次失败需查 `/api/v1/product-pool/batches/{batchId}/quality`，修复后通过服务端 retry 接口重试，再运行脚本。
+提交前先写进度。如果网络断开发生在服务端收件后、客户端拿到 batchId 前，脚本会停止为“提交结果不确定”，不会自动重复 POST。按输出的 batchSource 在云端批次接口查询，确认 batchId 后补入 progress.json 对应记录；不要直接删除进度重跑。批次未处理完或状态为 `failed` 时，查 `/api/v1/product-pool/batches/{batchId}/quality`；普通的 `completed_with_errors`、单条失败或向量缺失会被记录并跳过，不需要重新导入整批。
 
 正常退出自动释放 `upload.lock`；强制杀进程留下锁时，确认没有上传进程后才移除该锁。不要删除 progress.json。原数据目录不会被修改。
 
