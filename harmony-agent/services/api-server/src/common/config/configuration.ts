@@ -225,6 +225,12 @@ export default () => ({
   },
   modelProviders: {
     vision: {
+      sceneModels: {
+        tagging: optionalString(process.env.VISION_TAGGING_MODEL_NAME),
+        category: optionalString(process.env.VISION_CATEGORY_MODEL_NAME),
+        profile: optionalString(process.env.VISION_PROFILE_MODEL_NAME),
+        verify: optionalString(process.env.VISION_VERIFY_MODEL_NAME),
+      },
       provider:
         process.env.VISION_PROVIDER ??
         (process.env.MODEL_3 ? "volcengine_ark" : process.env.MODEL_PROVIDER),

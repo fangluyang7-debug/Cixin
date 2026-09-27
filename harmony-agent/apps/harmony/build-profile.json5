@@ -1,6 +1,20 @@
 {
   "app": {
-    "signingConfigs": [],
+    "signingConfigs": [
+      {
+        "name": "default",
+        "type": "HarmonyOS",
+        "material": {
+          "certpath": "C:\\Users\\LENOVO\\.ohos\\config\\default_harmony_qI143mzAGBWB6WqWWsCAoXtAXddc1JJ8MEpFcTWXL_s=.cer",
+          "keyAlias": "debugKey",
+          "keyPassword": "0000001A4A8C1488C4A2B9E901B2D69FBFACE7E6CE9186D72F1B75D972EB4F5D5F636298D45878867D77",
+          "profile": "C:\\Users\\LENOVO\\.ohos\\config\\default_harmony_qI143mzAGBWB6WqWWsCAoXtAXddc1JJ8MEpFcTWXL_s=.p7b",
+          "signAlg": "SHA256withECDSA",
+          "storeFile": "C:\\Users\\LENOVO\\.ohos\\config\\default_harmony_qI143mzAGBWB6WqWWsCAoXtAXddc1JJ8MEpFcTWXL_s=.p12",
+          "storePassword": "0000001AEC8B1914DDC8CCF2FCDA31D2FA5A95ADD4D6FB84DCC0E152D2D9751AB4661213CF8D0BF06F77"
+        }
+      }
+    ],
     "products": [
       {
         "name": "default",

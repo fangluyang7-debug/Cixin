@@ -12,6 +12,9 @@
     "apps/test-entry-web"
   ],
   "scripts": {
+    "data:prepare": "node scripts/upload-harmony-products.mjs --prepare",
+    "data:upload": "node scripts/upload-harmony-products.mjs",
+    "data:upload:test": "node --test scripts/upload-harmony-products.test.mjs",
     "api:dev": "npm --workspace services/api-server run start:dev",
     "api:build": "npm --workspace services/api-server run prisma:generate && npm --workspace services/api-server run build",
     "api:zeabur:preflight": "node scripts/check-zeabur-env.mjs",

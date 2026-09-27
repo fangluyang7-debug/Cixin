@@ -71,6 +71,8 @@ describe('Cloud readiness', () => {
     expect(prisma.product.findFirst).toHaveBeenCalledTimes(1);
     expect(storage.probeReadWrite).toHaveBeenCalledTimes(1); expect(global.fetch).toHaveBeenCalledTimes(3);
     expect(JSON.stringify(left)).not.toContain('apiKey');
+    const embeddingRequest = (global.fetch as jest.Mock).mock.calls.find(([url]) => url.endsWith('/embeddings/multimodal'));
+    expect(JSON.parse(embeddingRequest[1].body).dimensions).toBe(2);
   });
   it('blocks when configured models fail', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false });

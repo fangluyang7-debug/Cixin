@@ -143,8 +143,9 @@ export class CloudReadinessService {
     if (!baseUrl || !apiKey || !model || !baseUrl.startsWith('https://')) throw new Error('MODEL_CONFIG_MISSING');
     const probeImage = 'data:image/png;base64,' + (await sharp({ create: { width: 64, height: 64, channels: 3,
       background: { r: 255, g: 255, b: 255 } } }).png().toBuffer()).toString('base64');
-    const body = kind === 'embedding' ? { model, input: [{ type: 'image_url', image_url: { url: probeImage } }] } : {
-      model, max_tokens: 4, messages: [{ role: 'user', content: kind === 'vision' ? [
+    const body = kind === 'embedding' ? { model, dimensions: this.config.get<number>('embedding.dimension'),
+      input: [{ type: 'image_url', image_url: { url: probeImage } }] } : {
+      model, max_tokens: 16, thinking: { type: 'disabled' }, messages: [{ role: 'user', content: kind === 'vision' ? [
         { type: 'text', text: 'Describe this image in one word.' },
         { type: 'image_url', image_url: { url: probeImage } },
       ] : 'Reply OK.' }],

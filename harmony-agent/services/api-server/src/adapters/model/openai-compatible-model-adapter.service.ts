@@ -56,6 +56,8 @@ interface ChatCompletionOptions {
   maxTokens?: number;
 }
 
+type VisionScene = "tagging" | "category" | "profile" | "verify";
+
 @Injectable()
 export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
   constructor(
@@ -68,7 +70,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
   ) {}
 
   async identifyShoe(input: IdentifyShoeInput): Promise<ProductProfileResult> {
-    const vision = this.resolveVisionConfig();
+    const vision = this.resolveVisionConfig("profile");
     if (!vision) {
       throw new InternalServerErrorException(
         "VISION_MODEL_PROVIDER_NOT_CONFIGURED",
@@ -162,7 +164,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
     imageUrl: string;
     categoryHint?: string | null;
   }): Promise<ProductCategoryResult> {
-    const vision = this.resolveVisionConfig();
+    const vision = this.resolveVisionConfig("category");
     if (!vision) {
       throw new InternalServerErrorException(
         "VISION_MODEL_PROVIDER_NOT_CONFIGURED",
@@ -332,7 +334,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
   }
 
   async tagProduct(input: ProductTagInput): Promise<ProductTagResult> {
-    const vision = this.resolveVisionConfig();
+    const vision = this.resolveVisionConfig("tagging");
     if (!vision) {
       throw new InternalServerErrorException(
         "VISION_MODEL_PROVIDER_NOT_CONFIGURED",
@@ -391,7 +393,7 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
   async verifyCandidateVisualMatch(
     input: CandidateVisualVerificationInput,
   ): Promise<CandidateVisualVerificationResult> {
-    const vision = this.resolveVisionConfig();
+    const vision = this.resolveVisionConfig("verify");
     if (
       !vision ||
       !input.candidate.imageUrl ||
@@ -464,12 +466,12 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
     };
   }
 
-  private resolveVisionConfig() {
+  private resolveVisionConfig(scene: VisionScene) {
     const provider = this.config.get<string>("modelProviders.vision.provider");
     const baseUrl = this.config.get<string>("modelProviders.vision.baseUrl");
-    const modelName = this.config.get<string>(
-      "modelProviders.vision.modelName",
-    );
+    const modelName =
+      this.config.get<string>(`modelProviders.vision.sceneModels.${scene}`)?.trim() ||
+      this.config.get<string>("modelProviders.vision.modelName");
     const apiKey = this.config.get<string>("modelProviders.vision.apiKey");
     if (!provider || provider === "mock" || !baseUrl || !modelName || !apiKey)
       return null;
