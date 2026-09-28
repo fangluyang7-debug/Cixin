@@ -1,5 +1,9 @@
+import { finalCandidateRank } from './final-candidate-rank';
+import { ArtifactStoreService } from '../../../core/runtime/artifact-store.service';
+import { WorkflowStoreService, WorkflowTicket } from '../../../core/runtime/workflow-store.service';
+import { ArtifactRef } from '../../../core/runtime/scheduling-protocol';
 import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { ImageAsset } from '@prisma/client';
 import { RuntimeExecutionContext } from '../../../core/runtime/executor-registry.service';
 import { PrismaService } from '../../../persistence/prisma/prisma.service';
@@ -19,6 +23,7 @@ import { normalizeProductCategory } from '../../../common/catalog/product-catego
 import { NormalizedSubjectBox } from './query-image-preprocess-adapter.interface';
 
 interface ImageRequest {
+  imageArtifact?: ArtifactRef;
   assetId?: string;
   imageBase64?: string;
   contentType?: string;
@@ -40,6 +45,14 @@ interface StageState {
   candidates?: CandidateSeed[];
   candidateSnapshotId?: string;
   answer?: string;
+  cropArtifact?: ArtifactRef;
+  quality?: { method: string; width: number; height: number; passed: boolean; decodable: boolean };
+}
+
+interface StageReferenceState {
+  format: 'shopping.stage-commit.v1'; queryRef: ArtifactRef; userId: string; sessionId: string;
+  box: NormalizedSubjectBox; category?: string; answer?: string; candidateSnapshotId?: string;
+  refs: Record<string, ArtifactRef>;
 }
 
 // Real business stages; URLs and buffers are transient executor data, never graph metadata.
@@ -51,14 +64,68 @@ export class ShoppingImageStagesService {
     @Inject(QUERY_IMAGE_CONTENT_ADAPTER) private readonly content: QueryImageContentAdapter,
     @Inject(SESSION_PRODUCT_PROFILE_ADAPTER) private readonly profiles: SessionProductProfileAdapter,
     @Inject(EMBEDDING_PROVIDER) private readonly embeddings: EmbeddingProvider,
-    @Inject(SEARCH_PROVIDER) private readonly search: SearchProvider) {}
+    @Inject(SEARCH_PROVIDER) private readonly search: SearchProvider, @Optional() private readonly workflows?: WorkflowStoreService, @Optional() private readonly artifacts?: ArtifactStoreService) {}
 
   async execute(context: RuntimeExecutionContext): Promise<unknown> {
+    const ticket = (context.input as { workflow?: WorkflowTicket }).workflow;
+    if (!ticket || !this.workflows || !this.artifacts) return this.executeBusiness(context);
+    const dependencies = context.task.dependencies ?? [];
+    const inputRefs = dependencies.map(id => context.outputs.get(id) as ArtifactRef);
+    if (dependencies.length === 0 && ticket.queryRef) inputRefs.push(ticket.queryRef);
+    const stage = context.task.toolId.replace('shopping.stage.', '');
+    const work = async () => {
+      const outputs = new Map<string, unknown>();
+      let previousState: StageReferenceState | undefined;
+      for (let i = 0; i < dependencies.length; i++) {
+        previousState = await this.workflows!.readJson(ticket.ownerId, inputRefs[i]) as StageReferenceState;
+        outputs.set(dependencies[i], await this.hydrate(ticket, previousState));
+      }
+      const output = await this.executeBusiness({ ...context, outputs });
+      if (stage === 'result') return JSON.parse(JSON.stringify(output)) as unknown;
+      const state = output as StageState;
+      const refs: Record<string, ArtifactRef> = { ...(previousState?.refs ?? {}) };
+      const publish = async (schema: string, value: unknown): Promise<ArtifactRef> => this.artifacts!.publishJson(ticket.ownerId, schema, JSON.parse(JSON.stringify(value)), inputRefs);
+      if (stage === 'quality-check') refs.quality = await publish('shopping.quality', state.quality);
+      if (stage === 'crop' && state.cropArtifact) refs.crop = state.cropArtifact;
+      if (stage === 'category') refs.category = await publish('shopping.profile', { category: state.category });
+      if (stage === 'product-profile') refs.profile = await publish('shopping.profile', state.profile);
+      if (stage === 'embedding') refs.embedding = await publish('shopping.embedding', { ...state.embedding, embeddingKind: 'visual', modelVersion: null, normalization: null, dtype: 'json-number', preprocessVersion: 'bbox_square_pad_512-v1', indexSpaceId: null });
+      if (['vector-search', 'price-stock', 'rank'].includes(stage)) refs.candidates = await publish('shopping.candidate-set', {
+        sessionId: state.sessionId, appliedFilter: state.dto.filters ?? {}, items: state.candidates!.map(item => ({ ...item, candidateItemId: null })) });
+      if (stage === 'answer') refs.answer = await publish('shopping.answer', { assistantMessage: state.answer, source: 'catalog_rules_v1' });
+      return JSON.parse(JSON.stringify({ format: 'shopping.stage-commit.v1', queryRef: ticket.queryRef!, userId: ticket.ownerId, sessionId: state.sessionId,
+        box: state.box, category: state.category, answer: state.answer, candidateSnapshotId: state.candidateSnapshotId, refs })) as StageReferenceState;
+    };
+    const ref = await this.workflows.stage(ticket, stage, inputRefs, context.signal, work, stage === 'result',
+      value => stage === 'result' ? [] : Object.values((value as StageReferenceState).refs));
+    return stage === 'result' ? this.workflows.readJson(ticket.ownerId, ref) : ref;
+  }
+
+  private async hydrate(ticket: WorkflowTicket, stored: StageReferenceState): Promise<StageState> {
+    if (stored.format !== 'shopping.stage-commit.v1' || stored.userId !== ticket.ownerId) throw new Error('CHECKPOINT_INCOMPATIBLE');
+    const query = await this.workflows!.readJson(ticket.ownerId, stored.queryRef) as ImageRequest;
+    const state: StageState = { dto: query, userId: stored.userId, sessionId: stored.sessionId, box: stored.box,
+      category: stored.category, answer: stored.answer, candidateSnapshotId: stored.candidateSnapshotId };
+    if (query.assetId) state.asset = await this.prisma.imageAsset.findFirst({ where: { id: query.assetId, ownerUserId: ticket.ownerId, uploadStatus: 'uploaded' } }) ?? undefined;
+    if (stored.refs.crop) {
+      const artifact = await this.artifacts!.read(ticket.ownerId, stored.refs.crop);
+      state.cropRef = JSON.parse(artifact.locatorJson) as StoredImageRef;
+      state.cropArtifact = stored.refs.crop;
+    }
+    if (stored.refs.profile) state.profile = await this.workflows!.readJson(ticket.ownerId, stored.refs.profile) as ProductProfileResult;
+    if (stored.refs.embedding) state.embedding = await this.workflows!.readJson(ticket.ownerId, stored.refs.embedding) as EmbeddingResult;
+    if (stored.refs.candidates) state.candidates = (await this.workflows!.readJson(ticket.ownerId, stored.refs.candidates) as { items: CandidateSeed[] }).items;
+    return state;
+  }
+
+  private async executeBusiness(context: RuntimeExecutionContext): Promise<unknown> {
     context.signal.throwIfAborted();
     const stage = context.task.toolId.replace('shopping.stage.', '');
     const request = context.input as { dto: ImageRequest; userId?: string | null };
     const previous = context.task.dependencies?.[0];
-    const state = previous ? context.outputs.get(previous) as StageState : undefined;
+    const predecessor = previous ? context.outputs.get(previous) as StageState : undefined;
+    // A stage owns its copy; successors cannot rewrite an already completed stage.
+    const state = predecessor ? structuredClone(predecessor) : undefined;
     if (stage === 'receive') {
       const dto = request.dto;
       if (!dto || (!dto.assetId && !dto.imageBase64)) throw new BadRequestException('IMAGE_INPUT_REQUIRED');
@@ -70,6 +137,7 @@ export class ShoppingImageStagesService {
       return { dto, box, userId: request.userId ?? null, sessionId: createId('sess') } satisfies StageState;
     }
     if (!state) throw new Error('RUNTIME_DEPENDENCY_FAILED');
+    if (stage !== 'asset' && stage !== 'result' && state.imageUrl === undefined && (state.cropRef || state.asset)) state.imageUrl = await this.signedUrl(state.cropRef ?? state.asset!);
     switch (stage) {
       case 'asset': {
         let assetId = state.dto.assetId;
@@ -93,19 +161,22 @@ export class ShoppingImageStagesService {
         break;
       }
       case 'quality-check': {
-        const metadata = await this.content.readMetadata(state.imageUrl!);
+        const metadata = await this.content.readMetadata(state.imageUrl!, state.dto.imageArtifact?.contentHash);
         if (!metadata.width || !metadata.height || metadata.width < 32 || metadata.height < 32) {
           throw new BadRequestException('IMAGE_QUALITY_TOO_LOW');
         }
+        state.quality = { method: 'decoded_dimensions_v1', width: metadata.width, height: metadata.height, decodable: true, passed: true };
         break;
       }
       case 'crop': {
-        const crop = await this.content.cropForEmbedding({ signedUrl: state.imageUrl!, box: state.box,
+        const crop = await this.content.cropForEmbedding({ signedUrl: state.imageUrl!, expectedHash: state.dto.imageArtifact?.contentHash, box: state.box,
           paddingRatio: 0.05, targetSize: 512, jpegQuality: 90 });
         context.signal.throwIfAborted();
         state.cropRef = await this.storage.putImage({ assetId: createId('crop'), assetGroupId: state.asset!.assetGroupId,
           variantType: 'compressed_recognition', content: crop.buffer, contentType: 'image/jpeg',
           objectKeyPrefix: `runtime/${context.runId}` });
+        if ((context.input as { workflow?: WorkflowTicket }).workflow && this.artifacts) state.cropArtifact = await this.artifacts.publishObject(state.userId!,
+          { bucketGroup: state.cropRef.bucketGroup, objectKey: state.cropRef.objectKey }, crop.buffer, 'image/jpeg');
         state.imageUrl = await this.signedUrl(state.cropRef);
         break;
       }
@@ -144,21 +215,20 @@ export class ShoppingImageStagesService {
           const product = catalog.get(`${item.platformName}:${item.productUrl}`);
           return product ? { ...item, amount: product.priceAmount, currency: product.currency,
             stockStatus: product.stockStatus === 'in_stock' || product.stockStatus === 'out_of_stock' ? product.stockStatus : 'unknown',
-            rawPayload: { ...item.rawPayload, priceSource: 'zeabur_catalog', priceObservedAt: product.updatedAt.toISOString() } } : item;
+            rawPayload: { ...item.rawPayload, priceSource: 'zeabur_catalog', catalogUpdatedAt: product.updatedAt.toISOString(), sourceObservedAt: null } } : item;
         });
         break;
       }
       case 'rank': {
-        const seen = new Set<string>();
-        state.candidates = state.candidates!.filter(item => {
-          const key = item.productPoolKey ?? `${item.platformName}:${item.productUrl}`;
-          if (seen.has(key)) return false;
-          seen.add(key); return true;
-        }).sort((left, right) => Number(left.stockStatus === 'out_of_stock') - Number(right.stockStatus === 'out_of_stock')).slice(0, 30);
+        state.candidates = finalCandidateRank(state.candidates!, state.dto.filters ?? {});
         break;
       }
       case 'answer': {
         state.answer = state.candidates!.length ? `找到 ${state.candidates!.length} 个商品候选，价格与库存来自云端商品库。` : '未找到符合当前图片的商品。';
+        break;
+      }
+      case 'result': {
+        const publish = async () => {
         const profile = state.profile!;
         await this.prisma.querySession.create({ data: { id: state.sessionId, assetId: state.asset!.id,
           userId: state.userId, status: 'processing', stage: 'runtime_persist', entrySource: 'android_app',
@@ -168,7 +238,7 @@ export class ShoppingImageStagesService {
             confidence: profile.confidence, rawJson: JSON.stringify({ ...profile.raw, detailedProfileStatus: 'ready',
               modelLine: profile.modelLine, colorFamily: profile.colorFamily, colorway: profile.colorway, shoeType: profile.shoeType }) } },
           filterSnapshots: { create: { id: createId('filter'), turnIndex: 0,
-            stockOnly: state.dto.filters?.stockOnly === true, sortRule: 'relevance_desc', rawJson: JSON.stringify(state.dto.filters ?? {}) } } } });
+            stockOnly: state.dto.filters?.stockOnly === true, sortRule: typeof state.dto.filters?.sortRule === 'string' ? state.dto.filters.sortRule : 'relevance_desc', rawJson: JSON.stringify(state.dto.filters ?? {}) } } } });
         context.signal.throwIfAborted();
         await this.prisma.queryImagePreprocessSnapshot.create({ data: { id: createId('query_pre'), sessionId: state.sessionId,
           assetId: state.asset!.id, selectionSource: 'runtime', status: 'ready', selectedBoxJson: JSON.stringify(state.box),
@@ -177,11 +247,13 @@ export class ShoppingImageStagesService {
           embeddingVectorHash: state.embedding!.vectorHash, embeddingVectorJson: JSON.stringify(state.embedding!.vector) } });
         state.candidateSnapshotId = await this.sessions.writeRuntimeCandidateSnapshot({ sessionId: state.sessionId,
           turnIndex: 0, candidates: state.candidates!, fallback: null, appliedFilter: state.dto.filters ?? {} });
-        break;
-      }
-      case 'result': {
-        await this.prisma.querySession.update({ where: { id: state.sessionId }, data: { status: 'ready', stage: 'candidate_ready' } });
+        await this.prisma.querySession.update({ where: { id: state.sessionId }, data: { status: 'ready', stage: 'candidate_ready', stateVersion: 1 } });
+        };
+        if (typeof this.prisma.publication === 'function') await this.prisma.publication(publish);
+        else await publish(); // Test adapters; deployed Prisma always supports publication.
         return { ...(await this.sessions.getSession(state.sessionId)),
+          runtimeRunId: context.runId, runId: context.runId, taskId: (context.input as { taskId?: string }).taskId, status: 'succeeded',
+          workflowId: (context.input as { workflow?: WorkflowTicket }).workflow?.id, stateVersion: 1, requestRevision: 0,
           candidates: await this.candidates.getCurrentCandidates(state.sessionId), assistantMessage: state.answer,
           resultRef: `session:${state.sessionId}`, imageSearch: { candidateSnapshotId: state.candidateSnapshotId, searchMode: 'runtime_staged' } };
       }

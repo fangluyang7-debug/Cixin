@@ -23,6 +23,7 @@ import { TurnsController } from './controllers/turns.controller';
     ConversationModule,
     UserMemoryModule,
   ],
+  exports: [TurnsService],
   controllers: [TurnsController],
   providers: [
     TurnsService,

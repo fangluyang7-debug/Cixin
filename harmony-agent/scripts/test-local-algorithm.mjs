@@ -122,6 +122,7 @@ check('interference waits for solo baselines and learns a pair', () => {
   model.observe('a:v1:P', 'b:v1:P', 200, 100, 0);
   assert.equal(model.slowdown('a:v1:P', 'b:v1:P'), null);
   for (let i = 0; i < 3; i++) model.observe('a:v1:P', 'b:v1:P', 200, 100, 5);
-  assert.equal(model.slowdown('b:v1:P', 'a:v1:P'), 2);
+  assert.equal(model.slowdown('a:v1:P', 'b:v1:P'), 2);
+  assert.equal(model.slowdown('b:v1:P', 'a:v1:P'), null);
 });
 process.stdout.write(`${count} local algorithm checks passed\n`);

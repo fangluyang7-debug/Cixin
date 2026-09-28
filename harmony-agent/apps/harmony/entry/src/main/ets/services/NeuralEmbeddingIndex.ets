@@ -1,3 +1,4 @@
+import cryptoFramework from '@ohos.security.cryptoFramework';
 // offline_diagnostic: packaged sample data / local model self-test; never a formal shopping fallback.
 import { NormalizationProgress, validateNormalizationProgress, appendNormalizationValues } from './NormalizationCheckpoint';
 import { collectVectorPartitions } from './VectorPartitionResults';
@@ -39,6 +40,7 @@ export class NeuralEmbeddingIndex {
   private static instance: NeuralEmbeddingIndex | null = null;
   private initializationPromise: Promise<void> | null = null;
   private ready: boolean = false;
+  private indexContentHash: string = '';
   private artifact: NeuralEmbeddingArtifact | null = null;
   private products: Product[] = [];
   private productVectorBytes: Uint8Array = new Uint8Array(0);
@@ -247,9 +249,11 @@ export class NeuralEmbeddingIndex {
     if (this.artifact === null) { throw new Error('Index is not ready.'); }
     const dimension: number = this.artifact.embeddingDimension;
     const progress: NormalizationProgress = previous ?? {
-      cursor: 0, dimension: dimension, modelVersion: this.artifact.modelVersion, norms: []
+      cursor: 0, dimension: dimension, modelVersion: this.artifact.modelVersion, norms: [],
+      indexContentHash: this.indexContentHash, indexSnapshotId: this.artifact.modelId + ':' + this.indexContentHash
     };
-    validateNormalizationProgress(progress, this.artifact.modelVersion, dimension, this.products.length);
+    validateNormalizationProgress(progress, this.artifact.modelVersion, dimension, this.products.length,
+      this.indexContentHash, this.artifact.modelId + ':' + this.indexContentHash);
     if (signal.isCancellationRequested) { throw new Error('Index update cancelled.'); }
     const start: number = progress.cursor;
     const end: number = Math.min(this.products.length, start + chunkSize);
@@ -271,6 +275,10 @@ export class NeuralEmbeddingIndex {
   private async load(context: common.Context): Promise<void> {
     const rawData: Uint8Array =
       await context.resourceManager.getRawFileContent(ARTIFACT_RAWFILE);
+    const digest = cryptoFramework.createMd('SHA256');
+    await digest.update({ data: rawData });
+    const hash = await digest.digest();
+    this.indexContentHash = Array.from(hash.data).map((value: number): string => value.toString(16).padStart(2, '0')).join('');
     const decoder: util.TextDecoder = new util.TextDecoder('utf-8', { ignoreBOM: true });
     const artifact: NeuralEmbeddingArtifact =
       JSON.parse(decoder.decodeToString(rawData)) as NeuralEmbeddingArtifact;

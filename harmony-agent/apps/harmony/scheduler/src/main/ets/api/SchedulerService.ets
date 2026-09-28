@@ -1084,8 +1084,9 @@ export class SchedulerService implements SchedulerRuntime {
         running.plan.inferenceLocation !== InferenceLocation.LOCAL_DEVICE) { workers = Infinity; }
       else { workers += (running.plan as LocalExecutionPlan).threadCount; }
       memory += running.plan.prediction?.memoryMb ?? Infinity;
-      const slowdown: number | null = this.interferenceCosts.slowdown(
-        this.interferenceKey(task), this.interferenceKey(running));
+      const incoming = this.interferenceCosts.slowdown(this.interferenceKey(task), this.interferenceKey(running));
+      const existing = this.interferenceCosts.slowdown(this.interferenceKey(running), this.interferenceKey(task));
+      const slowdown: number | null = incoming === null && existing === null ? null : Math.max(incoming ?? 1, existing ?? 1);
       if (slowdown !== null && (slowdown >= 2 ||
         slowdown > 1.3 && (task.profile.context?.userWaiting || running.profile.context?.userWaiting))) {
         workers = Infinity;
@@ -1243,6 +1244,21 @@ export class SchedulerService implements SchedulerRuntime {
   private sanitizeTelemetry(actual: ExecutorTelemetry): ExecutorTelemetry {
     return { profileId: actual.profileId, actualModelTier: actual.actualModelTier,
       executionPath: actual.executionPath,
+      cloudRunId: actual.cloudRunId !== undefined && /^run_[A-Za-z0-9_-]{1,100}$/.test(actual.cloudRunId) ? actual.cloudRunId : undefined,
+      cloudTaskId: actual.cloudTaskId !== undefined && /^phone_[0-9]{1,20}_[0-9]{1,8}$/.test(actual.cloudTaskId) ? actual.cloudTaskId : undefined,
+      cloudTiming: actual.cloudTiming,
+      routeEvents: actual.routeEvents?.slice(-64).filter((event: ExecutionTelemetry) =>
+        /^[A-Za-z0-9_.:-]{1,128}$/.test(event.taskId) && /^[A-Za-z0-9_.:-]{1,128}$/.test(event.routeId) &&
+        ['upload', 'queue', 'compute', 'download', 'complete', 'failed'].indexOf(event.phase) >= 0 &&
+        Number.isFinite(event.timestamp)).map((event: ExecutionTelemetry): ExecutionTelemetry => {
+          const safe: ExecutionTelemetry = { taskId: event.taskId, routeId: event.routeId,
+            phase: event.phase, timestamp: event.timestamp,
+            durationMs: event.durationMs !== undefined && Number.isFinite(event.durationMs) && event.durationMs >= 0 ? event.durationMs : undefined,
+            bytesSent: event.bytesSent !== undefined && Number.isSafeInteger(event.bytesSent) && event.bytesSent >= 0 ? event.bytesSent : undefined,
+            bytesReceived: event.bytesReceived !== undefined && Number.isSafeInteger(event.bytesReceived) && event.bytesReceived >= 0 ? event.bytesReceived : undefined,
+            errorCode: event.errorCode !== undefined && /^[A-Z0-9_]{1,100}$/.test(event.errorCode) ? event.errorCode : undefined };
+          return safe;
+        }),
       actualBackend: actual.actualBackend, actualThreads: actual.actualThreads, workerCount: actual.workerCount,
       retrievalDimensions: actual.retrievalDimensions, candidateCount: actual.candidateCount,
       batchSize: actual.batchSize, modelVersion: actual.modelVersion, modelSizeMb: actual.modelSizeMb,

@@ -15,7 +15,9 @@ export function cloudFailureText(reason?: string): string {
   }
 }
 
-export function productKey(product: Product): string { return `${product.platform}:${product.externalId}`; }
+export function productKey(product: Product): string { return product.productId !== undefined ? 'product:' + product.productId :
+    product.productPoolKey !== undefined ? 'pool:' + product.productPoolKey :
+    product.candidateItemId !== undefined ? 'candidate:' + product.candidateItemId : `${product.platform}:${product.externalId}`; }
 export function platformLabel(value: string): string {
   if (value === 'tb') { return '淘宝'; }
   if (value === 'jd') { return '京东'; }

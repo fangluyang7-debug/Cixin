@@ -738,7 +738,7 @@ export class SessionsService {
       },
     });
     if (!session) throw new NotFoundException("SESSION_NOT_FOUND");
-    return this.sessionViewAdapter.toSessionDetail(session);
+    return { ...this.sessionViewAdapter.toSessionDetail(session), stateVersion: session.stateVersion, requestRevision: session.requestRevision };
   }
 
   async updateSubjectSelection(

@@ -90,7 +90,8 @@ check('missing local estimate never causes remote dispatch', () => {
   const answer = new placement.GlobalPlacementPolicy().evaluate(task(), 'local',
     [device('tablet', false, 30)], [link()], placement.PlacementMode.SHADOW, now);
   assert.equal(answer.dispatchAllowed, false);
-  assert.equal(answer.suggestedDeviceId, 'local');
+  assert.equal(answer.suggestedDeviceId, '');
+  assert.equal(answer.status, 'blocked');
 });
 check('injected local state keeps a mock provenance label', () => {
   const state = { source: types.DeviceStateSource.INJECTED, sampledAt: {},
@@ -116,4 +117,17 @@ check('only confirmed real execution trains placement costs', () => {
   assert.equal(answer.estimates.find(item => item.deviceId === 'tablet').computeMs, 10);
   assert.equal(answer.dispatchAllowed, false);
 });
+
+
+check('explicit cloud baseline works with no local executor', () => {
+  const request = {...task(), baselineDeviceId:'cloud'};
+  const cloud = {...device('cloud',false,100), source:placement.PlacementSource.REAL};
+  const channel = {...link(), toDeviceId:'cloud', returnBytesPerSecond:100000, throughputScope:'effective'};
+  const result = new placement.GlobalPlacementPolicy().evaluate(request,'local',[cloud],[channel],placement.PlacementMode.SHADOW,now);
+  assert.equal(result.actualDeviceId,'cloud'); assert.equal(result.baselineDeviceId,'cloud');
+  assert.equal(result.estimates[0].transferMs,11); assert.equal(result.dispatchAllowed,false);
+  cloud.trusted=false;
+  assert.equal(new placement.GlobalPlacementPolicy().evaluate(request,'local',[cloud],[channel],placement.PlacementMode.SHADOW,now).status,'blocked');
+});
+
 process.stdout.write(`${count} placement checks passed\n`);

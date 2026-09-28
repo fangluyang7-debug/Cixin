@@ -16,7 +16,7 @@ describe("ToolRegistryService", () => {
       "image.embedding",
       "image.quality_check",
       "shopping.answer", "shopping.prices", "shopping.debug", "shopping.image", "shopping.image_upload", "shopping.profile", "shopping.read",
-      "shopping.refine", "shopping.subject", "shopping.text", "text.embedding",
+      "shopping.refine", "shopping.turn", "shopping.more", "shopping.subject", "shopping.text", "text.embedding",
     ].sort());
     expect(registry.get("image.embedding")?.resourceHints).not.toHaveProperty(
       "backend",

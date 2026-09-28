@@ -29,6 +29,6 @@ export class InterferenceModel {
   }
 
   private key(first: string, second: string): string {
-    return first < second ? `${first}|${second}` : `${second}|${first}`;
+    return `${first}->${second}`;
   }
 }

@@ -79,3 +79,9 @@ export {
 
 export { RemoteTaskProfile, RouteCandidate, ExecutionTelemetry, RouteProbePort, RemoteRouteRegistry, routeStatus } from './src/main/ets/api/RemoteRouteProfile';
 export { HttpRouteProbe } from './src/main/ets/network/HttpRouteProbe';
+
+export { ArtifactRef, ArtifactManifest, ArtifactLocation, TaskContractV1, TaskInstanceV1, BudgetV1,
+  CheckpointFormat, ModelCompatibility, validArtifactRef, validArtifact, validTaskInstance, compatibleModel }
+  from './src/main/ets/api/SchedulingProtocol';
+
+export { ClockPort, WallClock } from './src/main/ets/api/ClockPort';

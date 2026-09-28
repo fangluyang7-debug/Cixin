@@ -1,4 +1,5 @@
-import { APP_GUARD } from '@nestjs/core';
+import { SessionMutationInterceptor } from './core/runtime/session-mutation.interceptor';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ResourceOwnershipGuard } from './modules/auth/resource-ownership.guard';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -21,7 +22,7 @@ import { TrendOutfitModule } from './modules/trend-outfit/trend-outfit.module';
 import { RuntimeModule } from './modules/runtime/runtime.module';
 
 @Module({
-  providers: [{ provide: APP_GUARD, useClass: ResourceOwnershipGuard }],
+  providers: [{ provide: APP_GUARD, useClass: ResourceOwnershipGuard }, {provide: APP_INTERCEPTOR, useClass: SessionMutationInterceptor}],
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,

@@ -1,3 +1,6 @@
+import { createHash } from 'node:crypto';
+import { DeviceDispatchService } from '../../../core/runtime/device-dispatch.service';
+import { Optional } from '@nestjs/common';
 import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
 import { InternalServerErrorException } from '@nestjs/common';
 import { Injectable } from '@nestjs/common';
@@ -11,20 +14,27 @@ import { NormalizedSubjectBox } from './query-image-preprocess-adapter.interface
 
 @Injectable()
 export class StandardQueryImageContentAdapterService implements QueryImageContentAdapter {
-  async readMetadata(signedUrl: string): Promise<QueryImageMetadata> {
-    const buffer = await this.fetchImageBuffer(signedUrl);
+  constructor(@Optional() private readonly dispatch?: DeviceDispatchService) {}
+  async readMetadata(signedUrl: string, expectedHash?: string): Promise<QueryImageMetadata> {
+    const buffer = await this.fetchImageBuffer(signedUrl, expectedHash);
     const metadata = await sharp(buffer, { failOn: 'none' }).metadata();
     return { width: metadata.width, height: metadata.height, format: metadata.format ?? null };
   }
 
   async cropForEmbedding(input: {
     signedUrl: string;
+    expectedHash?: string;
     box: NormalizedSubjectBox;
     paddingRatio: number;
     targetSize: number;
     jpegQuality: number;
   }): Promise<QueryImageCropResult> {
-    const imageBuffer = await this.fetchImageBuffer(input.signedUrl);
+    const imageBuffer = await this.fetchImageBuffer(input.signedUrl, input.expectedHash);
+    if (this.dispatch) return this.dispatch.crop(imageBuffer, input, () => this.cropBuffer(imageBuffer, input));
+    return this.cropBuffer(imageBuffer, input);
+  }
+
+  private async cropBuffer(imageBuffer: Buffer, input: Parameters<QueryImageContentAdapter['cropForEmbedding']>[0]): Promise<QueryImageCropResult> {
     const image = sharp(imageBuffer, { failOn: 'none' });
     const metadata = await image.metadata();
     const width = metadata.width;
@@ -53,13 +63,15 @@ export class StandardQueryImageContentAdapterService implements QueryImageConten
     };
   }
 
-  private async fetchImageBuffer(url: string) {
+  private async fetchImageBuffer(url: string, expectedHash?: string) {
     return RuntimeWorkScope.measure('storageReadMs', async () => {
     const response = await fetch(url, { signal: RuntimeWorkScope.signal(15000) });
     if (!response.ok) {
       throw new InternalServerErrorException('QUERY_IMAGE_FETCH_FAILED');
     }
-    return Buffer.from(await response.arrayBuffer());
+    const bytes = Buffer.from(await response.arrayBuffer());
+    if (expectedHash && createHash('sha256').update(bytes).digest('hex') !== expectedHash) throw new InternalServerErrorException('ARTIFACT_HASH_MISMATCH');
+    return bytes;
     });
   }
 

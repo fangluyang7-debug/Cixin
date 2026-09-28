@@ -1,8 +1,23 @@
+import { readFile } from 'node:fs/promises';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 try {
+  const artifactMigration = await readFile(new URL('./migrations/000002_artifacts/migration.sql', import.meta.url), 'utf8');
+  for (const statement of artifactMigration.split(';').map(value => value.trim()).filter(Boolean)) { await prisma.$executeRawUnsafe(statement); }
+  const workflowMigration = await readFile(new URL('./migrations/000003_workflows/migration.sql', import.meta.url), 'utf8');
+  for (const statement of workflowMigration.split(';').map(value => value.trim()).filter(Boolean)) { await prisma.$executeRawUnsafe(statement); }
+  const attemptColumns = await prisma.$queryRawUnsafe('PRAGMA table_info("TaskAttempt")');
+  if(!attemptColumns.some(column=>column.name==='instanceJson')) await prisma.$executeRawUnsafe("ALTER TABLE TaskAttempt ADD COLUMN instanceJson TEXT NOT NULL DEFAULT '{}'");
+  const sessionMigration = await readFile(new URL('./migrations/000004_session_mutations/migration.sql', import.meta.url), 'utf8');
+  for (const statement of sessionMigration.split(';').map(value => value.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(statement);
+  if (await tableExists('QuerySession')) {
+    const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("QuerySession")');
+    for (const column of ['stateVersion', 'requestRevision']) {
+      if (!columns.some(item => item.name === column)) await prisma.$executeRawUnsafe('ALTER TABLE "QuerySession" ADD COLUMN "' + column + '" INTEGER NOT NULL DEFAULT 0');
+    }
+  }
   if (await tableExists('ImageAsset')) {
     const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("ImageAsset")');
     if (!columns.some(column => column.name === 'ownerUserId')) await prisma.$executeRawUnsafe('ALTER TABLE "ImageAsset" ADD COLUMN "ownerUserId" TEXT');

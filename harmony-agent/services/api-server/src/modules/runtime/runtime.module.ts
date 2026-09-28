@@ -1,3 +1,5 @@
+import { DeviceCalibrationController } from './controllers/device-calibration.controller';
+import { DeviceDispatchService } from '../../core/runtime/device-dispatch.service';
 import { AuthModule } from '../auth/auth.module';
 import { RuntimeMaintenanceGuard } from './runtime-maintenance.guard';
 import { RuntimeProbeController } from './controllers/runtime-probe.controller';
@@ -36,8 +38,8 @@ class ShoppingPluginRegistration implements OnModuleInit {
 
 @Module({
   imports: [AuthModule],
-  controllers: [RuntimeController, RuntimeProbeController],
-  providers: [RuntimeMaintenanceGuard,
+  controllers: [DeviceCalibrationController, RuntimeController, RuntimeProbeController],
+  providers: [DeviceDispatchService, RuntimeMaintenanceGuard,
     ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService, TencentCosStorageAdapterService,
     ToolRegistryService,
     PerformanceRegistryService,
@@ -54,7 +56,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     AgentRuntimeService,
     ShoppingPluginRegistration,
   ],
-  exports: [
+  exports: [DeviceDispatchService,
     ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService,
     ToolRegistryService,
     PerformanceRegistryService,

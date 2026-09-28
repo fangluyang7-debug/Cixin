@@ -95,3 +95,12 @@ it('retains unconfirmed stops beyond grace and history pressure until child work
     expect(run.executionPlan!.assignments[0].finishedAt).toBeDefined();
   } finally { jest.useRealTimers(); }
 });
+
+it('does not start a successor with exhausted remaining budget', async () => {
+ const calls: string[] = [];
+ const { runner, run } = fixture(async id => { calls.push(id); return id; });
+ run.taskGraph!.nodes[1].constraints = { deadlineMs: 0 };
+ await expect(runner.execute(run.runId, {})).rejects.toThrow();
+ expect(calls).toEqual(['a']);
+ expect(run.status).toBe('timed_out');
+});

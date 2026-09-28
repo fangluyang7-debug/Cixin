@@ -25,7 +25,7 @@
     "api:test": "npm --workspace services/api-server run test",
     "api:test:unit": "npm --workspace services/api-server run test:unit --",
     "api:test:e2e": "npm --workspace services/api-server run test:e2e",
-    "api:test:ci": "npm --workspace services/api-server run test:ci",
+    "api:test:ci": "npm run worker:test && npm run protocol:test && npm run artifact:migration:test && npm --workspace services/api-server run test:ci",
     "api:smoke:cache": "npm --workspace services/api-server run smoke:cache",
     "api:smoke:conversation": "npm --workspace services/api-server run smoke:conversation",
     "web:dev": "npm --workspace apps/test-entry-web run dev",
@@ -38,6 +38,12 @@
     "concurrency:test": "node scripts/test-local-concurrency.mjs",
     "scheduler:typecheck": "node scripts/typecheck-scheduler.mjs",
     "cloud-shopping:test": "node scripts/test-cloud-shopping.mjs",
-    "cloud-shopping:typecheck": "node scripts/typecheck-cloud-shopping.mjs"
+    "cloud-shopping:typecheck": "node scripts/typecheck-cloud-shopping.mjs",
+    "protocol:test": "node scripts/test-scheduling-protocol.mjs",
+    "architecture:test": "npm run worker:test && npm run protocol:test && npm run artifact:migration:test && npm run cloud-shopping:test && npm run placement:test && npm run api:test:unit -- --runInBand",
+    "artifact:migration:test": "npm --workspace services/api-server run prisma:generate && node scripts/test-artifact-migration.mjs",
+    "contracts:generate": "node scripts/generate-shopping-contracts.mjs",
+    "worker:start": "node services/device-worker/server.mjs",
+    "worker:test": "node --test services/device-worker/worker.test.mjs"
   }
 }

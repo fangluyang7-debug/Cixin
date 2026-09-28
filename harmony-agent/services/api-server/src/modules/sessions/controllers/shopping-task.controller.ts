@@ -11,7 +11,7 @@ export class ShoppingTaskController {
   @Post('tasks')
   async submit(@Body() body: Record<string, unknown>, @Res({ passthrough: true }) response: ServerResponse, @Headers('authorization') authorization?: string) {
     const operations: Record<string, string> = { text: 'shopping.text', image: 'shopping.image',
-      image_upload: 'shopping.image_upload', prices: 'shopping.prices', answer: 'shopping.answer', read: 'shopping.read', refine: 'shopping.refine' };
+      image_upload: 'shopping.image_upload', prices: 'shopping.prices', answer: 'shopping.answer', read: 'shopping.read', refine: 'shopping.refine', subject:'shopping.subject', profile:'shopping.profile', turn:'shopping.turn', more:'shopping.more' };
     const operation = typeof body.operation === 'string' ? operations[body.operation] : undefined;
     if (!operation || typeof body.taskId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(body.taskId)) {
       throw new BadRequestException('SHOPPING_TASK_INVALID');
@@ -23,6 +23,8 @@ export class ShoppingTaskController {
     response.on('close', disconnected);
     try {
     return ok(await this.runtime.execute(operation, { dto: body.input,
+      baseVersion: typeof body.baseVersion === 'number' ? body.baseVersion : undefined,
+      requestRevision: typeof body.requestRevision === 'number' ? body.requestRevision : undefined,
       sessionId: typeof body.sessionId === 'string' ? body.sessionId : undefined,
       userId: user?.userId ?? null, taskId: body.taskId,
       taskProfile: body.taskProfile, deviceProfile: body.deviceProfile, networkProfile: body.networkProfile }, controller.signal));

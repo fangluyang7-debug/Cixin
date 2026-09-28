@@ -1,3 +1,4 @@
+import { performance } from 'node:perf_hooks';
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { createId } from "../../common/utils/id";
 import {
@@ -15,6 +16,8 @@ import { RuntimeEventBusService } from "./runtime-event-bus.service";
 
 @Injectable()
 export class RuntimeRunService {
+  private readonly budgetStarts = new WeakMap<RuntimeRun, number>();
+  public elapsedBudgetMs(run: RuntimeRun): number { return Math.max(0, performance.now() - (this.budgetStarts.get(run) ?? performance.now())); }
   private readonly runs = new Map<string, RuntimeRun>();
   private readonly maxRecentRuns = 20;
 
@@ -39,6 +42,7 @@ export class RuntimeRunService {
       startedAt: now,
       updatedAt: now,
     };
+    this.budgetStarts.set(run, performance.now());
     this.store(run);
     try {
       const plan = await this.scheduler.plan(taskGraph, { runId: run.runId });
@@ -74,6 +78,7 @@ export class RuntimeRunService {
       startedAt: now,
       updatedAt: now,
     };
+    this.budgetStarts.set(run, performance.now());
     this.store(run);
     return run;
   }

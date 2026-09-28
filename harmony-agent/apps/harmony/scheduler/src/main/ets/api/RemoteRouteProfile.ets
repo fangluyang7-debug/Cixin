@@ -64,7 +64,7 @@ export class RemoteRouteRegistry {
     snapshot.estimatedUploadMs = profile.input.requiresUpload ? profile.input.bytes * 8 / (snapshot.uplinkMbps * 1000) : 0;
     snapshot.estimatedDownloadMs = profile.estimatedResultBytes * 8 / (snapshot.downlinkMbps * 1000);
     snapshot.historyKey = key + ':' + profile.taskKind + ':' + profile.input.modality + ':' + Math.floor(Math.log2(Math.max(1, profile.input.bytes)));
-    snapshot.estimatedTotalMs = snapshot.rttMs + snapshot.estimatedUploadMs + snapshot.estimatedDownloadMs +
+    snapshot.estimatedTotalMs = (snapshot.source === 'measured-effective-throughput' ? 0 : snapshot.rttMs) + snapshot.estimatedUploadMs + snapshot.estimatedDownloadMs +
       snapshot.cloudQueueMs + (this.history.get(snapshot.historyKey) ?? computePriorMs);
     return snapshot;
   }
@@ -81,7 +81,7 @@ export class RemoteRouteRegistry {
       if (this.history.size > 128) { this.history.delete(Array.from(this.history.keys())[0]); }
     }
     // Preserve bandwidth probe timestamps unless both directions were actually observed.
-    if (uploadMs !== null && uploadMs > 0 && downloadMs !== null && downloadMs > 0 && inputBytes > 0 && outputBytes > 0) {
+    if (cached.source !== 'measured-effective-throughput' && uploadMs !== null && uploadMs > 0 && downloadMs !== null && downloadMs > 0 && inputBytes > 0 && outputBytes > 0) {
       cached.uplinkMbps = cached.uplinkMbps * 0.7 + inputBytes * 8 / uploadMs / 1000 * 0.3;
       cached.downlinkMbps = cached.downlinkMbps * 0.7 + outputBytes * 8 / downloadMs / 1000 * 0.3;
       cached.bandwidthAt = Date.now();

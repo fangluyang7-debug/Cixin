@@ -5,6 +5,7 @@ import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher
 import { CloudApiConfig } from '../services/CloudApiConfig';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
 import { Product } from '../models/Product';
+import { ShoppingResult } from '../models/ShoppingResult';
 import { AssistantHome } from '../components/AssistantHome';
 import { SearchResults } from '../components/SearchResults';
 import { ProductDetail } from '../components/ProductDetail';
@@ -12,6 +13,9 @@ import { ExperienceFeedback } from '../components/ExperienceFeedback';
 import { CommerceIconButton, ProductTile } from '../components/CommerceControls';
 import { feedbackAvailabilityText } from '../services/FeedbackPresentation';
 import { cloudFailureText, feedbackReceiptText, numericPrice, platformLabel, productKey, safeProductUrl } from '../services/CommercePresentation';
+
+interface SubjectBoxInput { x: number; y: number; width: number; height: number; }
+interface SubjectSelectionInput { box: SubjectBoxInput; selectionSource: string; }
 
 enum CommerceTab { HOME, CATALOG, RADAR, SAVED, PROFILE }
 
@@ -21,13 +25,23 @@ struct Index {
   private readonly scheduler: SchedulerService = SchedulerService.getInstance();
   private readonly tasks: ShoppingTaskService = ShoppingTaskService.getInstance();
   private readonly monitor: SchedulerMonitorPublisher = SchedulerMonitorPublisher.getInstance();
-  private activeSearch: WorkflowHandle<Product[]> | null = null;
+  private activeSearch: WorkflowHandle<ShoppingResult> | null = null;
+  private latestShoppingResult: ShoppingResult | null = null;
   private generation: number = 0;
   private expiryTimer: number = -1;
   private readyTimer: number = -1;
   private photoGeneration: number = 0;
   private feedbackWorkflowId: string = '';
   private pendingWorkflowId: string = '';
+  @State saving: boolean = false;
+  @State editProfile: boolean = false;
+  @State editSubject: boolean = false;
+  @State profileBrand: string = '';
+  @State profileColor: string = '';
+  @State boxX: number = 0;
+  @State boxY: number = 0;
+  @State boxWidth: number = 100;
+  @State boxHeight: number = 100;
   @State cloudEndpoint: string = '';
   @State cloudStatus: string = '请配置 Zeabur HTTPS API 地址';
   private contentScroller: Scroller = new Scroller();
@@ -173,7 +187,7 @@ struct Index {
     this.contentScroller.scrollTo({ xOffset: 0, yOffset: 0 });
     const started = Date.now();
     try {
-      const handle = this.tasks.search(query, this.highQuality);
+      const handle = this.tasks.searchResult(query, this.highQuality);
       this.activeSearch = handle;
       const result = await handle.result;
       if (generation !== this.generation) { await handle.signal({ type: TaskSignalType.RESULT_IGNORED }); return; }
@@ -189,8 +203,10 @@ struct Index {
         if (generation === this.generation && this.feedbackEnabled) { this.requestFeedback(handle.workflowId); }
         return;
       }
-      this.products = result.output;
-      this.summary = `找到 ${result.output.length} 件云端商品 · ${Date.now() - started} ms`;
+      this.latestShoppingResult = result.output;
+      this.tasks.remember(result.output);
+      this.products = result.output.products ?? [];
+      this.summary = `找到 ${this.products.length} 件云端商品 · ${Date.now() - started} ms`;
       this.histories = [query].concat(this.histories.filter((item: string) => item !== query)).slice(0, 20);
       await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED,
         experience: { responseReadyMs: Date.now() - started } });
@@ -257,10 +273,16 @@ struct Index {
       this.activeSearch.signal({ type: TaskSignalType.RESULT_CONSUMED }).catch(() => {});
     }
   }
-  private toggleSaved(product: Product): void {
+  private async toggleSaved(product: Product): Promise<void> {
+    if (this.saving || this.loading) { return; }
     const key = productKey(product);
-    this.saved = this.saved.some((item: Product) => productKey(item) === key) ?
-      this.saved.filter((item: Product) => productKey(item) !== key) : this.saved.concat([product]);
+    const exists = this.saved.some((item: Product) => productKey(item) === key);
+    this.saving = true;
+    try {
+      if (product.sessionId && product.candidateItemId) { await this.tasks.setShortlist(product.sessionId, product.candidateItemId, !exists); }
+      this.saved = exists ? this.saved.filter((item: Product) => productKey(item) !== key) : this.saved.concat([product]);
+    } catch (_) { this.notify('云端清单更新失败，请读取最新会话后重试'); }
+    finally { this.saving = false; }
   }
   private savedKeys(): string[] { return this.saved.map(productKey); }
   private visibleResults(): Product[] {
@@ -281,12 +303,14 @@ struct Index {
       this.photoUri = result.photoUris[0]; this.tab = CommerceTab.RADAR; this.selected = null;
       this.products = []; this.lastQuery = ''; this.plan = ''; this.receiptText = '';
       this.summary = '正在上传图片并执行云端检索'; this.loading = true;
-      const handle = this.tasks.searchImage(this.photoUri); this.activeSearch = handle;
+      const handle = this.tasks.searchImageResult(this.photoUri); this.activeSearch = handle;
       const searchResult = await handle.result;
       if (generation !== this.photoGeneration) { return; }
       this.loading = false;
       if (searchResult.status === TaskStatus.SUCCEEDED && searchResult.output !== null) {
-        this.products = searchResult.output; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
+        this.latestShoppingResult = searchResult.output;
+        this.tasks.remember(searchResult.output);
+        this.products = searchResult.output.products ?? []; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
       } else { this.summary = searchResult.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(searchResult.reasonCode); }
     } catch (_) { this.loading = false; this.summary = '图片选择或云端检索失败，请检查配置与网络'; }
   }
@@ -435,6 +459,40 @@ struct Index {
       })
     }.width('100%').alignItems(HorizontalAlign.Start)
   }
+  private subjectSelectionBody(): string {
+    const box: SubjectBoxInput = { x: this.boxX / 100, y: this.boxY / 100, width: this.boxWidth / 100, height: this.boxHeight / 100 };
+    const input: SubjectSelectionInput = { box: box, selectionSource: 'user_adjusted' };
+    return JSON.stringify(input);
+  }
+  private async sessionAction(operation: string, body: string = '{}'): Promise<void> {
+    const sessionId = this.latestShoppingResult?.sessionId;
+    if (!sessionId || this.loading) { return; }
+    const generation = ++this.generation;
+    this.loading = true;
+    try {
+      const handle = this.tasks.sessionResult(operation, sessionId, body);
+      this.activeSearch = handle;
+      const result = await handle.result;
+      if (generation !== this.generation) { return; }
+      if (result.status !== TaskStatus.SUCCEEDED || result.output === null) { this.summary = cloudFailureText(result.reasonCode); return; }
+      const output = result.output;
+      if (output.stateVersion !== null && this.latestShoppingResult?.stateVersion !== null &&
+        output.stateVersion < (this.latestShoppingResult?.stateVersion ?? 0)) { return; }
+      this.tasks.remember(output);
+      this.latestShoppingResult = output;
+      if (output.products !== null) {
+        if (operation === 'more') {
+          const previous = this.products;
+          this.products = previous.concat(output.products.filter((item: Product) => !previous.some((old: Product) => old.candidateItemId === item.candidateItemId)));
+        } else { this.products = output.products; }
+      }
+      if (typeof output.answer === 'string') { this.summary = output.answer; }
+      else if (output.answer !== null) { this.summary = output.answer.text; }
+      else if (output.prices !== null) { this.summary = '已读取 ' + output.prices.length + ' 条商品库价格'; }
+      else { this.summary = '会话已更新，共 ' + this.products.length + ' 件商品'; }
+    } catch (_) { if (generation === this.generation) { this.summary = '会话更新失败，请读取最新会话后重试'; } }
+    finally { if (generation === this.generation) { this.loading = false; } }
+  }
   @Builder
   private Body() {
     if (this.showHistory) { this.History() }
@@ -444,6 +502,30 @@ struct Index {
         onSearch: (value: string) => this.search(value), onFill: (value: string) => { this.query = value; },
         onPhoto: () => this.choosePhoto(), onOpen: (item: Product) => this.openProduct(item), onSave: (item: Product) => this.toggleSaved(item) })
     } else if (this.tab === CommerceTab.RADAR) {
+      if (this.latestShoppingResult?.sessionId) {
+        Flex({ wrap: FlexWrap.Wrap }) {
+          Button('修改画像').enabled(!this.loading).onClick(() => { this.editProfile = !this.editProfile; })
+          if (this.photoUri !== '') { Button('调整主体').enabled(!this.loading).onClick(() => { this.editSubject = !this.editSubject; }) }
+          Button('读取会话').enabled(!this.loading).onClick(() => this.sessionAction('read'))
+          Button('刷新匹配').enabled(!this.loading).onClick(() => this.sessionAction('refine'))
+          Button('更多商品').enabled(!this.loading).onClick(() => this.sessionAction('more'))
+          Button('商品库价格').enabled(!this.loading).onClick(() => this.sessionAction('prices'))
+          Button('继续提问').enabled(!this.loading && this.query.trim().length > 0).onClick(() => this.sessionAction('turn', JSON.stringify({ message: this.query })))
+        }
+        if (this.editProfile) {
+          TextInput({ text: this.profileBrand, placeholder: '品牌（留空清除）' }).onChange((value: string) => { this.profileBrand = value; })
+          TextInput({ text: this.profileColor, placeholder: '颜色（留空清除）' }).onChange((value: string) => { this.profileColor = value; })
+          Button('应用画像').enabled(!this.loading).onClick(() => this.sessionAction('profile', JSON.stringify({ brand: this.profileBrand || null, color: this.profileColor || null })))
+        }
+        if (this.editSubject) {
+          Text('主体范围：调整左侧、顶部、宽度和高度（百分比）').fontSize(13)
+          Slider({ value: this.boxX, min: 0, max: 99 }).onChange((value: number) => { this.boxX = value; this.boxWidth = Math.min(this.boxWidth, 100 - value); })
+          Slider({ value: this.boxY, min: 0, max: 99 }).onChange((value: number) => { this.boxY = value; this.boxHeight = Math.min(this.boxHeight, 100 - value); })
+          Slider({ value: this.boxWidth, min: 1, max: 100 - this.boxX }).onChange((value: number) => { this.boxWidth = value; })
+          Slider({ value: this.boxHeight, min: 1, max: 100 - this.boxY }).onChange((value: number) => { this.boxHeight = value; })
+          Button('应用主体范围').enabled(!this.loading).onClick(() => this.sessionAction('subject', this.subjectSelectionBody()))
+        }
+      }
       SearchResults({ products: this.visibleResults(), savedKeys: this.savedKeys(), query: this.lastQuery,
         summary: this.summary, plan: this.plan, busy: this.loading, photoUri: this.photoUri,
         highQuality: this.highQuality, priceSorted: this.priceSorted,

@@ -13,7 +13,7 @@ export function clientRoute(value: unknown, inputBytes: number): CloudRouteObser
   if (v.source !== 'measured' || v.transferAuthorized !== true || typeof v.observedAt !== 'string') {
     throw new BadRequestException('CLIENT_ROUTE_NOT_MEASURED');
   }
-  const route: CloudRouteObservation = { executorId: 'zeabur-shopping-workflow', inputResidence: 'device',
+  const route: CloudRouteObservation = { inputTransferCompleted: true, throughputScope: v.throughputScope === 'effective' ? 'effective' : 'payload', executorId: 'zeabur-shopping-workflow', inputResidence: 'device',
     outputDestination: 'device', accessMode: 'inline_transfer', transferAuthorized: true,
     inputBytes: Math.max(inputBytes, number('inputBytes')), outputBytes: Math.max(512 * 1024, number('outputBytes')),
     roundTripMs: number('roundTripMs'), uploadMbps: number('uploadMbps'), downloadMbps: number('downloadMbps'),

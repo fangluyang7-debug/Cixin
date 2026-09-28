@@ -52,6 +52,8 @@ model UserCredential {
 }
 
 model QuerySession {
+  stateVersion Int @default(0)
+  requestRevision Int @default(0)
   id                 String                   @id
   assetId            String
   userId             String?
@@ -481,4 +483,95 @@ model FallbackSnapshot {
   payloadJson String       @default("{}")
   createdAt   DateTime     @default(now())
   session     QuerySession @relation(fields: [sessionId], references: [id])
+}
+
+model ArtifactRecord {
+  id String @id
+  ownerId String
+  kind String
+  schemaId String
+  schemaVersion Int
+  contentVersion Int
+  contentHash String
+  sizeBytes Int
+  mediaType String
+  state String
+  locatorJson String
+  dependenciesJson String
+  payloadJson String?
+  pinCount Int @default(0)
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  @@index([ownerId, state])
+}
+
+model WorkflowExecution {
+  id String @id
+  ownerId String
+  operation String
+  requestKey String
+  requestHash String
+  coordinatorId String
+  protocolVersion Int @default(1)
+  epoch Int @default(1)
+  state String
+  requestJson String
+  resultRefJson String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([ownerId, operation, requestKey])
+}
+model TaskAttempt {
+  instanceJson String @default("{}")
+  id String @id
+  workflowId String
+  nodeId String
+  epoch Int
+  state String
+  stopRequestedAt DateTime?
+  settledAt DateTime?
+  createdAt DateTime @default(now())
+  @@index([workflowId, nodeId])
+}
+model StageCommit {
+  id String @id
+  workflowId String
+  nodeId String
+  outputVersion Int @default(1)
+  attemptId String
+  fencingToken Int
+  outputRefJson String
+  createdAt DateTime @default(now())
+  @@unique([workflowId, nodeId, outputVersion])
+}
+model ArtifactPin {
+  artifactId String
+  holderId String
+  ownerId String
+  createdAt DateTime @default(now())
+  @@id([artifactId, holderId])
+}
+
+// No expiry-based lock stealing: unfinished writes require explicit reconciliation.
+model SessionMutation {
+  id String @id
+  sessionId String
+  ownerId String
+  requestKey String
+  requestHash String
+  baseVersion Int
+  revision Int
+  state String
+  resultJson String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([sessionId, requestKey])
+  @@index([sessionId, state])
+}
+model SessionWriteLock {
+  sessionId String @id
+  mutationId String @unique
+  ownerId String
+  createdAt DateTime @default(now())
 }

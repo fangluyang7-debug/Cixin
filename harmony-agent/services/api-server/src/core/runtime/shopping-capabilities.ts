@@ -1,5 +1,6 @@
 // Dependencies describe the actual operation, not every capability on the host.
 export const SHOPPING_DEPENDENCIES: Record<string, string[]> = {
+  'shopping.turn': ['database','chat','embedding','catalogText'], 'shopping.more': ['database','embedding','catalog'],
   'shopping.read': ['database'], 'shopping.prices': ['database'], 'shopping.answer': ['database'],
   'shopping.text': ['database', 'chat', 'embedding', 'catalogText'],
   'shopping.image': ['database', 'cos', 'vision', 'embedding', 'catalog'],

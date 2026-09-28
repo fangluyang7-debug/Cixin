@@ -90,6 +90,12 @@ export default function appLogicTests(): void {
       try { validateNormalizationProgress(progress, 'v1', 256, 10); } catch (error) { rejected = true; }
       expect(rejected).assertTrue(); expect(progress.cursor).assertEqual(2);
     });
+    it('rejectsSameSizeIndexReplacement', 0, () => {
+      const progress: NormalizationProgress = { cursor: 1, dimension: 256, modelVersion: 'v1', norms: [1], indexContentHash: 'old', indexSnapshotId: 'index-old' };
+      let rejected: boolean = false;
+      try { validateNormalizationProgress(progress, 'v1', 256, 10, 'new', 'index-new'); } catch (_) { rejected = true; }
+      expect(rejected).assertTrue();
+    });
     it('rejectsOldModelCheckpoint', 0, () => {
       const progress: NormalizationProgress = { cursor: 0, dimension: 256, modelVersion: 'old', norms: [] };
       let rejected: boolean = false;

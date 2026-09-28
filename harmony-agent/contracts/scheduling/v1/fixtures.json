@@ -1,0 +1,67 @@
+{
+  "artifact": {
+    "protocolVersion": 1,
+    "ref": {
+      "artifactId": "artifact_fixture",
+      "contentVersion": 1,
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "shopping.query",
+      "schemaVersion": 1
+    },
+    "kind": "shopping.query",
+    "state": "COMMITTED",
+    "sizeBytes": 42,
+    "hashAlgorithm": "sha256",
+    "mediaType": "application/json",
+    "ownerId": "user_fixture",
+    "privacy": "AUTHORIZED_REMOTE",
+    "locations": [
+      {
+        "deviceId": "cloud-runtime",
+        "resolver": "database",
+        "locatorId": "payload_fixture"
+      }
+    ],
+    "dependencies": [],
+    "createdAt": 1000,
+    "expiresAt": 2000
+  },
+  "task": {
+    "protocolVersion": 1,
+    "traceId": "trace_fixture",
+    "workflowId": "workflow_fixture",
+    "nodeId": "query",
+    "taskId": "task_fixture",
+    "attemptId": "attempt_1",
+    "coordinatorId": "cloud-runtime",
+    "contractId": "shopping.text",
+    "contractVersion": 1,
+    "requestRevision": 1,
+    "budget": {
+      "totalBudgetMs": 150000,
+      "remainingBudgetMs": 145000,
+      "expiresAt": 999999
+    },
+    "inputs": [
+      {
+        "artifactId": "artifact_fixture",
+        "contentVersion": 1,
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "shopping.query",
+        "schemaVersion": 1
+      }
+    ],
+    "networkAllowed": true,
+    "privacy": "AUTHORIZED_REMOTE"
+  },
+  "model": {
+    "modelId": "fixture-model",
+    "modelVersion": "1",
+    "embeddingKind": "visual",
+    "dimension": 512,
+    "dtype": "float32",
+    "normalization": "l2",
+    "preprocessVersion": "1",
+    "indexSpaceId": "fixture-index"
+  }
+}

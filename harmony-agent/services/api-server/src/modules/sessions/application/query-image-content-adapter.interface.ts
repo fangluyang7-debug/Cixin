@@ -25,9 +25,10 @@ export interface QueryImageCropResult {
 }
 
 export interface QueryImageContentAdapter {
-  readMetadata(signedUrl: string): Promise<QueryImageMetadata>;
+  readMetadata(signedUrl: string, expectedHash?: string): Promise<QueryImageMetadata>;
   cropForEmbedding(input: {
     signedUrl: string;
+    expectedHash?: string;
     box: NormalizedSubjectBox;
     paddingRatio: number;
     targetSize: number;

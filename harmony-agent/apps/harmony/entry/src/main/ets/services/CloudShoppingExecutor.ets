@@ -1,19 +1,24 @@
 import { http, connection } from '@kit.NetworkKit';
-import { fileIo } from '@kit.CoreFileKit';
-import { util } from '@kit.ArkTS';
-import { CancellationSignal, CloudClientTiming, DeviceState, ExecutionPlan, ExecutorResult, InferenceLocation,
+import { ShoppingImageUpload } from './ShoppingImageUpload';
+import { ArtifactRef, ClockPort, WallClock, CancellationSignal, CloudClientTiming, DeviceState, ExecutionPlan, ExecutorResult, InferenceLocation,
   RemoteRouteRegistry, HttpRouteProbe, RouteCandidate, routeStatus, ExecutionTelemetry,
   RemoteExecutionPlan, TaskContext, TaskTemplate, TaskCheckpoint, WorkloadExecutor } from 'scheduler';
-import { Product } from '../models/Product';
+import { ShoppingResult, ShoppingEnvelope, decodeShoppingResult } from '../models/ShoppingResult';
 import { CloudApiConfig } from './CloudApiConfig';
 
 export interface CloudShoppingInput {
+  bodyJson?: string;
+  baseVersion?: number;
+  requestRevision?: number;
+  budgetStartedAt?: number;
+  budgetMs?: number;
   preparedBody?: CloudRequestInput;
   taskId: string;
   operation: string;
   query: string;
   photoUri?: string;
   assetId?: string;
+  imageArtifact?: ArtifactRef;
   sessionId?: string;
   deviceProfile: DeviceState;
   context: TaskContext;
@@ -33,6 +38,7 @@ interface CloudErrorEnvelope { error?: CloudError; }
 interface CloudEnvelope { success: boolean; data: CloudShoppingResponse; }
 interface CloudHttpResult { body: string; timing: CloudClientTiming; }
 interface CloudRouteProfile {
+  throughputScope: string;
   executorId: string; inputResidence: string; outputDestination: string; accessMode: string;
   transferAuthorized: boolean; inputBytes: number; outputBytes: number;
   roundTripMs: number; uploadMbps: number; downloadMbps: number;
@@ -45,13 +51,16 @@ interface CloudTaskProfile {
   allowCloud: boolean; privacy: string; inputBytes: number; deadlineMs: number;
   template: TaskTemplate; context: TaskContext;
 }
-interface CloudRequestInput { message?: string; assetId?: string; imageBase64?: string; contentType?: string; }
+interface CloudRequestInput { message?: string; assetId?: string; imageArtifact?: ArtifactRef; }
 interface CloudTaskRequest {
+  baseVersion?: number; requestRevision?: number;
   taskId: string; operation: string; sessionId?: string; input: CloudRequestInput;
   networkProfile: CloudRouteProfile; taskProfile: CloudTaskProfile; deviceProfile: DeviceState; executionPlan: RemoteExecutionPlan;
 }
 
-export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInput, Product[]> {
+export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInput, ShoppingResult> {
+  private readonly clock: ClockPort;
+  constructor(clock: ClockPort = new WallClock()) { this.clock = clock; }
   public readonly capability: string = 'product_search';
   public readonly inferenceLocation: InferenceLocation = InferenceLocation.REMOTE_CLOUD;
   public supports(plan: ExecutionPlan): boolean {
@@ -80,43 +89,42 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
     } catch (_) { this.observedNetwork = false; }
   }
   public async prepare(input: CloudShoppingInput, context: TaskContext, signal?: CancellationSignal): Promise<void> {
+    if (input.budgetStartedAt === undefined) {
+      input.budgetStartedAt = this.clock.now();
+      input.budgetMs = context.remainingBudgetMs ?? context.deadlineMs ?? 150000;
+    }
+    input.context = context;
+    if (input.budgetMs === undefined || !Number.isFinite(input.budgetMs) || input.budgetMs <= 0) { throw new Error('DEADLINE_EXCEEDED'); }
     if (context.networkAllowed !== true) { throw new Error('NETWORK_NOT_ALLOWED'); }
     await CloudApiConfig.ensureGuest();
-    const body: CloudRequestInput = { message: input.query, assetId: input.assetId };
-    if (input.photoUri !== undefined) {
-      const file = fileIo.openSync(input.photoUri, fileIo.OpenMode.READ_ONLY);
-      try {
-        const size = fileIo.statSync(file.fd).size;
-        if (size <= 0 || size > 6 * 1024 * 1024) { throw new Error('CLOUD_IMAGE_TOO_LARGE'); }
-        const bytes = new ArrayBuffer(size);
-        const read = fileIo.readSync(file.fd, bytes);
-        if (read !== size) { throw new Error('CLOUD_IMAGE_READ_FAILED'); }
-        const view = new Uint8Array(bytes);
-        body.contentType = view[0] === 0x89 && view[1] === 0x50 ? 'image/png' :
-          view[0] === 0x52 && view[1] === 0x49 ? 'image/webp' : 'image/jpeg';
-        body.imageBase64 = new util.Base64Helper().encodeToStringSync(view);
-      } finally { fileIo.closeSync(file); }
+    if (input.photoUri !== undefined && input.assetId === undefined) {
+      const uploaded = await ShoppingImageUpload.upload(input.photoUri, this.clock,
+        this.clock.now() + this.remainingBudget(input), signal);
+      input.assetId = uploaded.assetId;
+      input.imageArtifact = uploaded.imageArtifact;
     }
+    const body: CloudRequestInput = input.bodyJson === undefined ? { message: input.query, assetId: input.assetId, imageArtifact: input.imageArtifact } : JSON.parse(input.bodyJson) as CloudRequestInput;
     input.preparedBody = body;
     context.remoteTask = { taskKind: input.photoUri === undefined ? 'text' : 'vision', latencyClass: 'interactive',
       input: { modality: input.photoUri === undefined ? 'text' : 'image', bytes: utf8Bytes(JSON.stringify(body)) + 8192,
         requiresUpload: true }, estimatedResultBytes: 512 * 1024, allowCloud: true };
     await this.watchNetwork();
     const endpoint = CloudApiConfig.getBaseUrl();
-    const deadlineAt = Date.now() + Math.min(30000, context.deadlineMs ?? 30000);
+    const deadlineAt = Date.now() + Math.min(60000, this.remainingBudget(input));
     for (let attempt: number = 0; attempt < 2; attempt++) {
-      const key = endpoint + ':' + this.networkEpoch;
+      const key = this.routeKey(input);
       this.lastRouteKey = key;
       if (!this.observedNetwork) { this.routes.invalidate(key, 'NETWORK_IDENTITY_UNAVAILABLE_REFRESH'); }
       context.routeCandidate = await this.routes.prepare(key, context.remoteTask,
-        new HttpRouteProbe(endpoint, 'cloud-shopping-api', CloudApiConfig.requestHeaders(), signal, deadlineAt), 10000);
+        new HttpRouteProbe(endpoint, 'cloud-shopping-api', CloudApiConfig.requestHeaders(), signal, deadlineAt,
+          'shopping.' + (input.operation === 'image_upload' ? 'image' : input.operation)), 10000);
       context.routeCandidate.networkKey = key;
-      if (key === endpoint + ':' + this.networkEpoch) { return; }
+      if (key === this.routeKey(input)) { return; }
       this.routes.invalidate(key, 'NETWORK_CHANGED_DURING_PROBE');
     }
     throw new Error('NETWORK_CHANGED_DURING_PROBE');
   }
-  public async execute(input: CloudShoppingInput, plan: ExecutionPlan, signal: CancellationSignal, checkpoint?: TaskCheckpoint, onProgress?: (event: ExecutionTelemetry) => void): Promise<ExecutorResult<Product[]>> {
+  public async execute(input: CloudShoppingInput, plan: ExecutionPlan, signal: CancellationSignal, checkpoint?: TaskCheckpoint, onProgress?: (event: ExecutionTelemetry) => void): Promise<ExecutorResult<ShoppingResult>> {
     if (!this.supports(plan)) { throw new Error('CLOUD_PLAN_REQUIRED'); }
     const remote = plan as RemoteExecutionPlan;
     const selected = remote.routeCandidate;
@@ -124,23 +132,25 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       throw new Error('REMOTE_ROUTE_EXPIRED_OR_MISSING');
     }
     const baseUrl = CloudApiConfig.getBaseUrl();
-    if (selected.networkKey !== baseUrl + ':' + this.networkEpoch || selected.routeId !== remote.provider) { throw new Error('REMOTE_ROUTE_CHANGED'); }
+    if (selected.networkKey !== this.routeKey(input) || selected.routeId !== remote.provider) { throw new Error('REMOTE_ROUTE_CHANGED'); }
+    const remainingBudgetMs = Math.min(remote.timeoutMs, this.remainingBudget(input));
+    if (remainingBudgetMs <= 0) { throw new Error('DEADLINE_EXCEEDED'); }
     const body = input.preparedBody;
-    const route: CloudRouteProfile = { executorId: remote.provider, inputResidence: 'device', outputDestination: 'device',
+    const route: CloudRouteProfile = { throughputScope: selected.source === 'measured-effective-throughput' ? 'effective' : 'payload', executorId: remote.provider, inputResidence: 'device', outputDestination: 'device',
       accessMode: 'inline_transfer', transferAuthorized: true, inputBytes: utf8Bytes(JSON.stringify(body)) + 8192,
       outputBytes: 512 * 1024, roundTripMs: selected.rttMs, uploadMbps: selected.uplinkMbps,
       downloadMbps: selected.downlinkMbps, storageReadMs: 0, storageWriteMs: 0, queueMs: selected.cloudQueueMs,
       source: 'measured', observedAt: new Date(selected.observedAt).toISOString() };
     const events: ExecutionTelemetry[] = [];
     const request: CloudTaskRequest = { taskId: input.taskId, operation: input.operation,
-      sessionId: input.sessionId, input: body, networkProfile: route, deviceProfile: input.deviceProfile, executionPlan: remote,
+      sessionId: input.sessionId, baseVersion: input.baseVersion, requestRevision: input.requestRevision, input: body, networkProfile: route, deviceProfile: input.deviceProfile, executionPlan: remote,
       taskProfile: { cloudRoutes: [route], taskId: input.taskId, toolId: 'product_search',
-        inputRef: input.photoUri === undefined ? 'request:text' : 'request:image', outputType: 'Product[]',
+        inputRef: input.photoUri === undefined ? 'request:text' : 'request:image', outputType: 'ShoppingResult',
         allowCloud: true, privacy: 'internal', inputBytes: route.inputBytes,
-        deadlineMs: remote.timeoutMs, template: input.template, context: input.context } };
+        deadlineMs: remainingBudgetMs, template: input.template, context: input.context } };
     let resultText: CloudHttpResult;
     try {
-      resultText = await this.request(baseUrl + '/api/v1/shopping/tasks', JSON.stringify(request), remote.timeoutMs, signal,
+      resultText = await this.request(baseUrl + '/api/v1/shopping/tasks', JSON.stringify(request), remainingBudgetMs, signal,
         events, input.taskId, selected.routeId, onProgress);
     } catch (error) {
       this.routes.invalidate(selected.networkKey, (error as Error).message);
@@ -161,24 +171,29 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       await this.request(baseUrl + '/api/v1/runtime/runs/' + envelope.data.runtimeRunId + '/client-telemetry',
         JSON.stringify({ taskId: input.taskId, timing: resultText.timing, events: events }), 3000, signal);
     } catch (_) { /* Result remains usable if the optional telemetry acknowledgement is unavailable. */ }
-    const items: CloudCandidate[] = envelope.data.candidates?.items ?? [];
-    return { output: items.map((item: CloudCandidate): Product => new Product(item.candidateItemId,
-      item.platformName, item.title, String(item.price.amount), item.price.currency,
-      item.stockStatus, item.shopName, item.shopType, item.productUrl, item.coverImageUrl)),
+    return { output: decodeShoppingResult(resultText.body, input.operation, input.taskId),
       telemetry: { routeEvents: events, executionPath: 'cloud-shopping-api', cloudRunId: envelope.data.runtimeRunId,
         cloudTaskId: input.taskId, cloudTiming: resultText.timing } };
   }
 
+  private routeKey(input: CloudShoppingInput): string {
+    return CloudApiConfig.getBaseUrl() + ':' + this.networkEpoch + ':' + (input.operation === 'image_upload' ? 'image' : input.operation);
+  }
+  private remainingBudget(input: CloudShoppingInput): number {
+    const remaining = (input.budgetMs ?? 0) - Math.max(0, this.clock.now() - (input.budgetStartedAt ?? this.clock.now()));
+    if (remaining <= 0) { throw new Error('DEADLINE_EXCEEDED'); }
+    return remaining;
+  }
   private async request(url: string, body: string, timeoutMs: number, signal: CancellationSignal, events?: ExecutionTelemetry[], taskId: string = '', routeId: string = '', onProgress?: (event: ExecutionTelemetry) => void): Promise<CloudHttpResult> {
     if (signal.isCancellationRequested) { throw new Error('CLOUD_CANCELLED'); }
     const request = http.createHttp();
-    const began: number = Date.now();
+    const began: number = this.clock.now();
     const publish = (event: ExecutionTelemetry): void => { events?.push(event); onProgress?.(event); };
     let sentBytes: number = 0;
     let sentAt: number | null = null;
     request.on('dataSendProgress', (progress: http.DataSendProgressInfo) => {
       sentBytes = progress.sendSize;
-      if (sentAt === null && progress.totalSize > 0 && sentBytes >= progress.totalSize) { sentAt = Date.now() - began;
+      if (sentAt === null && progress.totalSize > 0 && sentBytes >= progress.totalSize) { sentAt = this.clock.now() - began;
         publish({ taskId: taskId, routeId: routeId, phase: 'upload', timestamp: Date.now(), bytesSent: sentBytes }); }
     });
     const unsubscribe = signal.onCancelled(() => request.destroy());
@@ -204,7 +219,7 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       const uploadMs: number | null = timing !== undefined && sentAt !== null && sentAt >= timing.firstSendTiming ? sentAt - timing.firstSendTiming : null;
       const downloadMs: number | null = timing !== undefined && timing.totalFinishTiming >= timing.firstReceiveTiming ? timing.totalFinishTiming - timing.firstReceiveTiming : null;
       publish({ taskId: taskId, routeId: routeId, phase: 'download', timestamp: Date.now(), durationMs: downloadMs ?? undefined, bytesReceived: utf8Bytes(String(response.result)) });
-      return { body: String(response.result), timing: { requestMs: Date.now() - began, uploadMs: uploadMs,
+      return { body: String(response.result), timing: { requestMs: this.clock.now() - began, uploadMs: uploadMs,
         downloadMs: downloadMs, inputBytes: utf8Bytes(body), outputBytes: utf8Bytes(String(response.result)) } };
     } finally { unsubscribe(); request.off('dataSendProgress'); request.destroy(); }
   }

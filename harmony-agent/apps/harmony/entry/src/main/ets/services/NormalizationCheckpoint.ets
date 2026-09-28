@@ -1,4 +1,6 @@
 export interface NormalizationProgress {
+  indexContentHash?: string;
+  indexSnapshotId?: string;
   cursor: number;
   dimension: number;
   modelVersion: string;
@@ -6,8 +8,9 @@ export interface NormalizationProgress {
 }
 
 export function validateNormalizationProgress(progress: NormalizationProgress,
-  modelVersion: string, dimension: number, count: number): void {
-  if (progress.modelVersion !== modelVersion || progress.dimension !== dimension ||
+  modelVersion: string, dimension: number, count: number, indexContentHash?: string, indexSnapshotId?: string): void {
+  if ((indexContentHash !== undefined && progress.indexContentHash !== indexContentHash) ||
+    (indexSnapshotId !== undefined && progress.indexSnapshotId !== indexSnapshotId) || progress.modelVersion !== modelVersion || progress.dimension !== dimension ||
     !Number.isInteger(progress.cursor) || progress.cursor < 0 || progress.cursor !== progress.norms.length ||
     progress.cursor > count) { throw new Error('Checkpoint does not match the current index.'); }
 }

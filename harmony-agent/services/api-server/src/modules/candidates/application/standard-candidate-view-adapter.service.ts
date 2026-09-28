@@ -23,6 +23,7 @@ export class StandardCandidateViewAdapterService implements CandidateViewAdapter
 
     return {
       candidateItemId: item.id,
+      productPoolKey: item.productPoolKey,
       rank: item.rank ?? backendRank,
       pageIndex: item.pageIndex,
       title: item.title,

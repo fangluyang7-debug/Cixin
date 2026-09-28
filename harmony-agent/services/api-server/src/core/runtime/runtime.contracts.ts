@@ -131,6 +131,8 @@ export interface TaskIntent {
 }
 
 export interface CloudRouteObservation {
+  inputTransferCompleted?: boolean;
+  throughputScope?: "payload" | "effective";
   executorId: string;
   inputResidence: "device" | "zeabur_volume" | "cos" | "external_api";
   outputDestination?: "device" | "zeabur_volume" | "cos" | "external_api";

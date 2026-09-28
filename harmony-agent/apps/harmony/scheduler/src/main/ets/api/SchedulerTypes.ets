@@ -400,6 +400,8 @@ export interface TaskTemplate {
 }
 
 export interface TaskContext {
+  // Remaining duration at entry to prepare; never persisted as a process timestamp.
+  remainingBudgetMs?: number;
   remoteTask?: RemoteTaskProfile;
   routeCandidate?: RouteCandidate;
   // Derived by SchedulerClient from its current serial workflow executor; not a new deadline.

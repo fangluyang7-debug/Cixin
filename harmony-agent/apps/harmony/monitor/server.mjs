@@ -85,7 +85,7 @@ function cleanActual(actual) {
   }
   return { ...pick(actual, ['profileId', 'actualModelTier', 'actualBackend', 'actualThreads',
     'workerCount', 'executionPath', 'peakMemoryMb', 'candidateCount', 'retrievalDimensions']),
-    cloudRunId: safeCapability(actual.cloudRunId), cloudTiming: timing,
+    cloudRunId: safeCapability(actual.cloudRunId), cloudTaskId: safeCapability(actual.cloudTaskId), cloudTiming: timing,
     routeEvents: Array.isArray(actual.routeEvents) ? actual.routeEvents.slice(-64).map(event => ({
       phase: safeCapability(event.phase), timestamp: Number.isFinite(event.timestamp) ? event.timestamp : null,
       durationMs: Number.isFinite(event.durationMs) ? event.durationMs : null,

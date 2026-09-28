@@ -8,7 +8,7 @@ it('uses actual request size as a lower bound, excludes client fee claims and ke
   expect(route.inputBytes).toBe(1024 * 1024);
   expect(route.estimatedFeeMinorUnits).toBeUndefined();
   const result = estimateCloudRoute({ taskId: 'a', toolId: 'generic', inputRef: 'r', cloudRoutes: [route] }, route.executorId);
-  expect(result.overheadMs).toBeCloseTo(10 + 2 + 838.8608 + 209.7152);
+  expect(result.overheadMs).toBeCloseTo(10 + 2 + 209.7152);
 });
 it.each([{ uploadMbps: 0 }, { downloadMbps: NaN }, { source: 'declared' }, { observedAt: new Date(0).toISOString() },
   { transferAuthorized: false }, { observedAt: new Date(Date.now() + 60000).toISOString() }])('rejects unusable evidence %j', patch => {
@@ -19,4 +19,10 @@ it('distinguishes in-process steps from static network declarations', () => {
   expect(estimateCloudRoute(task, 'zeabur-shopping-workflow').reasons).toEqual([]);
   task.cloudRoutes![0].source = 'declared';
   expect(estimateCloudRoute(task, 'zeabur-shopping-workflow').reasons).toContain('CLOUD_ROUTE_NOT_MEASURED');
+});
+
+it('does not add RTT twice to effective throughput or re-charge completed input upload', () => {
+  const route = clientRoute({...observation(), throughputScope:'effective'}, 1024*1024);
+  expect(route.inputTransferCompleted).toBe(true);
+  expect(estimateCloudRoute({taskId:'a',toolId:'generic',inputRef:'r',cloudRoutes:[route]},route.executorId).overheadMs).toBeCloseTo(2+209.7152);
 });

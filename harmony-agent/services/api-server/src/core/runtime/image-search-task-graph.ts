@@ -1,3 +1,4 @@
+import { createId } from '../../common/utils/id';
 import { shoppingTask } from './shopping-task-graph';
 import { TaskGraph } from './runtime.contracts';
 
@@ -7,7 +8,7 @@ export const IMAGE_STAGE_TOOLS = IMAGE_SEARCH_STAGES.map(stage => `shopping.stag
 
 export function buildImageSearchTaskGraph(assetId: string): TaskGraph {
   if (!/^[a-zA-Z0-9_-]{1,128}$/.test(assetId)) throw new Error('INVALID_ASSET_REFERENCE');
-  return { graphId: `image-search-${assetId}`, goal: '云端图片商品检索', planner: 'shopping-runtime',
+  return { graphId: createId('workflow'), goal: '云端图片商品检索', planner: 'shopping-runtime',
     createdAt: new Date().toISOString(), nodes: IMAGE_SEARCH_STAGES.map((stage, index) => ({
       ...shoppingTask(stage, `shopping.stage.${stage}`, index === 0 ? `asset:${assetId}` : `task:${IMAGE_SEARCH_STAGES[index - 1]}`,
         index === 0 ? [] : [IMAGE_SEARCH_STAGES[index - 1]]),

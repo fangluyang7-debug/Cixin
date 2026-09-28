@@ -22,6 +22,8 @@ export class PerformanceRegistryService {
     const key = sampleKey(record.toolId, record.executorId, record.modelId);
     const current = this.records.get(key) ?? [];
     current.push(record);
+    if (current.length > 256) current.shift();
+    if (!this.records.has(key) && this.records.size >= 512) this.records.delete(this.records.keys().next().value!);
     this.records.set(key, current);
     return this.get(record.toolId, record.executorId, record.modelId);
   }

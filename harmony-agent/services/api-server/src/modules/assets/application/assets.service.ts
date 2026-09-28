@@ -1,4 +1,5 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ArtifactStoreService } from '../../../core/runtime/artifact-store.service';
+import { Inject, Injectable, Optional, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../../persistence/prisma/prisma.service';
 import { createId } from '../../../common/utils/id';
 import { CreateImageAssetDto } from '../dto/create-image-asset.dto';
@@ -18,9 +19,11 @@ export class AssetsService {
     private readonly storage: StorageAdapter,
     @Inject(IMAGE_ASSET_ADAPTER)
     private readonly imageAssetAdapter: ImageAssetAdapter,
+    @Optional() private readonly artifacts?: ArtifactStoreService,
   ) {}
 
   async createImageAsset(dto: CreateImageAssetDto, file?: UploadedImageFile, ownerUserId?: string) {
+    if (process.env.ARTIFACT_PROTOCOL_ENABLED === 'true' && !this.artifacts) throw new ServiceUnavailableException('ARTIFACT_STORE_UNAVAILABLE');
     const input = this.imageAssetAdapter.normalizeCreateInput(dto, file);
 
     const assetId = createId('asset');
@@ -55,7 +58,10 @@ export class AssetsService {
       objectKey: asset.objectKey,
     });
 
+    const artifactRef = process.env.ARTIFACT_PROTOCOL_ENABLED === 'true' && input.file && ownerUserId
+      ? await this.artifacts!.publishImage(ownerUserId, asset.id, input.file.buffer, input.file.contentType) : undefined;
     return {
+      artifactRef,
       assetId: asset.id,
       assetGroupId: asset.assetGroupId,
       variantType: asset.variantType,

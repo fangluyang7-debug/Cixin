@@ -1,4 +1,8 @@
 export class Product {
+  sessionId?: string;
+  public candidateItemId?: string;
+  public productId?: string;
+  public productPoolKey?: string;
   public databaseId: number;
   public externalId: string;
   public platform: string;

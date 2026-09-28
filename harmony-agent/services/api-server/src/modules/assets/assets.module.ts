@@ -1,3 +1,6 @@
+import { ArtifactRetentionService } from '../../core/runtime/artifact-retention.service';
+import { WorkflowStoreService } from '../../core/runtime/workflow-store.service';
+import { ArtifactStoreService } from '../../core/runtime/artifact-store.service';
 import { AuthModule } from '../auth/auth.module';
 import { Module } from '@nestjs/common';
 import { TencentCosStorageAdapterService } from '../../adapters/storage/tencent-cos-storage-adapter.service';
@@ -10,8 +13,8 @@ import { AssetsController } from './controllers/assets.controller';
 @Module({
   imports: [AuthModule],
   controllers: [AssetsController],
-  providers: [
-    AssetsService,
+  providers: [ArtifactRetentionService,WorkflowStoreService,
+    AssetsService, ArtifactStoreService,
     StandardImageAssetAdapterService,
     TencentCosStorageAdapterService,
     {
@@ -29,6 +32,6 @@ import { AssetsController } from './controllers/assets.controller';
       inject: [TencentCosStorageAdapterService],
     },
   ],
-  exports: [AssetsService, IMAGE_ASSET_ADAPTER, OBJECT_STORAGE_ADAPTER],
+  exports: [WorkflowStoreService,ArtifactStoreService, AssetsService, IMAGE_ASSET_ADAPTER, OBJECT_STORAGE_ADAPTER],
 })
 export class AssetsModule {}

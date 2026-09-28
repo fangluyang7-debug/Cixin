@@ -1,4 +1,5 @@
-import { RuntimeWorkScope } from './runtime-work-scope';
+import { performance } from 'node:perf_hooks';
+import { RuntimeWorkScope, RuntimeWorkMeasurements } from './runtime-work-scope';
 import { ConflictException, Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ExecutorRegistryService } from './executor-registry.service';
 import { RuntimeRunService } from './runtime-run.service';
@@ -50,7 +51,8 @@ export class RuntimeRunnerService {
     controller.signal.addEventListener('abort', requestStop, { once: true });
     if (controller.signal.aborted) requestStop();
     run.status = 'running';
-    const started = Date.now();
+    const planningSpentMs = this.runs.elapsedBudgetMs(run);
+    const started = performance.now();
     try {
       // Validate the entire plan before the first side effect.
       if (plan.executionOrder.length !== graph.nodes.length ||
@@ -70,13 +72,17 @@ export class RuntimeRunnerService {
         const task = graph.nodes.find(node => node.taskId === taskId)!;
         const assignment = plan.assignments.find(item => item.taskId === taskId)!;
         if ((task.dependencies ?? []).some(id => !outputs.has(id))) throw new Error('RUNTIME_DEPENDENCY_FAILED');
-        const began = Date.now();
+        const remaining = (task.constraints?.deadlineMs ?? 120000) - (planningSpentMs + performance.now() - started);
+        if (!Number.isFinite(remaining) || remaining <= 0) {
+          controller.abort(new Error('RUNTIME_TIMEOUT'));
+          throw controller.signal.reason;
+        }
+        const began = performance.now();
         assignment.status = 'running';
-        assignment.startedAt = new Date(began).toISOString();
-        const timeoutMs = Math.max(1, Math.min(task.constraints?.maxLatencyMs ?? 120000,
-          (task.constraints?.deadlineMs ?? 120000) - (began - started)));
+        assignment.startedAt = new Date().toISOString();
+        const timeoutMs = Math.min(task.constraints?.maxLatencyMs ?? 120000, remaining);
         let fallbackOccurred = false;
-        const measurements = { storageReadMs: 0, storageWriteMs: 0, modelMs: 0 };
+        const measurements: RuntimeWorkMeasurements = { storageReadMs: 0, storageWriteMs: 0, modelMs: 0 };
         let timer: ReturnType<typeof setTimeout> | undefined;
         let abortListener: (() => void) | undefined;
         let settled = true;
@@ -91,7 +97,7 @@ export class RuntimeRunnerService {
           settled = false;
           const work = RuntimeWorkScope.run(controller.signal, measurements, () => this.registry.require(assignment.executorId, assignment.toolId).execute({
             runId, task, assignment, input, outputs, signal: controller.signal,
-          }));
+          }), run.ownerUserId, timeoutMs);
           settlement = work.then(() => { settled = true; }, () => { settled = true; });
           active.pending = settlement;
           const result = await Promise.race([work, deadline]);
@@ -117,11 +123,12 @@ export class RuntimeRunnerService {
             const record: TelemetryRecord = {
               executionId: `${runId}:${taskId}`, taskId, toolId: task.toolId,
               executorId: assignment.executorId, startedAt: assignment.startedAt!,
-              finishedAt: assignment.finishedAt, latencyMs: Date.now() - began,
+              finishedAt: assignment.finishedAt, latencyMs: performance.now() - began,
               latencyScope: 'execution_only', memoryPeakMb: process.memoryUsage().rss / 1048576,
-              metadata: { segmentedTiming: { ...measurements, queueMs: 0, uploadMs: null, downloadMs: null,
-                executionMs: Math.max(0, Date.now() - began - measurements.storageReadMs - measurements.storageWriteMs) },
-                segmentSource: 'server-monotonic-clock', memorySource: 'process-rss-at-stage-finish', transferTiming: 'not-observable-on-server',
+              metadata: { workflowId: graph.graphId, attemptId: measurements.attemptId ?? null, placementDecisions: measurements.placementDecisions ?? [],
+                segmentedTiming: { storageReadMs: measurements.storageReadMs, storageWriteMs: measurements.storageWriteMs, modelMs: measurements.modelMs, queueMs: 0, uploadMs: null, downloadMs: null,
+                executionMs: Math.max(0, performance.now() - began - measurements.storageReadMs - measurements.storageWriteMs) },
+                segmentSource: 'server-monotonic-clock', finishRssMb: process.memoryUsage().rss / 1048576, memoryPeakMeasured: false, memorySource: 'process-rss-at-stage-finish', transferTiming: 'not-observable-on-server',
                 cancellation: 'executor promise settled; remote acknowledgement unavailable; committed side effects are not rolled back',
                 stopRequestedAt: run.stopRequestedAt ?? null },
               fallbackOccurred, success: assignment.status === 'succeeded', errorCode: assignment.errorCode,

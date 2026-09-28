@@ -1,3 +1,4 @@
+import { ClockPort, WallClock } from './ClockPort';
 import { CancellationController } from '../executor/CancellationController';
 import { ExecutionTelemetry } from './RemoteRouteProfile';
 import {
@@ -29,6 +30,7 @@ interface ActiveWorkflow {
   key: string;
   context: TaskContext;
   submittedAt: number;
+  budgetStartedAt: number;
   cancelled: boolean;
   finished: boolean;
   reason?: string;
@@ -87,7 +89,8 @@ export class SchedulerClient {
   private nextWorkflow: number = 0;
   private disposed: boolean = false;
 
-  constructor(runtime: SchedulerRuntime) { this.runtime = runtime; }
+  private readonly clock: ClockPort;
+  constructor(runtime: SchedulerRuntime, clock: ClockPort = new WallClock()) { this.runtime = runtime; this.clock = clock; }
 
   public registerTemplate(template: TaskTemplate): void {
     this.assertOpen();
@@ -146,7 +149,7 @@ export class SchedulerClient {
       }
     );
     const run: ActiveWorkflow = {
-      preparation: new CancellationController(), id: id, key: key, context: snapshot, submittedAt: Date.now(), cancelled: false,
+      preparation: new CancellationController(), id: id, key: key, context: snapshot, submittedAt: this.clock.wallNow(), budgetStartedAt: this.clock.now(), cancelled: false,
       finished: false, taskIds: [], outputTaskId: `${id}:${template.outputNodeId ?? 'task'}`,
       handle: handle as WorkflowHandle<Object>
     };
@@ -228,7 +231,7 @@ export class SchedulerClient {
     let failure: string | undefined = undefined;
     for (let i: number = 0; i < ordered.length; i++) {
       const node: WorkflowNode = ordered[i];
-      const elapsed: number = Date.now() - run.submittedAt;
+      const elapsed: number = this.clock.now() - run.budgetStartedAt;
       if (run.context.requestReplaced || elapsed >= (run.context.freshnessMs ?? Infinity) ||
         elapsed >= (run.context.deadlineMs ?? Infinity)) {
         run.cancelled = true;
@@ -250,6 +253,7 @@ export class SchedulerClient {
       nodeContext.workflowCriticalPathMs = remaining?.criticalPathMs;
       nodeContext.workflowRemainingSerialMs = remaining?.serialRemainingMs;
       nodeContext.workflowCurrentNodeEstimateMs = estimatedMs[node.id];
+      nodeContext.remainingBudgetMs = Math.min(run.context.deadlineMs ?? leaf.timeoutMs, run.context.freshnessMs ?? Infinity) - elapsed;
       nodeContext.parentTaskId = run.id;
       nodeContext.dependencyTaskIds = node.dependsOn.map((dependency: string) => `${run.id}:${dependency}`);
       const taskId: string = `${run.id}:${node.id}`;
@@ -272,6 +276,11 @@ export class SchedulerClient {
           await preparer.prepare(request.input, nodeContext, run.preparation.signal);
           if (run.cancelled) { skipped.push(node.id); continue; }
         }
+        const afterPrepare = this.clock.now() - run.budgetStartedAt;
+        if (afterPrepare >= Math.min(run.context.deadlineMs ?? leaf.timeoutMs, run.context.freshnessMs ?? Infinity)) {
+          run.preparation.cancel(); run.cancelled = true; run.reason = 'DEADLINE_EXCEEDED';
+          skipped.push(node.id); continue;
+        }
         run.taskIds.push(taskId);
         const handle: TaskHandle<Object> = await this.runtime.submitTask<Object, Object>(request);
         if (run.cancelled) { await this.runtime.signalTask(taskId, { type: TaskSignalType.CANCEL }); }
@@ -292,8 +301,8 @@ export class SchedulerClient {
       }
     }
     const outputNode: string = template.outputNodeId ?? 'task';
-    const stale: boolean = Date.now() - run.submittedAt >= (run.context.freshnessMs ?? Infinity) ||
-      Date.now() - run.submittedAt >= (run.context.deadlineMs ?? Infinity);
+    const stale: boolean = this.clock.now() - run.budgetStartedAt >= (run.context.freshnessMs ?? Infinity) ||
+      this.clock.now() - run.budgetStartedAt >= (run.context.deadlineMs ?? Infinity);
     const status: TaskStatus = run.cancelled || stale ? TaskStatus.CANCELLED :
       failure !== undefined || successful.indexOf(outputNode) < 0 ? TaskStatus.FAILED : TaskStatus.SUCCEEDED;
     return {

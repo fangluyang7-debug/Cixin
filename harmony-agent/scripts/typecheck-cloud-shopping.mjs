@@ -7,21 +7,24 @@ const root = path.resolve(import.meta.dirname, '../apps/harmony').replaceAll('\\
 const virtual = root + '/cloud-check.d.ts';
 const scheduler = root + '/cloud-scheduler.ts';
 const files = new Map([
-  [scheduler, `export * from './scheduler/src/main/ets/network/HttpRouteProbe';
+  [scheduler, `export * from './scheduler/src/main/ets/api/ClockPort';
+export * from './scheduler/src/main/ets/api/SchedulingProtocol';
+export * from './scheduler/src/main/ets/network/HttpRouteProbe';
 export * from './scheduler/src/main/ets/api/RemoteRouteProfile';
 export * from './scheduler/src/main/ets/api/SchedulerTypes';
 export * from './scheduler/src/main/ets/api/SchedulerClient';
 export * from './scheduler/src/main/ets/placement/PlacementPolicy';`],
-  [virtual, `declare module '@kit.AbilityKit' { export namespace common { interface Context {} } }
+  [virtual, `declare module '@kit.BasicServicesKit' { export namespace systemDateTime { enum TimeType { STARTUP } function getUptime(type: TimeType): number; } }
+declare module '@kit.AbilityKit' { export namespace common { interface Context {} } }
 declare module '@kit.ArkData' { export const preferences: { getPreferences(context: Object, options: { name: string }): Promise<{ get(key: string, value: string): Promise<string>; put(key: string, value: string): Promise<void>; flush(): Promise<void> }> }; }
 declare module '@kit.CoreFileKit' { export const fileIo: { OpenMode: { READ_ONLY: number }; openSync(uri: string, mode: number): { fd: number }; statSync(fd: number): { size: number }; readSync(fd: number, buffer: ArrayBuffer): number; closeSync(file: { fd: number }): void }; }
 declare module '@kit.ArkTS' { export namespace util { class Base64Helper { encodeToStringSync(bytes: Uint8Array): string; } } }
 declare module '@kit.NetworkKit' { export namespace connection { interface NetConnection { on(event: string, callback: () => void): void; register(callback: (error?: Object) => void): void; unregister(callback: () => void): void; } function createNetConnection(): NetConnection; } export namespace http {
-  enum RequestMethod { GET, POST }
+  enum RequestMethod { GET, POST, DELETE }
   interface DataSendProgressInfo { sendSize: number; totalSize: number; }
   interface HttpResponse { responseCode: number; result: string | Object | ArrayBuffer;
     performanceTiming: { firstSendTiming: number; firstReceiveTiming: number; totalFinishTiming: number }; }
-  interface HttpRequestOptions { method: RequestMethod; header: Object; extraData: string; connectTimeout: number; readTimeout: number; }
+  interface HttpRequestOptions { method: RequestMethod; header: Object; extraData: string | ArrayBuffer; connectTimeout: number; readTimeout: number; }
   interface HttpRequest { request(url: string, options: HttpRequestOptions): Promise<HttpResponse>;
     on(type: 'dataSendProgress', callback: (progress: DataSendProgressInfo) => void): void;
     off(type: 'dataSendProgress'): void; destroy(): void; }

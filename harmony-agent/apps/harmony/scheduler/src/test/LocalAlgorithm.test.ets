@@ -5,6 +5,7 @@ import {
   MemoryPressure, ModelTier, PrivacyPolicy, QualityLevel, ResourcePrediction, TaskContext, TaskProfile,
   TaskType, ThermalLevel, WorkflowNode
 } from '../../Index';
+import { InterferenceModel } from '../main/ets/policy/InterferenceModel';
 import { AdaptiveCostModel } from '../main/ets/policy/AdaptiveCostModel';
 import { estimatedWorkflowCompletion, planWorkflowCosts, workflowUrgencyBonus } from '../main/ets/policy/WorkflowPlanner';
 import { marginalAccelerationBonus } from '../main/ets/policy/MarginalAllocation';
@@ -79,6 +80,23 @@ export default function localAlgorithmTests(): void {
       const other: ExecutionProfile = profile().template!.manifest!.profiles[0];
       other.id = 'OTHER';
       expect(cost.predict(task, current, other, level).sampleCount).assertEqual(0);
+    });
+
+    it('does not double count batching and separates dimensions in samples', 0, () => {
+      const cost = new AdaptiveCostModel(); const task = profile(); const current = state();
+      const execution = task.template!.manifest!.profiles[0]; const level = task.template!.qualityLevels[0];
+      const first = cost.predict(task, current, execution, level).latencyMs;
+      task.context!.batchSize = 64; execution.batchSize = 64;
+      expect(cost.predict(task, current, execution, level).latencyMs).assertEqual(first);
+      cost.observe(task, current, execution, 20);
+      execution.retrievalDimensions = 128;
+      expect(cost.predict(task, current, execution, level).sampleCount).assertEqual(0);
+    });
+    it('keeps interference observations directional', 0, () => {
+      const model = new InterferenceModel();
+      for (let i = 0; i < 5; i++) { model.observe('foreground', 'background', 200, 100, 5); }
+      expect(model.slowdown('foreground', 'background')).assertEqual(2);
+      expect(model.slowdown('background', 'foreground')).assertEqual(null);
     });
 
     it('requires measured validated profiles for marginal acceleration', 0, () => {

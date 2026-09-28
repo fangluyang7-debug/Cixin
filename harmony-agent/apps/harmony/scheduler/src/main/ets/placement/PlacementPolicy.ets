@@ -7,6 +7,9 @@ export enum PlacementMode { LOCAL_ONLY = 'LOCAL_ONLY', SHADOW = 'SHADOW' }
 
 // Task requirements, device observations, and estimates deliberately have different owners.
 export interface ResolvedTaskProfile {
+  baselineDeviceId?: string;
+  switchCostMs?: number;
+  hysteresisMs?: number;
   capability: string;
   modelVersion: string;
   taskSignature: string;
@@ -53,6 +56,8 @@ export interface PlacementLinkProfile {
   sampleAgeMs: number;
   rttMs: number;
   bytesPerSecond: number;
+  returnBytesPerSecond?: number;
+  throughputScope?: 'payload' | 'effective';
   protocolMs: number;
 }
 
@@ -88,6 +93,8 @@ interface PlacementCostSample {
 
 export interface PlacementDecision {
   mode: PlacementMode;
+  baselineDeviceId?: string;
+  status?: 'ready' | 'blocked';
   actualDeviceId: string;
   suggestedDeviceId: string;
   reasonCodes: string[];
@@ -208,11 +215,14 @@ export class GlobalPlacementPolicy {
     links: PlacementLinkProfile[], mode: PlacementMode, now: number = Date.now()): PlacementDecision {
     const estimates: PlacementEstimate[] = [];
     const rejected: string[] = [];
-    const local: PlacementDeviceProfile | undefined = devices.find((item: PlacementDeviceProfile) =>
-      item.deviceId === localId && item.local && item.source === PlacementSource.REAL);
-    const candidates: PlacementDeviceProfile[] = local === undefined ? [] : [local];
+    const baselineId = task.baselineDeviceId ?? localId;
+    const baseline: PlacementDeviceProfile | undefined = devices.find((item: PlacementDeviceProfile) =>
+      item.deviceId === baselineId && item.source === PlacementSource.REAL);
+    const candidates: PlacementDeviceProfile[] = baseline === undefined ? [] : [baseline];
     if (mode === PlacementMode.SHADOW) {
-      devices.filter((item: PlacementDeviceProfile) => item.deviceId !== localId).slice(0, MAX_DEVICES - 1)
+      devices.filter((item: PlacementDeviceProfile) => item.deviceId !== baselineId &&
+        (task.baselineDeviceId === undefined || item.source === PlacementSource.REAL))
+        .sort((a: PlacementDeviceProfile, b: PlacementDeviceProfile) => a.deviceId.localeCompare(b.deviceId)).slice(0, MAX_DEVICES - 1)
         .forEach((item: PlacementDeviceProfile) => candidates.push(item));
     }
     candidates.forEach((device: PlacementDeviceProfile) => {
@@ -231,32 +241,35 @@ export class GlobalPlacementPolicy {
         const link: PlacementLinkProfile | null = linkFor(localId, device.deviceId, links, now);
         if (link === null || task.inputBytes === null || task.outputBytes === null ||
           task.inputBytes < 0 || task.outputBytes < 0) { rejected.push(device.deviceId); return; }
-        transfer = link.rttMs + link.protocolMs +
-          (task.inputBytes + task.outputBytes) / link.bytesPerSecond * 1000;
+        const returnRate = link.returnBytesPerSecond ?? link.bytesPerSecond;
+        if (!Number.isFinite(returnRate) || returnRate <= 0) { rejected.push(device.deviceId); return; }
+        transfer = (link.throughputScope === 'effective' ? 0 : link.rttMs + link.protocolMs) +
+          task.inputBytes / link.bytesPerSecond * 1000 + task.outputBytes / returnRate * 1000;
       }
       const cold: number = modelLoaded ? 0 :
         trained ? observed!.modelLoadMs : device.coldLoadMs ?? Infinity;
       const queue: number = device.queueWaitMs ?? (trained ? observed!.queueMs : device.local ? 0 : Infinity);
       const compute: number = trained ? observed!.computeMs : device.computeMs ?? Infinity;
       const total: number = transfer + queue + cold + compute;
-      if (!Number.isFinite(total)) { rejected.push(device.deviceId); return; }
+      if (!Number.isFinite(total) || (task.deadlineMs !== null && total > task.deadlineMs)) { rejected.push(device.deviceId); return; }
       estimates.push({ deviceId: device.deviceId, transferMs: transfer, queueMs: queue,
         modelLoadMs: cold, computeMs: compute, totalMs: total,
         uncertaintyMs: trained ? Math.max(5, observed!.deviationMs * 2) :
           device.local ? 0 : Math.max(5, total * 0.2) });
     });
-    const localEstimate: PlacementEstimate | undefined = estimates.find((item: PlacementEstimate) => item.deviceId === localId);
-    let suggested: string = localId;
+    const localEstimate: PlacementEstimate | undefined = estimates.find((item: PlacementEstimate) => item.deviceId === baselineId);
+    let suggested: string = localEstimate === undefined ? '' : baselineId;
     if (mode === PlacementMode.SHADOW && localEstimate !== undefined) {
-      estimates.filter((item: PlacementEstimate) => item.deviceId !== localId &&
-        item.totalMs + item.uncertaintyMs + 10 < localEstimate.totalMs &&
+      estimates.filter((item: PlacementEstimate) => item.deviceId !== baselineId &&
+        item.totalMs + item.uncertaintyMs + Math.max(0, task.switchCostMs ?? 0) + Math.max(0, task.hysteresisMs ?? 10) < localEstimate.totalMs &&
         (task.deadlineMs === null || item.totalMs + item.uncertaintyMs <= task.deadlineMs))
         .sort((a: PlacementEstimate, b: PlacementEstimate) => a.totalMs + a.uncertaintyMs - b.totalMs - b.uncertaintyMs)
         .slice(0, 1).forEach((item: PlacementEstimate) => { suggested = item.deviceId; });
     }
-    return { mode: mode, actualDeviceId: localId, suggestedDeviceId: suggested,
-      reasonCodes: localEstimate === undefined ? ['LOCAL_REQUIRES_RECHECK'] :
-        suggested === localId ? ['LOCAL_PREFERRED'] : ['SHADOW_REMOTE_BETTER'],
+    return { mode: mode, baselineDeviceId: baselineId, status: localEstimate === undefined ? 'blocked' : 'ready',
+      actualDeviceId: localEstimate === undefined ? '' : baselineId, suggestedDeviceId: suggested,
+      reasonCodes: localEstimate === undefined ? ['BASELINE_UNAVAILABLE'] :
+        suggested === baselineId ? ['BASELINE_PREFERRED'] : ['SHADOW_ALTERNATIVE_BETTER'],
       estimates: estimates, rejectedDeviceIds: rejected, dispatchAllowed: false };
   }
 }

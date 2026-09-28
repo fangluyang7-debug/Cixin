@@ -1,3 +1,4 @@
+import { encodeShoppingPayload, decodeShoppingPayload } from '../../src/core/runtime/shopping-payload';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import * as request from 'supertest';
 import { createTestApp } from '../helpers/create-test-app';
@@ -81,6 +82,15 @@ describe('API HTTP contract', () => {
       });
   });
 
+  it('requires both user identity and maintenance authority before device calibration', async () => {
+    const endpoint = '/api/v1/runtime/devices/test-worker/calibrate';
+    await request(app.getHttpServer()).post(endpoint).expect(401);
+    await request(app.getHttpServer()).post(endpoint).set('Authorization', authorization).expect(403);
+    await request(app.getHttpServer()).post(endpoint).set('x-maintenance-token', 'test-maintenance-token').expect(401);
+    await request(app.getHttpServer()).post(endpoint).set('Authorization', authorization)
+      .set('x-maintenance-token', 'test-maintenance-token').expect(400);
+  });
+
   it('returns a stable candidate response contract from persisted snapshots', async () => {
     await prisma.imageAsset.create({
       data: {
@@ -137,6 +147,7 @@ describe('API HTTP contract', () => {
       .get('/api/v1/sessions/session_contract/candidates').set('Authorization', authorization)
       .expect(200);
 
+    expect(decodeShoppingPayload('shopping.candidate-set', encodeShoppingPayload('shopping.candidate-set',response.body.data))).toEqual(response.body.data);
     expect(response.body.data).toMatchObject({
       candidateSnapshotId: 'snapshot_contract',
       degraded: false,
@@ -154,6 +165,19 @@ describe('API HTTP contract', () => {
         },
       ],
     });
+  });
+
+  it('uses authenticated revision and idempotency headers on shortlist writes', async () => {
+    const previous=process.env.SESSION_REVISION_ENABLED;process.env.SESSION_REVISION_ENABLED='true';
+    try {
+      const send=()=>request(app.getHttpServer()).post('/api/v1/sessions/session_contract/candidates/candidate_contract/shortlist')
+        .set('Authorization',authorization).set('idempotency-key','shortlist-once').set('x-session-version','0').set('x-request-revision','1').send({});
+      const first=await send().expect(201),second=await send().expect(201);
+      expect(first.body.data.stateVersion).toBe(1);expect(second.body.data).toEqual(first.body.data);
+      expect(await prisma.sessionCartItem.count({where:{sessionId:'session_contract'}})).toBe(1);
+      await request(app.getHttpServer()).delete('/api/v1/sessions/session_contract/cart/candidate_contract')
+        .set('Authorization',authorization).set('idempotency-key','stale').set('x-session-version','0').expect(409);
+    } finally { if(previous===undefined)delete process.env.SESSION_REVISION_ENABLED;else process.env.SESSION_REVISION_ENABLED=previous; }
   });
 
   it('rejects invalid candidate pagination input through the HTTP boundary', async () => {

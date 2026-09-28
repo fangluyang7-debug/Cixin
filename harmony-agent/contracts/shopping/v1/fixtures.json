@@ -1,0 +1,1711 @@
+{
+  "shopping.query": {
+    "operation": "sample",
+    "message": "sample",
+    "entrySource": "sample",
+    "categoryHint": "sample",
+    "sessionId": "sample",
+    "assetId": "sample",
+    "selectionSource": "sample",
+    "sortPreference": "sample",
+    "keywords": [
+      "sample"
+    ],
+    "filters": {
+      "priceMin": "123.4500",
+      "priceMax": "123.4500",
+      "priceTarget": "123.4500",
+      "priceTolerance": "123.4500",
+      "timeConstraintDays": 0.5,
+      "sizeMin": 0.5,
+      "sizeMax": 0.5,
+      "stockOnly": true,
+      "freeShippingOnly": true,
+      "urgentDeliveryPreferred": true,
+      "sizeSystem": "sample",
+      "shopType": "sample",
+      "categoryScope": "sample",
+      "platformsInclude": [
+        "sample"
+      ],
+      "platformsExclude": [
+        "sample"
+      ],
+      "brandsInclude": [
+        "sample"
+      ],
+      "brandsExclude": [
+        "sample"
+      ],
+      "colorsInclude": [
+        "sample"
+      ],
+      "colorsExclude": [
+        "sample"
+      ],
+      "sizesInclude": [
+        "sample"
+      ],
+      "excludedProductIds": [
+        "sample"
+      ],
+      "excludedCandidateItemIds": [
+        "sample"
+      ],
+      "sortRule": "price_asc",
+      "preferences": {
+        "freeShipping": true,
+        "shopTypes": [
+          "sample"
+        ],
+        "brands": [
+          "sample"
+        ],
+        "colors": [
+          "sample"
+        ],
+        "platforms": [
+          "sample"
+        ],
+        "priceDirection": "sample"
+      }
+    },
+    "imageArtifact": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "imageRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "initialSubjectSelection": {
+      "box": {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 0.5,
+        "height": 0.5,
+        "confidence": 0.5,
+        "label": "sample"
+      },
+      "selectionSource": "sample"
+    },
+    "highQuality": true,
+    "baseVersion": 1,
+    "requestRevision": 1,
+    "idempotencyKey": "sample"
+  },
+  "shopping.image": {
+    "assetId": "sample",
+    "owner": "sample",
+    "assetGroupId": "sample",
+    "variantType": "sample",
+    "sourceType": "sample",
+    "uploadStatus": "sample",
+    "mediaType": "sample",
+    "contentHash": "sample",
+    "isPrimaryRecognitionAsset": true,
+    "width": 1,
+    "height": 1,
+    "orientation": 1,
+    "sizeBytes": 1,
+    "privateLocator": {
+      "bucketGroup": "sample",
+      "objectKey": "sample"
+    }
+  },
+  "shopping.preprocess": {
+    "originalRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "cropRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "selectedBox": {
+      "x": 0.5,
+      "y": 0.5,
+      "width": 0.5,
+      "height": 0.5,
+      "confidence": 0.5,
+      "label": "sample"
+    },
+    "detectedBoxes": [
+      {
+        "x": 0.5,
+        "y": 0.5,
+        "width": 0.5,
+        "height": 0.5,
+        "confidence": 0.5,
+        "label": "sample"
+      }
+    ],
+    "selectionSource": "sample",
+    "status": "sample",
+    "transformVersion": "sample",
+    "encoding": "sample",
+    "imageWidth": 1,
+    "imageHeight": 1,
+    "targetSize": 1,
+    "jpegQuality": 1,
+    "paddingRatio": 0.5
+  },
+  "shopping.quality": {
+    "method": "sample",
+    "reason": "sample",
+    "width": 1,
+    "height": 1,
+    "decodable": true,
+    "passed": true,
+    "thresholds": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "sharpness": 0.5,
+    "subjectVisibility": 0.5
+  },
+  "shopping.profile": {
+    "category": "sample",
+    "brand": "sample",
+    "modelLine": "sample",
+    "colorFamily": "sample",
+    "colorway": "sample",
+    "shoeType": "sample",
+    "size": "sample",
+    "color": "sample",
+    "modelVersion": "sample",
+    "profileVersion": "sample",
+    "styleTags": [
+      "sample"
+    ],
+    "sceneTags": [
+      "sample"
+    ],
+    "keywords": [
+      "sample"
+    ],
+    "confidence": 0.5,
+    "raw": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    }
+  },
+  "shopping.embedding": {
+    "provider": "sample",
+    "modelName": "sample",
+    "modelId": "sample",
+    "modelVersion": "sample",
+    "modelHash": "sample",
+    "vectorHash": "sample",
+    "embeddingKind": "sample",
+    "dtype": "sample",
+    "normalization": "sample",
+    "preprocessVersion": "sample",
+    "indexSpaceId": "sample",
+    "dimension": 1,
+    "vectorRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "vector": [
+      0.5
+    ]
+  },
+  "shopping.product": {
+    "productId": "sample",
+    "externalId": "sample",
+    "platform": "sample",
+    "title": "sample",
+    "currency": "sample",
+    "stockStatus": "sample",
+    "shopName": "sample",
+    "shopType": "sample",
+    "productUrl": "sample",
+    "sourceImageUrl": "sample",
+    "imageBucketGroup": "sample",
+    "imageObjectKey": "sample",
+    "imagePublicUrl": "sample",
+    "tagStatus": "sample",
+    "brand": "sample",
+    "category": "sample",
+    "modelLine": "sample",
+    "colorFamily": "sample",
+    "colorway": "sample",
+    "shoeType": "sample",
+    "importBatchId": "sample",
+    "createdAt": "sample",
+    "updatedAt": "sample",
+    "priceAmount": "123.4500",
+    "keywords": [
+      "sample"
+    ],
+    "normalizedTags": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "rawPayload": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "tagConfidence": 0.5
+  },
+  "shopping.candidate": {
+    "candidateItemId": "sample",
+    "snapshotId": "sample",
+    "productId": "sample",
+    "productPoolKey": "sample",
+    "externalId": "sample",
+    "title": "sample",
+    "platformName": "sample",
+    "currency": "sample",
+    "shopName": "sample",
+    "shopType": "sample",
+    "stockStatus": "sample",
+    "coverImageUrl": "sample",
+    "productUrl": "sample",
+    "platformProductId": "sample",
+    "platformBrandId": "sample",
+    "createdAt": "sample",
+    "rank": 1,
+    "pageIndex": 1,
+    "amount": "123.4500",
+    "price": {
+      "amount": "123.4500",
+      "currency": "sample"
+    },
+    "matchSummary": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "normalizedAttributes": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "rawPayload": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "attributes": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "matchScore": 0.5,
+    "recommendationReason": [
+      "sample"
+    ],
+    "commerceMeta": {
+      "rating": {
+        "overall": 0.5,
+        "productQuality": 0.5,
+        "logisticsSpeed": 0.5,
+        "service": 0.5
+      },
+      "delivery": {
+        "shipFrom": "sample",
+        "shipTimeText": "sample",
+        "deliveryTimeText": "sample",
+        "deliveryDays": 0.5,
+        "freeShipping": true,
+        "returnShippingInsurance": true,
+        "sevenDayNoReasonReturn": true,
+        "serviceLabels": [
+          "sample"
+        ]
+      },
+      "sku": {
+        "availableSizes": [
+          "sample"
+        ],
+        "colorOptions": [
+          "sample"
+        ],
+        "hasSkuMatrix": true
+      },
+      "payment": {
+        "checkoutMode": "sample",
+        "productUrl": "sample",
+        "supportedMethods": [
+          {
+            "code": "alipay",
+            "label": "支付宝"
+          }
+        ]
+      }
+    },
+    "sortSignals": {
+      "backendRank": 0.5,
+      "priceAmount": 0.5,
+      "relevanceScore": 0.5,
+      "displayScore": 0.5,
+      "visualMatchConfidence": 0.5,
+      "annScore": 0.5,
+      "ratingScore": 0.5,
+      "deliveryDays": 0.5,
+      "stockRank": 0.5
+    },
+    "decisionTags": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "decisionSupport": {
+      "priceConclusion": "sample",
+      "stockConclusion": "sample",
+      "shopConclusion": "sample",
+      "ratingConclusion": "sample",
+      "deliveryConclusion": "sample",
+      "sizeConclusion": "sample",
+      "paymentConclusion": "sample",
+      "priorityReason": "sample",
+      "priceRank": 1
+    },
+    "shop": {
+      "shopName": "sample",
+      "shopType": "sample"
+    },
+    "priceHistoryReference": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "deliveryEtaReference": {
+      "shipFrom": "sample",
+      "shipTimeText": "sample",
+      "deliveryTimeText": "sample",
+      "deliveryDays": 0.5,
+      "freeShipping": true,
+      "returnShippingInsurance": true,
+      "sevenDayNoReasonReturn": true,
+      "serviceLabels": [
+        "sample"
+      ]
+    }
+  },
+  "shopping.candidate-set": {
+    "snapshotId": "sample",
+    "candidateSnapshotId": "sample",
+    "sessionId": "sample",
+    "createdAt": "sample",
+    "indexVersion": "sample",
+    "recallMethod": "sample",
+    "turnIndex": 1,
+    "limit": 1,
+    "totalCount": 1,
+    "degraded": true,
+    "appliedFilter": {
+      "priceMin": "123.4500",
+      "priceMax": "123.4500",
+      "priceTarget": "123.4500",
+      "priceTolerance": "123.4500",
+      "timeConstraintDays": 0.5,
+      "sizeMin": 0.5,
+      "sizeMax": 0.5,
+      "stockOnly": true,
+      "freeShippingOnly": true,
+      "urgentDeliveryPreferred": true,
+      "sizeSystem": "sample",
+      "shopType": "sample",
+      "categoryScope": "sample",
+      "platformsInclude": [
+        "sample"
+      ],
+      "platformsExclude": [
+        "sample"
+      ],
+      "brandsInclude": [
+        "sample"
+      ],
+      "brandsExclude": [
+        "sample"
+      ],
+      "colorsInclude": [
+        "sample"
+      ],
+      "colorsExclude": [
+        "sample"
+      ],
+      "sizesInclude": [
+        "sample"
+      ],
+      "excludedProductIds": [
+        "sample"
+      ],
+      "excludedCandidateItemIds": [
+        "sample"
+      ],
+      "sortRule": "price_asc",
+      "preferences": {
+        "freeShipping": true,
+        "shopTypes": [
+          "sample"
+        ],
+        "brands": [
+          "sample"
+        ],
+        "colors": [
+          "sample"
+        ],
+        "platforms": [
+          "sample"
+        ],
+        "priceDirection": "sample"
+      }
+    },
+    "items": [
+      {
+        "candidateItemId": "sample",
+        "snapshotId": "sample",
+        "productId": "sample",
+        "productPoolKey": "sample",
+        "externalId": "sample",
+        "title": "sample",
+        "platformName": "sample",
+        "currency": "sample",
+        "shopName": "sample",
+        "shopType": "sample",
+        "stockStatus": "sample",
+        "coverImageUrl": "sample",
+        "productUrl": "sample",
+        "platformProductId": "sample",
+        "platformBrandId": "sample",
+        "createdAt": "sample",
+        "rank": 1,
+        "pageIndex": 1,
+        "amount": "123.4500",
+        "price": {
+          "amount": "123.4500",
+          "currency": "sample"
+        },
+        "matchSummary": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        },
+        "normalizedAttributes": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        },
+        "rawPayload": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        },
+        "attributes": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        },
+        "matchScore": 0.5,
+        "recommendationReason": [
+          "sample"
+        ],
+        "commerceMeta": {
+          "rating": {
+            "overall": 0.5,
+            "productQuality": 0.5,
+            "logisticsSpeed": 0.5,
+            "service": 0.5
+          },
+          "delivery": {
+            "shipFrom": "sample",
+            "shipTimeText": "sample",
+            "deliveryTimeText": "sample",
+            "deliveryDays": 0.5,
+            "freeShipping": true,
+            "returnShippingInsurance": true,
+            "sevenDayNoReasonReturn": true,
+            "serviceLabels": [
+              "sample"
+            ]
+          },
+          "sku": {
+            "availableSizes": [
+              "sample"
+            ],
+            "colorOptions": [
+              "sample"
+            ],
+            "hasSkuMatrix": true
+          },
+          "payment": {
+            "checkoutMode": "sample",
+            "productUrl": "sample",
+            "supportedMethods": [
+              {
+                "code": "alipay",
+                "label": "支付宝"
+              }
+            ]
+          }
+        },
+        "sortSignals": {
+          "backendRank": 0.5,
+          "priceAmount": 0.5,
+          "relevanceScore": 0.5,
+          "displayScore": 0.5,
+          "visualMatchConfidence": 0.5,
+          "annScore": 0.5,
+          "ratingScore": 0.5,
+          "deliveryDays": 0.5,
+          "stockRank": 0.5
+        },
+        "decisionTags": [
+          {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          }
+        ],
+        "decisionSupport": {
+          "priceConclusion": "sample",
+          "stockConclusion": "sample",
+          "shopConclusion": "sample",
+          "ratingConclusion": "sample",
+          "deliveryConclusion": "sample",
+          "sizeConclusion": "sample",
+          "paymentConclusion": "sample",
+          "priorityReason": "sample",
+          "priceRank": 1
+        },
+        "shop": {
+          "shopName": "sample",
+          "shopType": "sample"
+        },
+        "priceHistoryReference": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        },
+        "deliveryEtaReference": {
+          "shipFrom": "sample",
+          "shipTimeText": "sample",
+          "deliveryTimeText": "sample",
+          "deliveryDays": 0.5,
+          "freeShipping": true,
+          "returnShippingInsurance": true,
+          "sevenDayNoReasonReturn": true,
+          "serviceLabels": [
+            "sample"
+          ]
+        }
+      }
+    ],
+    "pageRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "excludedKeys": [
+      "sample"
+    ],
+    "requiredInfo": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "sortOptions": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "searchProgress": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "fallback": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "cursor": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    }
+  },
+  "shopping.price-stock": {
+    "items": [
+      {
+        "productId": "sample",
+        "candidateItemId": "sample",
+        "currency": "sample",
+        "stockStatus": "sample",
+        "source": "sample",
+        "sourceObservedAt": "sample",
+        "catalogUpdatedAt": "sample",
+        "fetchedAt": "sample",
+        "freshness": "sample",
+        "status": "sample",
+        "reason": "sample",
+        "amount": "123.4500"
+      }
+    ],
+    "source": "sample",
+    "sourceObservedAt": "sample",
+    "catalogUpdatedAt": "sample",
+    "fetchedAt": "sample",
+    "freshness": "sample"
+  },
+  "shopping.filters": {
+    "priceMin": "123.4500",
+    "priceMax": "123.4500",
+    "priceTarget": "123.4500",
+    "priceTolerance": "123.4500",
+    "timeConstraintDays": 0.5,
+    "sizeMin": 0.5,
+    "sizeMax": 0.5,
+    "stockOnly": true,
+    "freeShippingOnly": true,
+    "urgentDeliveryPreferred": true,
+    "sizeSystem": "sample",
+    "shopType": "sample",
+    "categoryScope": "sample",
+    "platformsInclude": [
+      "sample"
+    ],
+    "platformsExclude": [
+      "sample"
+    ],
+    "brandsInclude": [
+      "sample"
+    ],
+    "brandsExclude": [
+      "sample"
+    ],
+    "colorsInclude": [
+      "sample"
+    ],
+    "colorsExclude": [
+      "sample"
+    ],
+    "sizesInclude": [
+      "sample"
+    ],
+    "excludedProductIds": [
+      "sample"
+    ],
+    "excludedCandidateItemIds": [
+      "sample"
+    ],
+    "sortRule": "price_asc",
+    "preferences": {
+      "freeShipping": true,
+      "shopTypes": [
+        "sample"
+      ],
+      "brands": [
+        "sample"
+      ],
+      "colors": [
+        "sample"
+      ],
+      "platforms": [
+        "sample"
+      ],
+      "priceDirection": "sample"
+    },
+    "filterPatch": {
+      "priceMin": "123.4500",
+      "priceMax": "123.4500",
+      "priceTarget": "123.4500",
+      "priceTolerance": "123.4500",
+      "timeConstraintDays": 0.5,
+      "sizeMin": 0.5,
+      "sizeMax": 0.5,
+      "stockOnly": true,
+      "freeShippingOnly": true,
+      "urgentDeliveryPreferred": true,
+      "sizeSystem": "sample",
+      "shopType": "sample",
+      "categoryScope": "sample",
+      "platformsInclude": [
+        "sample"
+      ],
+      "platformsExclude": [
+        "sample"
+      ],
+      "brandsInclude": [
+        "sample"
+      ],
+      "brandsExclude": [
+        "sample"
+      ],
+      "colorsInclude": [
+        "sample"
+      ],
+      "colorsExclude": [
+        "sample"
+      ],
+      "sizesInclude": [
+        "sample"
+      ],
+      "excludedProductIds": [
+        "sample"
+      ],
+      "excludedCandidateItemIds": [
+        "sample"
+      ],
+      "sortRule": "price_asc",
+      "preferences": {
+        "freeShipping": true,
+        "shopTypes": [
+          "sample"
+        ],
+        "brands": [
+          "sample"
+        ],
+        "colors": [
+          "sample"
+        ],
+        "platforms": [
+          "sample"
+        ],
+        "priceDirection": "sample"
+      }
+    },
+    "filterRemove": [
+      "sample"
+    ],
+    "shouldResetPreviousFilters": true,
+    "operations": [
+      {
+        "kind": "sample",
+        "field": "sample",
+        "value": "sample",
+        "span": "sample",
+        "polarity": "sample",
+        "source": "sample",
+        "values": [
+          "sample"
+        ],
+        "confidence": 0.5
+      }
+    ]
+  },
+  "shopping.session": {
+    "sessionId": "sample",
+    "owner": "sample",
+    "userId": "sample",
+    "assetId": "sample",
+    "status": "sample",
+    "stage": "sample",
+    "entrySource": "sample",
+    "categoryHint": "sample",
+    "startedAt": "sample",
+    "lastActiveAt": "sample",
+    "currentTurnIndex": 1,
+    "stateVersion": 1,
+    "requestRevision": 1,
+    "degraded": true,
+    "profileRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "filterRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "candidateRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "preprocessRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "cursorRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    },
+    "conversationRef": {
+      "artifactId": "sample",
+      "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "schemaId": "sample",
+      "contentVersion": 1,
+      "schemaVersion": 1
+    }
+  },
+  "shopping.pagination": {
+    "cursorId": "sample",
+    "sessionId": "sample",
+    "candidateSnapshotId": "sample",
+    "preprocessSnapshotId": "sample",
+    "filterHash": "sample",
+    "sortRule": "sample",
+    "expiresAt": "sample",
+    "indexVersion": "sample",
+    "queryHash": "sample",
+    "offset": 1,
+    "limit": 1,
+    "exhausted": true,
+    "raw": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    }
+  },
+  "shopping.answer": {
+    "assistantMessage": "sample",
+    "intent": "sample",
+    "clarification": "sample",
+    "source": "sample",
+    "conversationSummary": "sample",
+    "evidenceRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "candidateComparisons": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "rejectedOperations": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "filterRemove": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "operations": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "profilePatch": {
+      "category": "sample",
+      "brand": "sample",
+      "modelLine": "sample",
+      "colorFamily": "sample",
+      "colorway": "sample",
+      "shoeType": "sample",
+      "size": "sample",
+      "color": "sample",
+      "modelVersion": "sample",
+      "profileVersion": "sample",
+      "styleTags": [
+        "sample"
+      ],
+      "sceneTags": [
+        "sample"
+      ],
+      "keywords": [
+        "sample"
+      ],
+      "confidence": 0.5,
+      "raw": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    },
+    "filterPatch": {
+      "priceMin": "123.4500",
+      "priceMax": "123.4500",
+      "priceTarget": "123.4500",
+      "priceTolerance": "123.4500",
+      "timeConstraintDays": 0.5,
+      "sizeMin": 0.5,
+      "sizeMax": 0.5,
+      "stockOnly": true,
+      "freeShippingOnly": true,
+      "urgentDeliveryPreferred": true,
+      "sizeSystem": "sample",
+      "shopType": "sample",
+      "categoryScope": "sample",
+      "platformsInclude": [
+        "sample"
+      ],
+      "platformsExclude": [
+        "sample"
+      ],
+      "brandsInclude": [
+        "sample"
+      ],
+      "brandsExclude": [
+        "sample"
+      ],
+      "colorsInclude": [
+        "sample"
+      ],
+      "colorsExclude": [
+        "sample"
+      ],
+      "sizesInclude": [
+        "sample"
+      ],
+      "excludedProductIds": [
+        "sample"
+      ],
+      "excludedCandidateItemIds": [
+        "sample"
+      ],
+      "sortRule": "price_asc",
+      "preferences": {
+        "freeShipping": true,
+        "shopTypes": [
+          "sample"
+        ],
+        "brands": [
+          "sample"
+        ],
+        "colors": [
+          "sample"
+        ],
+        "platforms": [
+          "sample"
+        ],
+        "priceDirection": "sample"
+      }
+    },
+    "shouldResetPreviousFilters": true,
+    "degraded": true,
+    "turnIndex": 1
+  },
+  "shopping.user-context": {
+    "profileBlocks": [
+      {
+        "scope": "sample",
+        "schema": "sample",
+        "status": "sample",
+        "source": "sample",
+        "sensitivity": "sample",
+        "confidence": 0.5,
+        "value": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      }
+    ],
+    "memoryProposals": [
+      {
+        "proposalId": "sample",
+        "status": "sample",
+        "confirmed": true
+      }
+    ],
+    "authorizedScopes": [
+      "sample"
+    ],
+    "cartRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "shortlistRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "favoriteRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "historyRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "feedbackRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ]
+  },
+  "shopping.result": {
+    "traceId": "sample",
+    "workflowId": "sample",
+    "taskId": "sample",
+    "runId": "sample",
+    "runtimeRunId": "sample",
+    "attemptId": "sample",
+    "status": "sample",
+    "resultRef": "sample",
+    "operation": "sample",
+    "sessionId": "sample",
+    "stateVersion": 1,
+    "requestRevision": 1,
+    "session": {
+      "sessionId": "sample",
+      "owner": "sample",
+      "userId": "sample",
+      "assetId": "sample",
+      "status": "sample",
+      "stage": "sample",
+      "entrySource": "sample",
+      "categoryHint": "sample",
+      "startedAt": "sample",
+      "lastActiveAt": "sample",
+      "currentTurnIndex": 1,
+      "stateVersion": 1,
+      "requestRevision": 1,
+      "degraded": true,
+      "profileRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      },
+      "filterRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      },
+      "candidateRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      },
+      "preprocessRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      },
+      "cursorRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      },
+      "conversationRef": {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    },
+    "candidates": {
+      "snapshotId": "sample",
+      "candidateSnapshotId": "sample",
+      "sessionId": "sample",
+      "createdAt": "sample",
+      "indexVersion": "sample",
+      "recallMethod": "sample",
+      "turnIndex": 1,
+      "limit": 1,
+      "totalCount": 1,
+      "degraded": true,
+      "appliedFilter": {
+        "priceMin": "123.4500",
+        "priceMax": "123.4500",
+        "priceTarget": "123.4500",
+        "priceTolerance": "123.4500",
+        "timeConstraintDays": 0.5,
+        "sizeMin": 0.5,
+        "sizeMax": 0.5,
+        "stockOnly": true,
+        "freeShippingOnly": true,
+        "urgentDeliveryPreferred": true,
+        "sizeSystem": "sample",
+        "shopType": "sample",
+        "categoryScope": "sample",
+        "platformsInclude": [
+          "sample"
+        ],
+        "platformsExclude": [
+          "sample"
+        ],
+        "brandsInclude": [
+          "sample"
+        ],
+        "brandsExclude": [
+          "sample"
+        ],
+        "colorsInclude": [
+          "sample"
+        ],
+        "colorsExclude": [
+          "sample"
+        ],
+        "sizesInclude": [
+          "sample"
+        ],
+        "excludedProductIds": [
+          "sample"
+        ],
+        "excludedCandidateItemIds": [
+          "sample"
+        ],
+        "sortRule": "price_asc",
+        "preferences": {
+          "freeShipping": true,
+          "shopTypes": [
+            "sample"
+          ],
+          "brands": [
+            "sample"
+          ],
+          "colors": [
+            "sample"
+          ],
+          "platforms": [
+            "sample"
+          ],
+          "priceDirection": "sample"
+        }
+      },
+      "items": [
+        {
+          "candidateItemId": "sample",
+          "snapshotId": "sample",
+          "productId": "sample",
+          "productPoolKey": "sample",
+          "externalId": "sample",
+          "title": "sample",
+          "platformName": "sample",
+          "currency": "sample",
+          "shopName": "sample",
+          "shopType": "sample",
+          "stockStatus": "sample",
+          "coverImageUrl": "sample",
+          "productUrl": "sample",
+          "platformProductId": "sample",
+          "platformBrandId": "sample",
+          "createdAt": "sample",
+          "rank": 1,
+          "pageIndex": 1,
+          "amount": "123.4500",
+          "price": {
+            "amount": "123.4500",
+            "currency": "sample"
+          },
+          "matchSummary": {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          },
+          "normalizedAttributes": {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          },
+          "rawPayload": {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          },
+          "attributes": {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          },
+          "matchScore": 0.5,
+          "recommendationReason": [
+            "sample"
+          ],
+          "commerceMeta": {
+            "rating": {
+              "overall": 0.5,
+              "productQuality": 0.5,
+              "logisticsSpeed": 0.5,
+              "service": 0.5
+            },
+            "delivery": {
+              "shipFrom": "sample",
+              "shipTimeText": "sample",
+              "deliveryTimeText": "sample",
+              "deliveryDays": 0.5,
+              "freeShipping": true,
+              "returnShippingInsurance": true,
+              "sevenDayNoReasonReturn": true,
+              "serviceLabels": [
+                "sample"
+              ]
+            },
+            "sku": {
+              "availableSizes": [
+                "sample"
+              ],
+              "colorOptions": [
+                "sample"
+              ],
+              "hasSkuMatrix": true
+            },
+            "payment": {
+              "checkoutMode": "sample",
+              "productUrl": "sample",
+              "supportedMethods": [
+                {
+                  "code": "alipay",
+                  "label": "支付宝"
+                }
+              ]
+            }
+          },
+          "sortSignals": {
+            "backendRank": 0.5,
+            "priceAmount": 0.5,
+            "relevanceScore": 0.5,
+            "displayScore": 0.5,
+            "visualMatchConfidence": 0.5,
+            "annScore": 0.5,
+            "ratingScore": 0.5,
+            "deliveryDays": 0.5,
+            "stockRank": 0.5
+          },
+          "decisionTags": [
+            {
+              "source": "fixture",
+              "unknown": null,
+              "decimal": "123.4500"
+            }
+          ],
+          "decisionSupport": {
+            "priceConclusion": "sample",
+            "stockConclusion": "sample",
+            "shopConclusion": "sample",
+            "ratingConclusion": "sample",
+            "deliveryConclusion": "sample",
+            "sizeConclusion": "sample",
+            "paymentConclusion": "sample",
+            "priorityReason": "sample",
+            "priceRank": 1
+          },
+          "shop": {
+            "shopName": "sample",
+            "shopType": "sample"
+          },
+          "priceHistoryReference": {
+            "source": "fixture",
+            "unknown": null,
+            "decimal": "123.4500"
+          },
+          "deliveryEtaReference": {
+            "shipFrom": "sample",
+            "shipTimeText": "sample",
+            "deliveryTimeText": "sample",
+            "deliveryDays": 0.5,
+            "freeShipping": true,
+            "returnShippingInsurance": true,
+            "sevenDayNoReasonReturn": true,
+            "serviceLabels": [
+              "sample"
+            ]
+          }
+        }
+      ],
+      "pageRefs": [
+        {
+          "artifactId": "sample",
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "schemaId": "sample",
+          "contentVersion": 1,
+          "schemaVersion": 1
+        }
+      ],
+      "excludedKeys": [
+        "sample"
+      ],
+      "requiredInfo": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      },
+      "sortOptions": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      },
+      "searchProgress": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      },
+      "fallback": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      },
+      "cursor": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    },
+    "profile": {
+      "category": "sample",
+      "brand": "sample",
+      "modelLine": "sample",
+      "colorFamily": "sample",
+      "colorway": "sample",
+      "shoeType": "sample",
+      "size": "sample",
+      "color": "sample",
+      "modelVersion": "sample",
+      "profileVersion": "sample",
+      "styleTags": [
+        "sample"
+      ],
+      "sceneTags": [
+        "sample"
+      ],
+      "keywords": [
+        "sample"
+      ],
+      "confidence": 0.5,
+      "raw": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    },
+    "filters": {
+      "priceMin": "123.4500",
+      "priceMax": "123.4500",
+      "priceTarget": "123.4500",
+      "priceTolerance": "123.4500",
+      "timeConstraintDays": 0.5,
+      "sizeMin": 0.5,
+      "sizeMax": 0.5,
+      "stockOnly": true,
+      "freeShippingOnly": true,
+      "urgentDeliveryPreferred": true,
+      "sizeSystem": "sample",
+      "shopType": "sample",
+      "categoryScope": "sample",
+      "platformsInclude": [
+        "sample"
+      ],
+      "platformsExclude": [
+        "sample"
+      ],
+      "brandsInclude": [
+        "sample"
+      ],
+      "brandsExclude": [
+        "sample"
+      ],
+      "colorsInclude": [
+        "sample"
+      ],
+      "colorsExclude": [
+        "sample"
+      ],
+      "sizesInclude": [
+        "sample"
+      ],
+      "excludedProductIds": [
+        "sample"
+      ],
+      "excludedCandidateItemIds": [
+        "sample"
+      ],
+      "sortRule": "price_asc",
+      "preferences": {
+        "freeShipping": true,
+        "shopTypes": [
+          "sample"
+        ],
+        "brands": [
+          "sample"
+        ],
+        "colors": [
+          "sample"
+        ],
+        "platforms": [
+          "sample"
+        ],
+        "priceDirection": "sample"
+      }
+    },
+    "answer": {
+      "assistantMessage": "sample",
+      "intent": "sample",
+      "clarification": "sample",
+      "source": "sample",
+      "conversationSummary": "sample",
+      "evidenceRefs": [
+        {
+          "artifactId": "sample",
+          "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+          "schemaId": "sample",
+          "contentVersion": 1,
+          "schemaVersion": 1
+        }
+      ],
+      "candidateComparisons": [
+        {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      ],
+      "rejectedOperations": [
+        {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      ],
+      "filterRemove": [
+        {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      ],
+      "operations": [
+        {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      ],
+      "profilePatch": {
+        "category": "sample",
+        "brand": "sample",
+        "modelLine": "sample",
+        "colorFamily": "sample",
+        "colorway": "sample",
+        "shoeType": "sample",
+        "size": "sample",
+        "color": "sample",
+        "modelVersion": "sample",
+        "profileVersion": "sample",
+        "styleTags": [
+          "sample"
+        ],
+        "sceneTags": [
+          "sample"
+        ],
+        "keywords": [
+          "sample"
+        ],
+        "confidence": 0.5,
+        "raw": {
+          "source": "fixture",
+          "unknown": null,
+          "decimal": "123.4500"
+        }
+      },
+      "filterPatch": {
+        "priceMin": "123.4500",
+        "priceMax": "123.4500",
+        "priceTarget": "123.4500",
+        "priceTolerance": "123.4500",
+        "timeConstraintDays": 0.5,
+        "sizeMin": 0.5,
+        "sizeMax": 0.5,
+        "stockOnly": true,
+        "freeShippingOnly": true,
+        "urgentDeliveryPreferred": true,
+        "sizeSystem": "sample",
+        "shopType": "sample",
+        "categoryScope": "sample",
+        "platformsInclude": [
+          "sample"
+        ],
+        "platformsExclude": [
+          "sample"
+        ],
+        "brandsInclude": [
+          "sample"
+        ],
+        "brandsExclude": [
+          "sample"
+        ],
+        "colorsInclude": [
+          "sample"
+        ],
+        "colorsExclude": [
+          "sample"
+        ],
+        "sizesInclude": [
+          "sample"
+        ],
+        "excludedProductIds": [
+          "sample"
+        ],
+        "excludedCandidateItemIds": [
+          "sample"
+        ],
+        "sortRule": "price_asc",
+        "preferences": {
+          "freeShipping": true,
+          "shopTypes": [
+            "sample"
+          ],
+          "brands": [
+            "sample"
+          ],
+          "colors": [
+            "sample"
+          ],
+          "platforms": [
+            "sample"
+          ],
+          "priceDirection": "sample"
+        }
+      },
+      "shouldResetPreviousFilters": true,
+      "degraded": true,
+      "turnIndex": 1
+    },
+    "assistantMessage": "sample",
+    "prices": [
+      {
+        "productId": "sample",
+        "candidateItemId": "sample",
+        "currency": "sample",
+        "stockStatus": "sample",
+        "source": "sample",
+        "sourceObservedAt": "sample",
+        "catalogUpdatedAt": "sample",
+        "fetchedAt": "sample",
+        "freshness": "sample",
+        "status": "sample",
+        "reason": "sample",
+        "amount": "123.4500"
+      }
+    ],
+    "priceSource": "sample",
+    "pagination": {
+      "cursorId": "sample",
+      "sessionId": "sample",
+      "candidateSnapshotId": "sample",
+      "preprocessSnapshotId": "sample",
+      "filterHash": "sample",
+      "sortRule": "sample",
+      "expiresAt": "sample",
+      "indexVersion": "sample",
+      "queryHash": "sample",
+      "offset": 1,
+      "limit": 1,
+      "exhausted": true,
+      "raw": {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    },
+    "fallback": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "degraded": true,
+    "errors": [
+      {
+        "source": "fixture",
+        "unknown": null,
+        "decimal": "123.4500"
+      }
+    ],
+    "timing": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "serverTiming": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    },
+    "evidenceRefs": [
+      {
+        "artifactId": "sample",
+        "contentHash": "0000000000000000000000000000000000000000000000000000000000000000",
+        "schemaId": "sample",
+        "contentVersion": 1,
+        "schemaVersion": 1
+      }
+    ],
+    "imageSearch": {
+      "source": "fixture",
+      "unknown": null,
+      "decimal": "123.4500"
+    }
+  }
+}

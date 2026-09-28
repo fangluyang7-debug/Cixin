@@ -1,3 +1,4 @@
+import { TurnsModule } from '../turns/turns.module';
 import { ShoppingImageStagesService } from './application/shopping-image-stages.service';
 import { ShoppingTaskController } from './controllers/shopping-task.controller';
 import { ShoppingRuntimeService } from './application/shopping-runtime.service';
@@ -33,6 +34,7 @@ import { SearchDebugController } from './controllers/search-debug.controller';
 
 @Module({
   imports: [
+    TurnsModule,
     CacheModule,
     AuthModule,
     AssetsModule,

@@ -252,7 +252,7 @@ function optionalString(value: string | undefined) {
 }
 
 export const SHOPPING_WORKFLOW_TOOLS = ['shopping.text', 'shopping.image', 'shopping.image_upload', 'shopping.debug',
-  'shopping.read', 'shopping.prices', 'shopping.answer', 'shopping.subject', 'shopping.profile', 'shopping.refine'];
+  'shopping.read', 'shopping.prices', 'shopping.answer', 'shopping.subject', 'shopping.profile', 'shopping.refine', 'shopping.turn', 'shopping.more'];
 
 function createWorkflowTools(): import('./runtime.contracts').ToolDescriptor[] {
   return [...SHOPPING_WORKFLOW_TOOLS, ...IMAGE_STAGE_TOOLS].map(toolId => ({

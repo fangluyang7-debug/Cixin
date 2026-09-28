@@ -111,7 +111,7 @@ it('rejects missing client measurements and slow measured uploads before busines
   const test = fixture();
   await expect(test.runtime.execute('shopping.image', { userId: 'user-a', taskId: 'phone_missing', dto: { assetId: 'a' } })).rejects.toThrow('CLIENT_ROUTE_REQUIRED');
   await expect(test.runtime.execute('shopping.image', { userId: 'user-a', taskId: 'phone_slow', dto: { assetId: 'a' },
-    networkProfile: { ...measuredRoute(), inputBytes: 6 * 1024 * 1024, uploadMbps: 0.001 } })).rejects.toThrow();
+    networkProfile: { ...measuredRoute(), inputBytes: 6 * 1024 * 1024, downloadMbps: 0.001 } })).rejects.toThrow();
   expect(test.runs.latest()?.status).toBe('blocked');
   expect(test.content.readMetadata).not.toHaveBeenCalled();
 });
@@ -133,4 +133,11 @@ it('executes owned session reads even when model capabilities are unavailable', 
   expect(test.sessions.readRuntimeSession).toHaveBeenCalledWith('owned');
   expect(test.profiles.classifyProductCategory).not.toHaveBeenCalled();
   expect(test.runs.get(result.runId)?.ownerUserId).toBe('user-a');
+});
+
+it('does not reject a received request for the cost of an already completed slow upload', async () => {
+  const test = fixture();
+  const result = await test.runtime.execute('shopping.image', {userId:'user-a',taskId:'phone_uploaded',dto:{assetId:'a'},
+    networkProfile:{...measuredRoute(),inputBytes:6*1024*1024,uploadMbps:0.001}});
+  expect(result.status).toBe('succeeded');
 });

@@ -1,16 +1,22 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 export interface RuntimeWorkMeasurements {
+  attemptId?: string;
+  placementDecisions?: Record<string, unknown>[];
   storageReadMs: number;
   storageWriteMs: number;
   modelMs: number;
 }
-interface WorkScope { pending: Set<Promise<unknown>>; signal: AbortSignal; measurements: RuntimeWorkMeasurements; }
+interface WorkScope { deadline?: number; ownerId?: string; pending: Set<Promise<unknown>>; signal: AbortSignal; measurements: RuntimeWorkMeasurements; }
 const scopes = new AsyncLocalStorage<WorkScope>();
 
 export class RuntimeWorkScope {
-  static run<T>(signal: AbortSignal, measurements: RuntimeWorkMeasurements, work: () => Promise<T>): Promise<T> {
-    const scope: WorkScope = { signal, measurements, pending: new Set() };
+  static settlement<T>(work: () => Promise<T>): Promise<T> { return scopes.exit(work); }
+  static recordAttempt(attemptId:string):void { const scope=scopes.getStore(); if(scope)scope.measurements.attemptId=attemptId; }
+  static recordPlacement(value: Record<string,unknown>): void { const scope=scopes.getStore(); if(scope) { const records=scope.measurements.placementDecisions ?? []; if(records.length<16) records.push(value); scope.measurements.placementDecisions=records; } }
+  static ownerId(): string | undefined { return scopes.getStore()?.ownerId; }
+  static run<T>(signal: AbortSignal, measurements: RuntimeWorkMeasurements, work: () => Promise<T>, ownerId?: string, remainingBudgetMs?: number): Promise<T> {
+    const scope: WorkScope = { signal, measurements, pending: new Set(), ownerId, deadline: remainingBudgetMs === undefined ? undefined : performance.now() + remainingBudgetMs };
     return scopes.run(scope, async () => {
       try { return await work(); }
       finally {
@@ -27,12 +33,13 @@ export class RuntimeWorkScope {
     }
     return work;
   }
+  static remainingBudget(fallback: number): number { const deadline = scopes.getStore()?.deadline; return deadline === undefined ? fallback : Math.max(0, deadline - performance.now()); }
   static checkpoint(): void { scopes.getStore()?.signal.throwIfAborted(); }
   static signal(timeoutMs: number): AbortSignal {
     const current = scopes.getStore()?.signal;
     return current ? AbortSignal.any([current, AbortSignal.timeout(timeoutMs)]) : AbortSignal.timeout(timeoutMs);
   }
-  static async measure<T>(segment: keyof RuntimeWorkMeasurements, work: () => Promise<T>): Promise<T> {
+  static async measure<T>(segment: 'storageReadMs' | 'storageWriteMs' | 'modelMs', work: () => Promise<T>): Promise<T> {
     const scope = scopes.getStore();
     scope?.signal.throwIfAborted();
     const began = performance.now();

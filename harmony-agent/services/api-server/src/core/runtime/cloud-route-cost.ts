@@ -54,11 +54,11 @@ export function estimateCloudRoute(task: TaskIntent, executorId: string,
   if (reasons.length > 0) return { reasons, overheadMs: null, feeMinorUnits: null };
 
   // COS and colocated data are read by the cloud executor, not uploaded by the phone.
-  const uploadMs = route.inputResidence !== "device" || route.inputBytes === 0
+  const uploadMs = route.inputTransferCompleted === true || route.inputResidence !== "device" || route.inputBytes === 0
     ? 0 : route.inputBytes * 8 / (route.uploadMbps * 1000);
   const downloadMs = outputDestination !== "device" || route.outputBytes === 0
     ? 0 : route.outputBytes * 8 / (route.downloadMbps * 1000);
-  const overheadMs = route.roundTripMs + uploadMs + downloadMs +
+  const overheadMs = (route.throughputScope === "effective" ? 0 : route.roundTripMs) + uploadMs + downloadMs +
     route.storageReadMs + (route.storageWriteMs ?? 0) + route.queueMs;
   if (!Number.isFinite(overheadMs)) {
     return { reasons: ["CLOUD_ROUTE_METRICS_INVALID"], overheadMs: null, feeMinorUnits: null };

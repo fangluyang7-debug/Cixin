@@ -141,7 +141,8 @@ describe("buildImageSearchTaskGraph", () => {
   it("keeps the shopping debug graph ordered for scheduler scoring", () => {
     const graph = buildImageSearchTaskGraph("asset_demo");
 
-    expect(graph.graphId).toBe("image-search-asset_demo");
+    expect(graph.graphId).toMatch(/^workflow_/);
+    expect(buildImageSearchTaskGraph("asset_demo").graphId).not.toBe(graph.graphId);
     expect(graph.nodes.map((node) => node.taskId)).toEqual([
       'receive', 'asset', 'quality-check', 'crop', 'category', 'product-profile', 'embedding',
       'vector-search', 'price-stock', 'rank', 'answer', 'result',

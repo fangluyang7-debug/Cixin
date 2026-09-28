@@ -27,8 +27,7 @@ export class AdaptiveCostModel {
     // Prior worker scaling is intentionally weak until measured; parallel speedup is not linear.
     const workerScale: number = Math.max(0.75, Math.min(1.5,
       Math.sqrt(declaredWorkers / execution.workerCount)));
-    const batchScale: number = declared?.batchSize === undefined || execution.batchSize === undefined ? 1 :
-      Math.max(0.25, Math.min(4, execution.batchSize / declared.batchSize));
+    // Batch size is an execution partition, not additional business work.
     const dimensionScale: number = declared?.retrievalDimensions === undefined ||
       execution.retrievalDimensions === undefined ? 1 :
       0.5 + 0.5 * Math.max(0.0625, Math.min(1, execution.retrievalDimensions / declared.retrievalDimensions));
@@ -36,7 +35,7 @@ export class AdaptiveCostModel {
       1 + Math.max(0, Math.min(100, state.systemCpuUsage)) / 100;
     const heat: number = state.thermalLevel === ThermalLevel.HOT ? 1.8 :
       state.thermalLevel === ThermalLevel.WARM ? 1.2 : 1;
-    const priorMs: number = Math.max(1, level.estimatedLatencyMs * scale * workerScale * batchScale *
+    const priorMs: number = Math.max(1, level.estimatedLatencyMs * scale * workerScale *
       dimensionScale * cpuLoad * heat * 1.5);
     const sample: CostSample | undefined = this.buckets.get(this.key(task, state, execution));
     const latency: number = sample === undefined ? priorMs :
@@ -88,7 +87,7 @@ export class AdaptiveCostModel {
       Math.max(1, hints.baselineCandidateCount ?? 1);
     const elements: number = (context.inputShape ?? [1]).reduce((a: number, b: number) => a * b, 1) /
       Math.max(1, hints.baselineInputElements ?? 1);
-    return Math.min(64, Math.max(0.25, tokens, candidates, elements) * (context.batchSize ?? 1));
+    return Math.min(64, Math.max(0.25, tokens, candidates, elements));
   }
 
   private key(task: TaskProfile, state: DeviceState, execution: ExecutionProfile): string {
@@ -97,7 +96,7 @@ export class AdaptiveCostModel {
     const cpu: string = state.systemCpuUsage === null ? 'unknown' :
       `${Math.floor(Math.max(0, Math.min(100, state.systemCpuUsage)) / 25)}`;
     return `${task.capability}:${task.template!.resourceHints.modelVersion}:${execution.id}:` +
-      `${execution.backend}:${execution.workerCount}:${Math.round(Math.log2(this.inputScale(task)))}:` +
-      `${thermal}:${memory}:${cpu}:${state.source}`;
+      `${execution.backend}:${execution.workerCount}:${execution.batchSize ?? 0}:${execution.retrievalDimensions ?? 0}:${execution.candidateCount ?? 0}:${Math.round(Math.log2(this.inputScale(task)))}:` +
+      `cost-v2:${thermal}:${memory}:${cpu}:${state.appVisibility}:${state.source}`;
   }
 }
