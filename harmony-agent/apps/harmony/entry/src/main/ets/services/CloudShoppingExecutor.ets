@@ -81,6 +81,7 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
   }
   public async prepare(input: CloudShoppingInput, context: TaskContext, signal?: CancellationSignal): Promise<void> {
     if (context.networkAllowed !== true) { throw new Error('NETWORK_NOT_ALLOWED'); }
+    await CloudApiConfig.ensureGuest();
     const body: CloudRequestInput = { message: input.query, assetId: input.assetId };
     if (input.photoUri !== undefined) {
       const file = fileIo.openSync(input.photoUri, fileIo.OpenMode.READ_ONLY);
@@ -187,6 +188,7 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
         connectTimeout: Math.min(timeoutMs, 10000), readTimeout: timeoutMs });
       if (signal.isCancellationRequested) { throw new Error('CLOUD_CANCELLED'); }
       if (response.responseCode < 200 || response.responseCode >= 300) {
+        if (response.responseCode === 401) { CloudApiConfig.logout(); }
         let failure: string = 'CLOUD_HTTP_' + response.responseCode;
         try {
           const errorBody = JSON.parse(String(response.result)) as CloudErrorEnvelope;

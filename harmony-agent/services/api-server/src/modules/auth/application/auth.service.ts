@@ -55,6 +55,16 @@ export class AuthService {
     });
   }
 
+  async createGuest() {
+    const id = createId('guest');
+    const user = await this.prisma.user.create({
+      data: { id, email: `${id}@guest.invalid`, displayName: 'Guest' },
+    });
+    return this.buildAuthResponse({
+      userId: user.id, email: user.email, displayName: user.displayName, status: user.status,
+    });
+  }
+
   async login(dto: LoginDto) {
     this.validateLoginDto(dto);
     const email = this.normalizeEmail(dto.email);

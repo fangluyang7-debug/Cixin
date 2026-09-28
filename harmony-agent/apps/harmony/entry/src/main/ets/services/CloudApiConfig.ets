@@ -1,7 +1,6 @@
 import { http } from '@kit.NetworkKit';
 import { common } from '@kit.AbilityKit';
 import { preferences } from '@kit.ArkData';
-interface CloudLoginBody { email: string; password: string; }
 interface CloudAuthData { accessToken: string; }
 interface CloudAuthEnvelope { success: boolean; data?: CloudAuthData; }
 
@@ -9,19 +8,27 @@ interface CloudAuthEnvelope { success: boolean; data?: CloudAuthData; }
 export class CloudApiConfig {
   private static baseUrl: string = '';
   private static accessToken: string = '';
+  private static pending: Promise<void> | undefined = undefined;
   public static setAccessToken(token: string): void { CloudApiConfig.accessToken = token; }
   public static isAuthenticated(): boolean { return CloudApiConfig.accessToken.length > 0; }
-  public static logout(): void { CloudApiConfig.accessToken = ''; }
-  public static async authenticate(email: string, password: string, register: boolean = false): Promise<void> {
+  public static logout(): void { CloudApiConfig.accessToken = ''; CloudApiConfig.pending = undefined; }
+  public static async ensureGuest(): Promise<void> {
     const origin = CloudApiConfig.getBaseUrl();
+    if (CloudApiConfig.isAuthenticated()) { return; }
+    if (CloudApiConfig.pending === undefined) { CloudApiConfig.pending = CloudApiConfig.createGuest(origin); }
+    const pending = CloudApiConfig.pending;
+    try { await pending; }
+    finally { if (CloudApiConfig.pending === pending) { CloudApiConfig.pending = undefined; } }
+  }
+  private static async createGuest(origin: string): Promise<void> {
     const client = http.createHttp();
     try {
-      const input: CloudLoginBody = { email: email.trim(), password };
-      const response = await client.request(origin + '/api/v1/auth/' + (register ? 'register' : 'login'), {
+      const response = await client.request(origin + '/api/v1/auth/guest', {
         method: http.RequestMethod.POST, header: { 'Content-Type': 'application/json' },
-        extraData: JSON.stringify(input), connectTimeout: 10000, readTimeout: 15000
+        extraData: '{}', connectTimeout: 10000, readTimeout: 15000
       });
-      if (response.responseCode < 200 || response.responseCode >= 300 || typeof response.result !== 'string') { throw new Error('CLOUD_AUTH_FAILED'); }
+      if (response.responseCode === 404) { throw new Error('CLOUD_GUEST_NOT_DEPLOYED'); }
+      if (response.responseCode < 200 || response.responseCode >= 300 || typeof response.result !== 'string') { throw new Error('CLOUD_GUEST_FAILED'); }
       const body = JSON.parse(response.result) as CloudAuthEnvelope;
       if (!body.success || !body.data || !body.data.accessToken || origin !== CloudApiConfig.getBaseUrl()) { throw new Error('CLOUD_AUTH_FAILED'); }
       CloudApiConfig.setAccessToken(body.data.accessToken);

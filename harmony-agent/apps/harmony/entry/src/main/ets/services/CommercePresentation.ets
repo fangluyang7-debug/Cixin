@@ -1,6 +1,20 @@
 import { FeedbackKind, FeedbackOption, FeedbackReceipt } from 'scheduler';
 import { Product } from '../models/Product';
 
+export function cloudFailureText(reason?: string): string {
+  switch (reason) {
+    case 'CLOUD_API_NOT_CONFIGURED': return '请先在“我的”中配置云端地址';
+    case 'CLOUD_GUEST_NOT_DEPLOYED': return '云端尚未更新免登录接口，请更新服务后重试';
+    case 'CLOUD_GUEST_FAILED':
+    case 'CLOUD_HTTP_401': return '云端连接身份暂不可用，请重试';
+    case 'NETWORK_NOT_ALLOWED': return '当前任务未获网络访问授权';
+    case 'NETWORK_CHANGED_DURING_PROBE':
+    case 'REMOTE_ROUTE_CHANGED': return '网络连接已变化，请重试';
+    case 'CLOUD_IMAGE_TOO_LARGE': return '图片为空或超过 6 MB，请重新选择';
+    default: return '云端搜索未完成，请检查连接或稍后重试';
+  }
+}
+
 export function productKey(product: Product): string { return `${product.platform}:${product.externalId}`; }
 export function platformLabel(value: string): string {
   if (value === 'tb') { return '淘宝'; }

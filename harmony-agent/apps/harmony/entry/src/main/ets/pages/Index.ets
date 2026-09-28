@@ -11,7 +11,7 @@ import { ProductDetail } from '../components/ProductDetail';
 import { ExperienceFeedback } from '../components/ExperienceFeedback';
 import { CommerceIconButton, ProductTile } from '../components/CommerceControls';
 import { feedbackAvailabilityText } from '../services/FeedbackPresentation';
-import { feedbackReceiptText, numericPrice, platformLabel, productKey, safeProductUrl } from '../services/CommercePresentation';
+import { cloudFailureText, feedbackReceiptText, numericPrice, platformLabel, productKey, safeProductUrl } from '../services/CommercePresentation';
 
 enum CommerceTab { HOME, CATALOG, RADAR, SAVED, PROFILE }
 
@@ -28,10 +28,6 @@ struct Index {
   private photoGeneration: number = 0;
   private feedbackWorkflowId: string = '';
   private pendingWorkflowId: string = '';
-  @State cloudEmail: string = '';
-  @State cloudPassword: string = '';
-  @State cloudAuthStatus: string = '请登录云端账号';
-  @State cloudAuthBusy: boolean = false;
   @State cloudEndpoint: string = '';
   @State cloudStatus: string = '请配置 Zeabur HTTPS API 地址';
   private contentScroller: Scroller = new Scroller();
@@ -97,15 +93,6 @@ struct Index {
     this.catalog = [];
     this.initialStatus = '商品由 Zeabur 云端检索';
     try { this.cloudEndpoint = CloudApiConfig.getBaseUrl(); this.cloudStatus = '云端 API 已配置'; } catch (_) {}
-  }
-  private async authenticateCloud(register: boolean): Promise<void> {
-    if (this.cloudAuthBusy) { return; }
-    this.cloudAuthBusy = true;
-    try {
-      await CloudApiConfig.authenticate(this.cloudEmail, this.cloudPassword, register);
-      this.cloudAuthStatus = '云端账号已登录（重启 App 后需重新登录）';
-    } catch (_) { this.cloudAuthStatus = '登录失败，请检查已保存的服务地址、账号和密码'; }
-    finally { this.cloudPassword = ''; this.cloudAuthBusy = false; }
   }
 
   private async saveCloudEndpoint(): Promise<void> {
@@ -195,7 +182,7 @@ struct Index {
         this.plan = audit === undefined ? 'Zeabur 云端执行' : `${audit.mode} · ${audit.actualProfileId}`;
       }
       if (result.status !== TaskStatus.SUCCEEDED || result.output === null) {
-        this.summary = result.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : '当前设备状态或任务约束不允许完成搜索';
+        this.summary = result.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(result.reasonCode);
         await handle.signal({ type: TaskSignalType.RESULT_IGNORED });
         this.pendingWorkflowId = '';
         // A timeout or failure is still a perceivable wait; ask if the user is still here and opted in.
@@ -280,6 +267,11 @@ struct Index {
     return this.priceSorted ? this.products.slice().sort((a: Product, b: Product) => numericPrice(a) - numericPrice(b)) : this.products;
   }
   private async choosePhoto(): Promise<void> {
+    try { CloudApiConfig.getBaseUrl(); }
+    catch (error) {
+      this.notify(cloudFailureText(error instanceof Error ? error.message : undefined));
+      return;
+    }
     this.invalidate(TaskSignalType.PAGE_LEFT);
     const generation = ++this.photoGeneration;
     try {
@@ -295,7 +287,7 @@ struct Index {
       this.loading = false;
       if (searchResult.status === TaskStatus.SUCCEEDED && searchResult.output !== null) {
         this.products = searchResult.output; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
-      } else { this.summary = '云端图片检索失败、超时或已取消'; }
+      } else { this.summary = searchResult.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(searchResult.reasonCode); }
     } catch (_) { this.loading = false; this.summary = '图片选择或云端检索失败，请检查配置与网络'; }
   }
   private async openSource(): Promise<void> {
@@ -401,15 +393,6 @@ struct Index {
         .onChange((value: string) => { this.cloudEndpoint = value; })
       Button('保存云端地址').onClick(() => this.saveCloudEndpoint())
       Text(this.cloudStatus).fontSize(12)
-      TextInput({ text: this.cloudEmail, placeholder: '云端账号邮箱' }).onChange((value: string) => { this.cloudEmail = value; })
-      TextInput({ text: this.cloudPassword, placeholder: '密码（注册至少 8 位）' }).type(InputType.Password)
-        .onChange((value: string) => { this.cloudPassword = value; })
-      Row({ space: 12 }) {
-        Button('登录').enabled(!this.cloudAuthBusy).onClick(() => { this.authenticateCloud(false); })
-        Button('注册').enabled(!this.cloudAuthBusy).onClick(() => { this.authenticateCloud(true); })
-        Button('退出登录').onClick(() => { CloudApiConfig.logout(); this.cloudAuthStatus = '已退出登录'; })
-      }
-      Text(this.cloudAuthStatus).fontSize(12)
       Text('电脑实时监控').fontSize(18).fontWeight(FontWeight.Medium).width('100%')
       Text('电脑和手机连接同一可信 Wi-Fi 后，运行电脑端监控服务，再填写电脑局域网地址与配对码。只推送调度状态、资源指标和任务事件，不包含搜索内容、图片或商品列表。')
         .fontSize(12).fontColor('#747878').width('100%')
