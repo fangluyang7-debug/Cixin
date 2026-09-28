@@ -1,0 +1,2901 @@
+{
+  "batchSource": "collected_all_20260606_chunk0009",
+  "items": [
+    {
+      "externalId": "0071613947-12448521379",
+      "platform": "suning",
+      "title": "喜事虹 迷彩套装 迷彩服作训服(帽子+T恤+上衣+裤子+腰带 )5件 套 迷彩套装",
+      "price": "160.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "喜事虹劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613947/12448521379.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/3-HkM5UvqTiEme6aYEFjeA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 800,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "喜事虹劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071613947-12448521379",
+        "rawProductUrlHash": "8973d170149563ee",
+        "rawImageUrlHash": "370941067c2d9b58",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071613947-12448521382",
+      "platform": "suning",
+      "title": "喜事虹 迷彩套装 迷彩服作训服(帽子+T恤+裤子+腰带+鞋 )5件 套 迷彩套装",
+      "price": "160.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "喜事虹劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613947/12448521382.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/VxhHq_THuGXHH1IRPjCBZg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 801,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "喜事虹劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071613947-12448521382",
+        "rawProductUrlHash": "7090f4a97ed63e80",
+        "rawImageUrlHash": "36c178d81b5263e3",
+        "attributes": {
+          "category": "shoe"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12448523519",
+      "platform": "suning",
+      "title": "需耀 工作服套装 蓝色长袖 套 透气耐磨",
+      "price": "300.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12448523519.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/Ya9lq4-gBRXXh4qZ19B0Pg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 802,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12448523519",
+        "rawProductUrlHash": "229ae7ef22e14056",
+        "rawImageUrlHash": "6cce9317a8e8ba64",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615918-12448556547",
+      "platform": "suning",
+      "title": "冬友 皮袄皮裤 160-190 套 冬友 皮袄皮裤 160-190 套",
+      "price": "1680.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "冬友旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615918/12448556547.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/QTr1Iu7U63R1PVBPeJkZqw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 803,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "冬友旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615918-12448556547",
+        "rawProductUrlHash": "4aa93578a38bd34f",
+        "rawImageUrlHash": "a9b887d8326c5394",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071615918-12448556909",
+      "platform": "suning",
+      "title": "冬友 高可视性反光马甲 XS-4XL 件 冬友 高可视性反光马甲 XS-4XL 件",
+      "price": "88.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "冬友旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615918/12448556909.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/YtidPc-Zb9USG-818SjhZw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 804,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "冬友旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615918-12448556909",
+        "rawProductUrlHash": "9ba218f5eeb8a120",
+        "rawImageUrlHash": "28bbaed76444449b",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448559974",
+      "platform": "suning",
+      "title": "雅霖服 三季服工作服YLFSJF9102 套 黄色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "192.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448559974.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/ptyhA8ZFy0GJ8Z16LxBrNQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 805,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448559974",
+        "rawProductUrlHash": "8ed98b303c0357af",
+        "rawImageUrlHash": "1d0ab04999727c39",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448572782",
+      "platform": "suning",
+      "title": "骏捷诺 羽绒裤 防寒裤保暖裤男款 JJN613 M-5xl藏蓝/条 坚韧防撕拉",
+      "price": "600.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448572782.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/TEOrufNPhHeoQHkOuO5seA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 806,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448572782",
+        "rawProductUrlHash": "18299f86a4f5cbf1",
+        "rawImageUrlHash": "28a7552f325cfd57",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448574495",
+      "platform": "suning",
+      "title": "骏捷诺 防寒裤 羽绒裤男款 JJN614 M-3xl黑色/条 坚韧防撕拉",
+      "price": "610.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448574495.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/U6SURPKrFJuNcgtFjb0BGg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 807,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448574495",
+        "rawProductUrlHash": "3d911fd092d037e3",
+        "rawImageUrlHash": "b42e17928b6bdb5e",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12448574500",
+      "platform": "suning",
+      "title": "需耀 分体式雨衣套装 150D荧光黄 套 防雨防淋",
+      "price": "294.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12448574500.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/F5_f1xtJD-XEVErG-XqUBQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 808,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12448574500",
+        "rawProductUrlHash": "ccb4906d766f00ba",
+        "rawImageUrlHash": "17ac26987bb0463b",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12448574764",
+      "platform": "suning",
+      "title": "需耀 分体式雨衣套装 300D荧光黄 套 防雨",
+      "price": "328.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12448574764.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/hZ-TqgWrWMBbCVffLUuQ9A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 809,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12448574764",
+        "rawProductUrlHash": "da758c2f4cb8d0a2",
+        "rawImageUrlHash": "41c2182804bb9bad",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448574894",
+      "platform": "suning",
+      "title": "梓南北 马甲 MJ18 件 收纳方便",
+      "price": "71.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448574894.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/Q5zYG6L4XOtgtTqtBFJG_A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 810,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "300+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448574894",
+        "rawProductUrlHash": "9f4dbe93071880a0",
+        "rawImageUrlHash": "d6a17a61f6de3e73",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448585150",
+      "platform": "suning",
+      "title": "骏捷诺记录仪背带黑色/件 坚韧防撕拉",
+      "price": "160.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448585150.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/9FgKrz8rHPE8Fzav2h2jwA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 811,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448585150",
+        "rawProductUrlHash": "c4fb56433a98da03",
+        "rawImageUrlHash": "73ddb5663c468aa3",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071596496-12448587083",
+      "platform": "suning",
+      "title": "钿满堂防护棉服L-XXXL/件 新品发售",
+      "price": "384.06",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "钿满堂旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596496/12448587083.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/1LrcsOhI2VtA2_memFk4mw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 812,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "钿满堂旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071596496-12448587083",
+        "rawProductUrlHash": "f1fa21e59a65b026",
+        "rawImageUrlHash": "cdde48948cb2d64e",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448592044",
+      "platform": "suning",
+      "title": "梓南北 工作服 春秋款 套 面料硬挺有型",
+      "price": "217.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448592044.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/zz0jr8BgbpwH2Oo6s7RLXA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 813,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "200+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448592044",
+        "rawProductUrlHash": "60506fb08b2cc926",
+        "rawImageUrlHash": "a2422b61aa7daf7a",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448607365",
+      "platform": "suning",
+      "title": "雅霖服 套装羽绒服YLF23P25093 套 黑色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "1525.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448607365.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/BsJAkSv_4sZZDUs-TPvTgg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 814,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448607365",
+        "rawProductUrlHash": "f1c58dd0d525ce16",
+        "rawImageUrlHash": "357e265ee275ee6a",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071616411-12448609480",
+      "platform": "suning",
+      "title": "大羿之箭 蓝色工作服 180# 套 大羿之箭 蓝色工作服 180# 套",
+      "price": "293.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "大羿之箭旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071616411/12448609480.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/hoe2nuM1STVqprPhm4Hmxg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 815,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "大羿之箭旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071616411-12448609480",
+        "rawProductUrlHash": "38fe919291d85cd8",
+        "rawImageUrlHash": "275624a72f41b75f",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614720-12448623355",
+      "platform": "suning",
+      "title": "梦丽赛 冬季棉服 150-190(个) 干净整洁",
+      "price": "558.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梦丽赛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614720/12448623355.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/sRsXulQOgXLknWsbGPLcAQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 816,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梦丽赛旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614720-12448623355",
+        "rawProductUrlHash": "887ebc895ff28a63",
+        "rawImageUrlHash": "27d5773b2b156861",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448632622",
+      "platform": "suning",
+      "title": "红晨岛防寒羽绒服(180)(件) 防风保暖、透气性好、时尚舒适",
+      "price": "1300.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448632622.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/qMF57TYzX04yYESJKQC8bA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 817,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448632622",
+        "rawProductUrlHash": "ec98e8af4e36fd02",
+        "rawImageUrlHash": "85825c7cac81c819",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448632907",
+      "platform": "suning",
+      "title": "红晨岛防寒羽绒服(185)(件) 防风保暖、透气性好、时尚舒适",
+      "price": "1296.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448632907.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/r8xa-JPEjs3SynfwLKtBmA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 818,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448632907",
+        "rawProductUrlHash": "97acbdb1b0ac75e1",
+        "rawImageUrlHash": "d43024bfcec3c6eb",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614720-12448646659",
+      "platform": "suning",
+      "title": "梦丽赛 保暖马甲 150-190 (个) 时尚美观大气",
+      "price": "428.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梦丽赛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614720/12448646659.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/eeVFWYd3SdvmfGxZcHku1Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 819,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梦丽赛旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614720-12448646659",
+        "rawProductUrlHash": "f352ba803a2db92c",
+        "rawImageUrlHash": "d52f847a6e6c05f5",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614720-12448647003",
+      "platform": "suning",
+      "title": "梦丽赛 保暖长款棉服 150-190 (个) 时尚美观大气",
+      "price": "568.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梦丽赛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614720/12448647003.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/gDZl13BQ2k8z5YvFifHzIw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 820,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梦丽赛旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614720-12448647003",
+        "rawProductUrlHash": "2102da9299a778cb",
+        "rawImageUrlHash": "d1f1ec9bc04348ce",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614740-12448659191",
+      "platform": "suning",
+      "title": "鑫捷登 品牌同款轻质男女外套 AGRY-ZDJM12 件 品牌同款轻便舒适",
+      "price": "178.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "鑫捷登运动用品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614740/12448659191.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/M0oCecrBJsNdkk9zjHEfyw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 821,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "鑫捷登运动用品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614740-12448659191",
+        "rawProductUrlHash": "85a599e107329033",
+        "rawImageUrlHash": "388192073464ce7b",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448663809",
+      "platform": "suning",
+      "title": "骏捷诺 加绒加厚棉马甲 黑色加绒S-4XL/件 坚韧防撕拉",
+      "price": "180.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448663809.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/UnNnJFzjwYomAIFohIc1Eg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 822,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448663809",
+        "rawProductUrlHash": "1b42b4e5ea11eadb",
+        "rawImageUrlHash": "0e851fe8c857d771",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448680389",
+      "platform": "suning",
+      "title": "骏捷诺防蜂服001款/个 坚韧防撕拉",
+      "price": "2000.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448680389.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/61HNsJcwVv8zAaRwdBe_Zw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 823,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448680389",
+        "rawProductUrlHash": "218f95807a946398",
+        "rawImageUrlHash": "0c8d3571b649b5e7",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448686109",
+      "platform": "suning",
+      "title": "骏捷诺男士保暖背心男款 深灰2xl-4xl/件 坚韧防撕拉",
+      "price": "60.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448686109.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/h6OCCSfP7DD0uQlTEHsjRg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 824,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448686109",
+        "rawProductUrlHash": "ca4dec7026b48bec",
+        "rawImageUrlHash": "4127fd84271fdbf2",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448686119",
+      "platform": "suning",
+      "title": "骏捷诺保暖女士背心豆沙粉M-XXl/件 坚韧防撕拉",
+      "price": "150.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448686119.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/mJU5KVq4PbLJ5w_EckBSNA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 825,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448686119",
+        "rawProductUrlHash": "b4e116025be37974",
+        "rawImageUrlHash": "c4f0d8c2dbaf3f96",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071616849-12448689357",
+      "platform": "suning",
+      "title": "哈铁亿农 防寒衣 160-190cm/件 保暖防风",
+      "price": "1300.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "哈铁亿农百货旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071616849/12448689357.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/w6TXaKI3JjvQ5V3USAdw-A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 826,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "哈铁亿农百货旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071616849-12448689357",
+        "rawProductUrlHash": "17ffe07dc0ec62b6",
+        "rawImageUrlHash": "dd06d87990d36ea7",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614977-12448708762",
+      "platform": "suning",
+      "title": "飞翔大雁 羽绒服套装 S-XXXXL 套 抗寒保暖",
+      "price": "1200.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "飞翔大雁劳保服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614977/12448708762.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/_op-w4hW0kivhPjY7fBDug.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 827,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "飞翔大雁劳保服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614977-12448708762",
+        "rawProductUrlHash": "c24c46589adf5b44",
+        "rawImageUrlHash": "6397acc643964a0a",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614977-12448739453",
+      "platform": "suning",
+      "title": "飞翔大雁 防护马甲(特大中小) 件 反光易辨识",
+      "price": "90.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "飞翔大雁劳保服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614977/12448739453.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/d7G4MIZie_-CEC0WtRJ7Kg.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 828,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "飞翔大雁劳保服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614977-12448739453",
+        "rawProductUrlHash": "6c82df40aef7e5c3",
+        "rawImageUrlHash": "362d77ba72fd7ce4",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071616849-12448740923",
+      "platform": "suning",
+      "title": "哈铁亿农 冬季工作服 160-190cm/件 保暖防寒",
+      "price": "350.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "哈铁亿农百货旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071616849/12448740923.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/wi_2Uw0l3at-Cfi-4AGrFA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 829,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "哈铁亿农百货旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071616849-12448740923",
+        "rawProductUrlHash": "a19b8b05a4f22d2e",
+        "rawImageUrlHash": "371e1d607a343c77",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071616849-12448740926",
+      "platform": "suning",
+      "title": "哈铁亿农 皮坎肩 185/件 保暖抗风",
+      "price": "650.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "哈铁亿农百货旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071616849/12448740926.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/DfO-VTu4tm8Eu4zzAFPeww.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 830,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "哈铁亿农百货旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071616849-12448740926",
+        "rawProductUrlHash": "63555b5fdd523fe0",
+        "rawImageUrlHash": "7ff501d3779076f6",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12448742191",
+      "platform": "suning",
+      "title": "需耀 保暖大衣 毛呢长款 件 防寒保暖",
+      "price": "699.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12448742191.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/kQuaZZLhXZPOmxDsIzUUBA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 831,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12448742191",
+        "rawProductUrlHash": "6c214c8e93be4488",
+        "rawImageUrlHash": "c3563b8e51c35c80",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448743946",
+      "platform": "suning",
+      "title": "端固 白大褂 WG122G/件 优质面料",
+      "price": "88.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448743946.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/schZFkn6Wo15GgVdTM-zlg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 832,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448743946",
+        "rawProductUrlHash": "6a19006004763c7a",
+        "rawImageUrlHash": "bf80ba2f4ce072b3",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448744634",
+      "platform": "suning",
+      "title": "端固 保洁服 长袖T恤 WG123G/件 耐穿",
+      "price": "129.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448744634.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/n6Dr36rdUqNFLlmXoa35ZQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 833,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448744634",
+        "rawProductUrlHash": "03459b141deeb14e",
+        "rawImageUrlHash": "ce027f45e5293470",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448744638",
+      "platform": "suning",
+      "title": "端固 保洁工作服 可定制 WG124G/件 耐穿",
+      "price": "133.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448744638.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/ZidwlfKyImlX6fmbrqphQw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 834,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448744638",
+        "rawProductUrlHash": "e893b87aec7e8363",
+        "rawImageUrlHash": "15727c4970571b03",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448745127",
+      "platform": "suning",
+      "title": "端固 绒棉服 WG125G/件 优质面料",
+      "price": "608.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448745127.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/JjwNaBNzDNqGQrL4US5kkg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 835,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448745127",
+        "rawProductUrlHash": "2736c62bb1f853dc",
+        "rawImageUrlHash": "b8523bcbd3fbd091",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448745154",
+      "platform": "suning",
+      "title": "端固 长袖厨师服 WG126G/件 优质面料",
+      "price": "133.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448745154.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/e6peTa6y_-v215S1LddZTQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 836,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448745154",
+        "rawProductUrlHash": "a3a90a757fd9893d",
+        "rawImageUrlHash": "bd7757d93d01fee0",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448745239",
+      "platform": "suning",
+      "title": "端固 长袖厨师服 WG127G/件 优质面料",
+      "price": "129.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448745239.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/haa_VsljDi-bIEkEjrDB2Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 837,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448745239",
+        "rawProductUrlHash": "b35527ccbae5639d",
+        "rawImageUrlHash": "bca3b8210c96c81f",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071596496-12448746713",
+      "platform": "suning",
+      "title": "钿满堂高可视性警示服S-4XL/套 新品发售",
+      "price": "692.75",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "钿满堂旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596496/12448746713.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/U1KCx96xmzfF0JXpXQrseQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 838,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "钿满堂旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071596496-12448746713",
+        "rawProductUrlHash": "4afe3ef9daaa5ccf",
+        "rawImageUrlHash": "323501457d59e172",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448746762",
+      "platform": "suning",
+      "title": "端固 防静电工作服大褂 WG145G/双 耐穿",
+      "price": "135.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448746762.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/0mRqAVZvS8FUieZrnribDA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 839,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448746762",
+        "rawProductUrlHash": "a97b2dd45f0b38e5",
+        "rawImageUrlHash": "cb22d0027a34d7b3",
+        "attributes": {
+          "category": "electronics"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448746926",
+      "platform": "suning",
+      "title": "端固 大褂工作服 WG146G/双 耐穿",
+      "price": "79.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448746926.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/MbF3A6UVC8pJ2TYc9JtvhA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 840,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448746926",
+        "rawProductUrlHash": "f59024e0481ae20e",
+        "rawImageUrlHash": "c47865ec0f70f8a9",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448773192",
+      "platform": "suning",
+      "title": "骏捷诺羽绒马甲女款 M-3XL/件 坚韧防撕拉",
+      "price": "450.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448773192.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/Y6JS6WTkaO6ixhfPJxMxuQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 841,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448773192",
+        "rawProductUrlHash": "af478033fa6ecaa2",
+        "rawImageUrlHash": "fe9b3d1db4c61bf8",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448773195",
+      "platform": "suning",
+      "title": "骏捷诺羽绒马甲男款 S-3XL/件 坚韧防撕拉",
+      "price": "460.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448773195.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/NmHSHlhTPCW2c5667mllvQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 842,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448773195",
+        "rawProductUrlHash": "ff61fa0fd2ab3530",
+        "rawImageUrlHash": "90e20fbb21338a91",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448774934",
+      "platform": "suning",
+      "title": "红晨岛衬衣(40)(件) 清爽透气、版型好、时尚舒适",
+      "price": "241.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448774934.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/N-DgDmldHQ0nhMgvoFOgxg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 843,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448774934",
+        "rawProductUrlHash": "ab4831be470e56f0",
+        "rawImageUrlHash": "592378f4171085f1",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448789516",
+      "platform": "suning",
+      "title": "梓南北 马甲 ZN/MJ12 件 多包设计",
+      "price": "151.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448789516.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/OtUNNT-Qmuks-z5dUvaYLw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 844,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "300+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448789516",
+        "rawProductUrlHash": "39c4270fdd560728",
+        "rawImageUrlHash": "926ba5bbd5b0121e",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448790355",
+      "platform": "suning",
+      "title": "梓南北 棉衣防寒服ZN/F120件 双层加厚",
+      "price": "306.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448790355.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/z0m73eDOYYBN4dQ8m1Shxg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 845,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "300+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448790355",
+        "rawProductUrlHash": "61e07daaa694ee2e",
+        "rawImageUrlHash": "04b8d74ffc92af06",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448790396",
+      "platform": "suning",
+      "title": "梓南北 棉衣防寒服套装ZN/F125套 双层加厚",
+      "price": "448.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448790396.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/AMFhEwyw3DTCHVEfR6Jwmw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 846,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "300+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448790396",
+        "rawProductUrlHash": "dc127c4b14cc5fa6",
+        "rawImageUrlHash": "3cd383028205c99c",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071581927-12448791875",
+      "platform": "suning",
+      "title": "泉好 抓绒保暖脖套 QH240W 个 保暖",
+      "price": "82.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "泉好旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071581927/12448791875.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/2N4Yt1VTnsm3IF8Oj6KdXQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 847,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "泉好旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071581927-12448791875",
+        "rawProductUrlHash": "9392bb4ebeec9178",
+        "rawImageUrlHash": "3e36b22ae5aa06e3",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448809376",
+      "platform": "suning",
+      "title": "骏捷诺羽绒保暖两件套(上衣+裤子) S-4XL码/套 坚固耐磨、结实耐用",
+      "price": "1400.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448809376.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/yyQo7jkCJ3xCchyWk6ct5A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 848,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448809376",
+        "rawProductUrlHash": "a4446ac5f49af7b9",
+        "rawImageUrlHash": "2445b8ad2e3169a3",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448809394",
+      "platform": "suning",
+      "title": "骏捷诺防寒羽绒(上衣+裤子+马甲) 三件套/套 坚固耐磨、结实耐用",
+      "price": "1500.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448809394.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/xwAcUi9f9YO28QC062xn-w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 849,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448809394",
+        "rawProductUrlHash": "264c23e32a2b245a",
+        "rawImageUrlHash": "23c3d070df3e5198",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071596496-12448809647",
+      "platform": "suning",
+      "title": "钿满堂高可视性警示棉服S-4XL/套 新品发售",
+      "price": "692.75",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "钿满堂旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596496/12448809647.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/natys-XpRPi24w2BeitthA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 850,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "钿满堂旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071596496-12448809647",
+        "rawProductUrlHash": "9896ad4e02f0df0c",
+        "rawImageUrlHash": "d3b9f1bb8a458d97",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071596496-12448811321",
+      "platform": "suning",
+      "title": "钿满堂防护棉服S-4XL/套 新品发售",
+      "price": "692.75",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "钿满堂旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596496/12448811321.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/BpcnR1HSWwOchLUtGStcGA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 851,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "钿满堂旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071596496-12448811321",
+        "rawProductUrlHash": "48d63971b1fdf84a",
+        "rawImageUrlHash": "8b486a032a9f77b6",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448813924",
+      "platform": "suning",
+      "title": "骏捷诺可拆卸防寒羽绒套装 S-4XL码/件 坚韧防撕拉",
+      "price": "800.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448813924.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/AOaEIGfH829xw2yrl8-qWA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 852,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448813924",
+        "rawProductUrlHash": "a2fe42c654526605",
+        "rawImageUrlHash": "3d24b229838752c5",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448813925",
+      "platform": "suning",
+      "title": "骏捷诺防寒轻便羽绒马甲 M-3XL码/件 坚韧防撕拉",
+      "price": "120.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448813925.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/KJGlLVq_38DxnOlxL7gV9w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 853,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448813925",
+        "rawProductUrlHash": "4cb34ff22fec4696",
+        "rawImageUrlHash": "e03cdaa382b9a639",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614977-12448826327",
+      "platform": "suning",
+      "title": "飞翔大雁 通用棉夹克 特大中小 件 防寒保暖",
+      "price": "320.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "飞翔大雁劳保服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614977/12448826327.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/GqGCGL9Y3bb1_rSNbwpfwQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 854,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "飞翔大雁劳保服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614977-12448826327",
+        "rawProductUrlHash": "bc2e2f607194f325",
+        "rawImageUrlHash": "7b38f66f23935555",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448868643",
+      "platform": "suning",
+      "title": "雅霖服 三合一冲锋衣YLF25PD2101 件 黑色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "695.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448868643.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/2YxTjFgqYl8XslCbdMyaow.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 855,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448868643",
+        "rawProductUrlHash": "366b49585ace3623",
+        "rawImageUrlHash": "2e62c132629fef13",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614728-12448870901",
+      "platform": "suning",
+      "title": "晋涵 工作服套装 JH8k429 套 舒适",
+      "price": "2999.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "晋涵旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614728/12448870901.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/Ixyj3AczjNdor-ZSe6bo1w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 856,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "晋涵旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614728-12448870901",
+        "rawProductUrlHash": "3b527b8bbbbde525",
+        "rawImageUrlHash": "5cd3f34d84602257",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448871906",
+      "platform": "suning",
+      "title": "红晨岛防寒羽绒服 (170)(件) 亲肤透气、时尚大方、保暖效果好",
+      "price": "1178.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448871906.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/vRGcp68ityoXhFo4C2HfeA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 857,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448871906",
+        "rawProductUrlHash": "6e875d84fcd0bb1f",
+        "rawImageUrlHash": "9b6eb6e125e67385",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448872427",
+      "platform": "suning",
+      "title": "红晨岛衬衣(41)(件) 亲肤透气、穿着舒适、高端大气",
+      "price": "128.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448872427.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/g0YRTknkU4g0FXvw4mfU9A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 858,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448872427",
+        "rawProductUrlHash": "00b355dfa810f42c",
+        "rawImageUrlHash": "fe1d7328a772bad5",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448884472",
+      "platform": "suning",
+      "title": "雅霖服 可脱卸防寒大衣YLF-H16658 件 黑色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "430.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448884472.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/gLCZqZEaJAPfmfqOUOd8jA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 859,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448884472",
+        "rawProductUrlHash": "4e2b00e84f9574c7",
+        "rawImageUrlHash": "d993da6e36d7457d",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448884477",
+      "platform": "suning",
+      "title": "雅霖服 可脱卸防寒大衣YLF-H16659 件 黑色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "446.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448884477.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/5QDzs8aWAaWE90s7luazCA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 860,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448884477",
+        "rawProductUrlHash": "24832c22dab044d0",
+        "rawImageUrlHash": "1822539b96cea746",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071596496-12448887905",
+      "platform": "suning",
+      "title": "钿满堂高可视性警示棉服S-4XL/件 新品发售",
+      "price": "431.88",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "钿满堂旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596496/12448887905.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/yafzMlWNm_joZBB8SHz96g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 861,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "钿满堂旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071596496-12448887905",
+        "rawProductUrlHash": "02628bfe60337a6b",
+        "rawImageUrlHash": "9c7b16ed881e4b55",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448895862",
+      "platform": "suning",
+      "title": "端固 皮毛一体羊毛背心羊剪绒防寒马甲HYS43/件 皮毛一体羊毛背心",
+      "price": "543.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448895862.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/H6JKmcl4Y934SWCZN3tIOA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 862,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "1",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448895862",
+        "rawProductUrlHash": "be423a836e2bd9cc",
+        "rawImageUrlHash": "1a7be8813ceb28fc",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12448896605",
+      "platform": "suning",
+      "title": "防寒棉衣羊皮毛一体内胆175-195 羊皮毛一体",
+      "price": "700.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12448896605.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/LBAEicRKVPGAPswZVbiWJA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 863,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "1",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12448896605",
+        "rawProductUrlHash": "2208c6e130cd4d01",
+        "rawImageUrlHash": "a2501dc32986d664",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071617828-12449011698",
+      "platform": "suning",
+      "title": "端固 爱路护路 路外宣传围裙 TS62 路外宣传围裙",
+      "price": "18.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "端固旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617828/12449011698.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/JeMvOrVozG6JzUe0cTkN3Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 864,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "端固旗舰店",
+        "salesText": "6",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617828-12449011698",
+        "rawProductUrlHash": "368c80f8e34c237b",
+        "rawImageUrlHash": "7ea7a0827300fb18",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12449040736",
+      "platform": "suning",
+      "title": "酷美智悦 工作服 KM-ZY025 套 酷美智悦 工作服 KM-ZY025 套",
+      "price": "389.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12449040736.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/GJHWhGqwNvG5ePivRzs_RA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 865,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12449040736",
+        "rawProductUrlHash": "95ef194732b776b8",
+        "rawImageUrlHash": "1533369e471a803b",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615784-12449057067",
+      "platform": "suning",
+      "title": "铁冠 高可视警示防寒棉夹克 TGFS-75 件 高可视警示防寒棉夹克",
+      "price": "329.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "铁冠旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615784/12449057067.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/MMxd1tdgnu9ascYGu3lYMg.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 866,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "铁冠旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615784-12449057067",
+        "rawProductUrlHash": "ff8a5d410b42c07e",
+        "rawImageUrlHash": "bcb7e8ac853773e5",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12449057301",
+      "platform": "suning",
+      "title": "需耀 工作服套装 2668藏蓝短袖 套 舒适透气",
+      "price": "268.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12449057301.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/W0p9O-_Box88qFE0-7aYtQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 867,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12449057301",
+        "rawProductUrlHash": "e94eea52f47dfcb2",
+        "rawImageUrlHash": "2f937941339afcfc",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449059768",
+      "platform": "suning",
+      "title": "骏捷诺 春秋工作服 全码/套 坚韧防撕拉",
+      "price": "1200.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449059768.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/k_WBSgglIRwjS2WVcyrOSg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 868,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449059768",
+        "rawProductUrlHash": "19e11c0914f3fb90",
+        "rawImageUrlHash": "5315fb52c8e0154b",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12449062508",
+      "platform": "suning",
+      "title": "酷美智悦 夏季工作服M-XXXXXL KM-GZF1124 套 酷美智悦 夏季工作服M-XXXXXL KM-GZF1124 套",
+      "price": "308.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12449062508.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/eTJBGdE4-MFL913CleLjgg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 869,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12449062508",
+        "rawProductUrlHash": "ad3816a0dc3bc50f",
+        "rawImageUrlHash": "b3b276cf687f7b7e",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071618210-12449083188",
+      "platform": "suning",
+      "title": "需耀 工作服套装 2675藏蓝长袖 套 舒适透气",
+      "price": "275.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "需耀服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071618210/12449083188.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/bYVmdERG8Cla2Ptyxx7H4w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 870,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "需耀服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071618210-12449083188",
+        "rawProductUrlHash": "e88c7015e7813255",
+        "rawImageUrlHash": "1529a3e00aafb631",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12449083685",
+      "platform": "suning",
+      "title": "酷美智悦 夏季短袖工作服M-XXXXXL KM-GZF1122 套 酷美智悦 夏季短袖工作服M-XXXXXL KM-GZF1122 套",
+      "price": "228.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12449083685.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/oW4XrtWMUkXO_PWbcKaOOw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 871,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12449083685",
+        "rawProductUrlHash": "137b7c192fc7a4d7",
+        "rawImageUrlHash": "5f4b8c098ec02f14",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071598956-12449093046",
+      "platform": "suning",
+      "title": "阿祺果 劳保服 S1 套 防护",
+      "price": "642.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "阿祺果旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071598956/12449093046.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/xY7Swj_1BpehBitN_uHTeA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 872,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "阿祺果旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071598956-12449093046",
+        "rawProductUrlHash": "ed40738d3524b7ff",
+        "rawImageUrlHash": "71190d2fa5766b03",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071598956-12449093844",
+      "platform": "suning",
+      "title": "阿祺果 羽绒服 DY1 件 保暖",
+      "price": "1200.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "阿祺果旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071598956/12449093844.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/27GBKW5indtbjkx3KFTZvw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 873,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "阿祺果旗舰店",
+        "salesText": "200+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071598956-12449093844",
+        "rawProductUrlHash": "9eed2e6031ae2857",
+        "rawImageUrlHash": "34eafda38240f199",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12449094238",
+      "platform": "suning",
+      "title": "酷美智悦 加热棉服马甲11区 M111 套 酷美智悦 加热棉服马甲11区 M111 套",
+      "price": "350.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12449094238.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/DDV9UrI9CIEQTM8yH97L7A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 874,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12449094238",
+        "rawProductUrlHash": "96c604c258ef380c",
+        "rawImageUrlHash": "3e3b0646b60f6b79",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615784-12449095070",
+      "platform": "suning",
+      "title": "铁冠 高可视性警示工作服 ZY-001 套 高可视春秋防护服",
+      "price": "315.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "铁冠旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615784/12449095070.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/Xcbg-p0VADXeDnkyJnvX0g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 875,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "铁冠旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615784-12449095070",
+        "rawProductUrlHash": "396089a9c30551ad",
+        "rawImageUrlHash": "8a0a1b5577eb07da",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449101753",
+      "platform": "suning",
+      "title": "骏捷诺 护膝 一对/双 坚韧防撕拉",
+      "price": "130.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449101753.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/jMwznrslDnbyW6tD8FfOLw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 876,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449101753",
+        "rawProductUrlHash": "5c241b413a054ee3",
+        "rawImageUrlHash": "84763cd647967ec0",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449101764",
+      "platform": "suning",
+      "title": "骏捷诺 护腕 均码/双 坚韧防撕拉",
+      "price": "45.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449101764.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/_l2HQCb5IUlp9msqvr8kOg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 877,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449101764",
+        "rawProductUrlHash": "77147397886fd747",
+        "rawImageUrlHash": "efbe487f494e780f",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449101795",
+      "platform": "suning",
+      "title": "骏捷诺 护肘 均码/双 坚韧防撕拉",
+      "price": "60.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449101795.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/vWabtXGLParHrYhvWyWJEw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 878,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449101795",
+        "rawProductUrlHash": "18602f69effc70cb",
+        "rawImageUrlHash": "db1735b419923ce5",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449101800",
+      "platform": "suning",
+      "title": "骏捷诺 护腰 均码/个 坚韧防撕拉",
+      "price": "360.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449101800.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/8cpw3tgUHKCp987IDVQPmQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 879,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449101800",
+        "rawProductUrlHash": "ae93229b6656338c",
+        "rawImageUrlHash": "416c0e3b9ccaab0e",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071598956-12449132480",
+      "platform": "suning",
+      "title": "阿祺果 雨衣 R2 套 防护",
+      "price": "398.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "阿祺果旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071598956/12449132480.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/yeTXwIAfweI7FamgGwz0WA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 880,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "阿祺果旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071598956-12449132480",
+        "rawProductUrlHash": "ded49548a9f55298",
+        "rawImageUrlHash": "d1a8ffdcfa1b49e1",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614728-12449138523",
+      "platform": "suning",
+      "title": "晋涵 保暖衣 均码/1套 舒适保暖",
+      "price": "299.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "晋涵旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614728/12449138523.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/LGGJpTmwsOzwqiVYx1RxjA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 881,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "晋涵旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614728-12449138523",
+        "rawProductUrlHash": "4e2cc6e0c681f5e1",
+        "rawImageUrlHash": "75e50d5263b9c5dd",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12449144725",
+      "platform": "suning",
+      "title": "骏捷诺 防寒服 全码 件 坚固耐磨、结实耐用",
+      "price": "1600.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12449144725.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/lN2fbYp7Eeu7h3z0fnDx_Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 882,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12449144725",
+        "rawProductUrlHash": "35917c03f9223c8a",
+        "rawImageUrlHash": "62aa6469249b7366",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614728-12449145143",
+      "platform": "suning",
+      "title": "晋涵 睡衣 均码 套 舒适",
+      "price": "399.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "晋涵旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614728/12449145143.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/aW1geo400qQ3m3Mst-q17g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 883,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "晋涵旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614728-12449145143",
+        "rawProductUrlHash": "54fc101fc5848193",
+        "rawImageUrlHash": "e744d7f893de4be0",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071562123-12449145346",
+      "platform": "suning",
+      "title": "衡欢(HENGHUAN)多功能棉大衣抗寒保暖保安服中长款 RZ-LBF02 均码/件 黑色 均码 加厚高密内衬里布防水防风面料",
+      "price": "425.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "衡欢旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071562123/12449145346.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/pY0_hSz12sZ0wToNHsJ4Hw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 884,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "衡欢旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071562123-12449145346",
+        "rawProductUrlHash": "2bf7d6cfa59f14e2",
+        "rawImageUrlHash": "5011a9e4a080952e",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12449204797",
+      "platform": "suning",
+      "title": "酷美智悦 工作服 KM-ZY035 套 酷美智悦 工作服 KM-ZY035 套",
+      "price": "389.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12449204797.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/pmu5wkL5CohEKReCFPlN3w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 885,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12449204797",
+        "rawProductUrlHash": "71395b26d643ec7d",
+        "rawImageUrlHash": "ac5d6ad46ee7cefb",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614740-12449209803",
+      "platform": "suning",
+      "title": "鑫捷登 男女同款保暖外套 AGRY-ZDT2538/T2 /ZD721件 舒适保暖轻便休闲",
+      "price": "248.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "鑫捷登运动用品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614740/12449209803.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/kCaeHmHErvKVjJAKfYxYpA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 886,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "鑫捷登运动用品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614740-12449209803",
+        "rawProductUrlHash": "ebd2f3f4d56a14b4",
+        "rawImageUrlHash": "f1825da4b0f21367",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12449213413",
+      "platform": "suning",
+      "title": "红晨岛 极寒羽绒服 175 件 防风保暖、时尚大方、吸湿透气",
+      "price": "3180.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12449213413.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/Hc8Pf9XThACzBqxHTOGu7Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 887,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12449213413",
+        "rawProductUrlHash": "6a050a9f74b666f6",
+        "rawImageUrlHash": "05dcaff86991101d",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449256981",
+      "platform": "suning",
+      "title": "雅霖服 单层冲锋衣YLF24-CXD11(可定制) 件 设计符合人体工学，不束缚活动",
+      "price": "360.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449256981.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/PxEqCKnNvHPacGVYk8uNZw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 888,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449256981",
+        "rawProductUrlHash": "2c6413274bb2b114",
+        "rawImageUrlHash": "79bd501719d28350",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770833",
+      "platform": "suning",
+      "title": "啄木鸟爸爸春装外套装中年西服男春秋季喜公公婚宴礼服中老年西装 新商品上架",
+      "price": "273.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770833.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/kM-Qkr5imqqeQ19TyoRakw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 889,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770833",
+        "rawProductUrlHash": "e33a845e71b7d769",
+        "rawImageUrlHash": "d6a07a7b035206bb",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770930",
+      "platform": "suning",
+      "title": "啄木鸟男士休闲西服新款高级感商务正装韩版修身西装外套上衣单件 新商品上架",
+      "price": "395.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770930.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/VsQfdfQMYFFiZ6EXHeOEWg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 890,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "5",
+        "itemId": "0071643582-12449770930",
+        "rawProductUrlHash": "60259fa847decf2c",
+        "rawImageUrlHash": "c173e288cdb9a9e2",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071585238-12450475645",
+      "platform": "suning",
+      "title": "啄木鸟中长款男士风衣春秋新款潮流帅气翻领高端商务休闲大码外套 新商品上架",
+      "price": "389.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "乐思购男装专营店",
+      "productUrl": "https://product.suning.com/0071585238/12450475645.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/SFwP-WpMKsgLs5-LxBT9LA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 891,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "乐思购男装专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "5",
+        "itemId": "0071585238-12450475645",
+        "rawProductUrlHash": "c5f82352256620f1",
+        "rawImageUrlHash": "0acf57558039cc1d",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071585238-12450476439",
+      "platform": "suning",
+      "title": "啄木鸟羊毛内胆中长款风衣男士秋冬新款中年爸爸商务翻领外套加厚 新商品上架",
+      "price": "512.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "乐思购男装专营店",
+      "productUrl": "https://product.suning.com/0071585238/12450476439.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/glsBGXHJWXT3gB7Vn6tKLw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 892,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "乐思购男装专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "5",
+        "itemId": "0071585238-12450476439",
+        "rawProductUrlHash": "2be0d7f5d494ff4c",
+        "rawImageUrlHash": "ee88ede49555467e",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449257114",
+      "platform": "suning",
+      "title": "雅霖服 三合一冲锋衣YLF24-CXC05(可定制) 件 设计符合人体工学，不束缚活动",
+      "price": "629.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449257114.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/7Z6uOadEnzS6rlhnv0l2hg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 893,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449257114",
+        "rawProductUrlHash": "05b21a14926ed632",
+        "rawImageUrlHash": "c44bbf7589fbf194",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449257127",
+      "platform": "suning",
+      "title": "雅霖服 三合一银狐绒冲锋衣YLF24-CX8611(可定制) 件 下单备注颜色 下单备注颜色 设计符合人体工学，不束缚活动",
+      "price": "680.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449257127.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/KZ0n7JWOIL5Rx22LM8DI4Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 894,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449257127",
+        "rawProductUrlHash": "50853da30a31be3f",
+        "rawImageUrlHash": "6e503d676fe3f5de",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449257208",
+      "platform": "suning",
+      "title": "雅霖服 三合一冲锋衣YLF24-CX8008(可定制) 件 下单备注颜色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "615.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449257208.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/9LLh0RKnGmWAL9nii1JqpQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 895,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449257208",
+        "rawProductUrlHash": "a6a07bb524ea4d04",
+        "rawImageUrlHash": "c8381f91babc2e50",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449257235",
+      "platform": "suning",
+      "title": "雅霖服 一体冲锋衣YLF24-CX617(可定制) 件 下单备注尺码 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "310.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449257235.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/aFE2zcNhncSSkovtSsEbTA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 896,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449257235",
+        "rawProductUrlHash": "bdfefda01316c0b2",
+        "rawImageUrlHash": "bb4231367cb40655",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449257273",
+      "platform": "suning",
+      "title": "雅霖服 一体银狐绒冲锋衣YLF24-CX558(可定制) 件 下单备注颜色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "340.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449257273.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/wqLK6Ibzs3r6cpZnUcJQ1g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 897,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449257273",
+        "rawProductUrlHash": "9d9051546e88c15c",
+        "rawImageUrlHash": "b83d04f77fb06595",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449266033",
+      "platform": "suning",
+      "title": "雅霖服 三合一连帽冲锋衣YLF24-BMY-T2999(可定制) 件 下单备注颜色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "560.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449266033.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/bqpOpc6yO3O7qbQ7xQgldQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 898,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449266033",
+        "rawProductUrlHash": "8c49b6dab915bf44",
+        "rawImageUrlHash": "0c0a667d411932fb",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12449266293",
+      "platform": "suning",
+      "title": "雅霖服 厚款立领冲锋衣YLF24-BMY-L35厚款(可定制) 套 下单备注颜色 下单备注尺码 设计符合人体工学，不束缚活动",
+      "price": "255.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12449266293.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/E24Z73tndcBZBPpZzlc19w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 899,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "100+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12449266293",
+        "rawProductUrlHash": "6de9e7b99a910fff",
+        "rawImageUrlHash": "1066487961114d31",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    }
+  ]
+}

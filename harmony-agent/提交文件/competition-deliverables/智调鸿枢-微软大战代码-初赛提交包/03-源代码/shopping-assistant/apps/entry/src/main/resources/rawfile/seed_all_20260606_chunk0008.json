@@ -1,0 +1,2856 @@
+{
+  "batchSource": "collected_all_20260606_chunk0008",
+  "items": [
+    {
+      "externalId": "0010257466-12451108892",
+      "platform": "suning",
+      "title": "男装宽松舒适保暖毛衣男春秋季新款开衫领纯色针织衫慵懒外套上衣 源头货源 低价尝鲜",
+      "price": "207.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451108892.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/yWY6RlY6JQSqzHRCVAIH8w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 700,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451108892",
+        "rawProductUrlHash": "e8599e11ef2f6f3d",
+        "rawImageUrlHash": "dd27597d2d8e38a2",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0010257466-12451108908",
+      "platform": "suning",
+      "title": "男装新款双面穿男士百搭休闲情侣款夹克潮牌休闲百搭宽松夹克外套 源头货源 低价尝鲜",
+      "price": "225.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451108908.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/FcYbnrfWFjrDIrvAo8c9_Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 701,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451108908",
+        "rawProductUrlHash": "c341e9ab6ad34159",
+        "rawImageUrlHash": "1b583cce8f46ba3b",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614720-12448142136",
+      "platform": "suning",
+      "title": "梦丽赛 迷彩服套装 150-190 (套) 时尚简洁大气",
+      "price": "258.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梦丽赛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614720/12448142136.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/hELp1Gz8pz-n48JworR0TQ.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 702,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梦丽赛旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071614720-12448142136",
+        "rawProductUrlHash": "ace74eff604867fd",
+        "rawImageUrlHash": "b6c66028b640ddc7",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071598956-12448149681",
+      "platform": "suning",
+      "title": "阿祺果 雨衣 y08 件 防雨",
+      "price": "190.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "阿祺果旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071598956/12448149681.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/LXkbNcgheQc9XqzVBo0Ikg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 703,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "阿祺果旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071598956-12448149681",
+        "rawProductUrlHash": "7d30bcf81415ac8e",
+        "rawImageUrlHash": "d2f11cf8001a4431",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071613739-12448156489",
+      "platform": "suning",
+      "title": "万山宏业 女款羽绒马甲 MJ002G/件 优质面料",
+      "price": "172.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "万山宏业旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613739/12448156489.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/lfvagzkeKlmccQVkYclaqA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 704,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "万山宏业旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071613739-12448156489",
+        "rawProductUrlHash": "0362b3f009fed973",
+        "rawImageUrlHash": "afecf55ceb006364",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617634-12448180558",
+      "platform": "suning",
+      "title": "岱润 棉服 中长款 件 保暖棉服 中长款",
+      "price": "460.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "岱润旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617634/12448180558.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/7bsIjMjADuLAYXtkdwjc-A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 705,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "岱润旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071617634-12448180558",
+        "rawProductUrlHash": "c3382f09b176b1d1",
+        "rawImageUrlHash": "b60469d848470802",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617634-12448187948",
+      "platform": "suning",
+      "title": "岱润 棉服 短款 件 保暖棉服 短款",
+      "price": "360.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "岱润旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617634/12448187948.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/wkGvj-bXeVsx78Rz5UIl2A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 706,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "岱润旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071617634-12448187948",
+        "rawProductUrlHash": "e964911d9df5cc52",
+        "rawImageUrlHash": "e7ddaebc55c8e148",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071613739-12448204647",
+      "platform": "suning",
+      "title": "万山宏业 羽绒马甲 MJ101 件 优质面料",
+      "price": "142.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "万山宏业旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613739/12448204647.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/OMRI0MhulXTydj5UGEaZQQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 707,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "万山宏业旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071613739-12448204647",
+        "rawProductUrlHash": "74fb1b8afb7b6e3b",
+        "rawImageUrlHash": "8dce448977618ccc",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448263925",
+      "platform": "suning",
+      "title": "骏捷诺一次性餐具包四件套*500包/箱 坚韧防撕拉",
+      "price": "600.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448263925.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/ckxvUGvWXZg_nZHIkHiHAg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 708,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071611411-12448263925",
+        "rawProductUrlHash": "8d98fc6761d20c67",
+        "rawImageUrlHash": "dd07c2ec3b868eb3",
+        "attributes": {
+          "category": "electronics"
+        }
+      }
+    },
+    {
+      "externalId": "0010257466-12451108939",
+      "platform": "suning",
+      "title": "男装新款日系韩版夹克男连帽宽松青少年休闲百搭夹克潮牌男士外套 源头货源 低价尝鲜",
+      "price": "504.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451108939.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/af6R3hzrJ7Pqf6NEcrpMSg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 709,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451108939",
+        "rawProductUrlHash": "fc412851c54c9196",
+        "rawImageUrlHash": "a4c3a40b3e63a2d7",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0010257466-12451108982",
+      "platform": "suning",
+      "title": "男装春秋季新款休闲针织衫男士宽松百搭长袖纯色保暖毛衣开衫外套 源头货源 低价尝鲜",
+      "price": "240.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451108982.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/QTCvwmzQkSqYjGSkNfZ7Mg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 710,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451108982",
+        "rawProductUrlHash": "65e676e5317ca321",
+        "rawImageUrlHash": "50e48a531a2d7cc3",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0010257466-12451109009",
+      "platform": "suning",
+      "title": "男装春秋季新款针织衫毛衣男士宽松立领日系简约休闲百搭毛衣外套 源头货源 低价尝鲜",
+      "price": "234.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451109009.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/wzQXIXn_cSzbZ7lVlYIAWQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 711,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451109009",
+        "rawProductUrlHash": "ce26f5bdbacf2420",
+        "rawImageUrlHash": "a304c13873aeb8fc",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0010257466-12451109018",
+      "platform": "suning",
+      "title": "男装春秋新款皮夹克男士潮牌美式休闲宽松撞色翻领痞帅青少年外套 源头货源 低价尝鲜",
+      "price": "504.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0010257466/12451109018.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/C-VD_N_SKGHfD3f4e3VPDg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 712,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0010257466-12451109018",
+        "rawProductUrlHash": "6d10286bc77a64ba",
+        "rawImageUrlHash": "7d58ba528699de94",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0000000000-12451336825",
+      "platform": "suning",
+      "title": "冰丝不防晒衣男新款夏季不防紫外线透气钓鱼防晒服外套 热卖中",
+      "price": "49.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0000000000/12451336825.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/M2jnyD4CmWKSoPfX_dVUlg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 713,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0000000000-12451336825",
+        "rawProductUrlHash": "5de66811f7dc63be",
+        "rawImageUrlHash": "0c119f4804916671",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0070139867-12451794798",
+      "platform": "suning",
+      "title": "斯派·尼(spine line)261作业人员外套 保暖透气；时尚百搭；耐磨防风；",
+      "price": "158.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "斯派尼",
+      "productUrl": "https://product.suning.com/0070139867/12451794798.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/nYbogJ_LpN48rPpjx6HMRA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 714,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "斯派尼",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0070139867-12451794798",
+        "rawProductUrlHash": "e377329467176767",
+        "rawImageUrlHash": "110da6ec050d4dcc",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614000-12449294294",
+      "platform": "suning",
+      "title": "山之只 防寒大衣保暖工作服 中长款 件 保暖防寒",
+      "price": "298.14",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "山之只旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614000/12449294294.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/nmFvRZ_2zSeeH3Lbd9gVqg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 715,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "山之只旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071614000-12449294294",
+        "rawProductUrlHash": "3e4a825f045e8921",
+        "rawImageUrlHash": "3b894cc206f49f77",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071614000-12449294224",
+      "platform": "suning",
+      "title": "山之只 防寒大衣保暖工作服 长款 件 防寒保暖",
+      "price": "357.03",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "山之只旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614000/12449294224.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/YsSXnRenj_kTGYX-4b4A7w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 716,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "山之只旗舰店",
+        "salesText": "1",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071614000-12449294224",
+        "rawProductUrlHash": "00edfa9447591540",
+        "rawImageUrlHash": "c3ae8960f5437c94",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071585758-12429408056",
+      "platform": "suning",
+      "title": "燕舞BD2AN823201R2F男防寒大衣165-195(计价单位:件)深青绿色 深青绿色 165-195 30天发货",
+      "price": "2600.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "燕舞百帝劳保专卖店",
+      "productUrl": "https://product.suning.com/0071585758/12429408056.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/Jpxj0pFSI928dqHpSqA0tA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 717,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "燕舞百帝劳保专卖店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071585758-12429408056",
+        "rawProductUrlHash": "c7aba0acac3e79b7",
+        "rawImageUrlHash": "9b68518a24ada439",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071585758-12429408083",
+      "platform": "suning",
+      "title": "燕舞BD2FN823201R2F女防寒大衣150-175(计价单位:件)深青绿色 深青绿色 150-175 30天发货",
+      "price": "2600.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "燕舞百帝劳保专卖店",
+      "productUrl": "https://product.suning.com/0071585758/12429408083.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/xTyBLeh70lLsbJuIQTfHbw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 718,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "燕舞百帝劳保专卖店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071585758-12429408083",
+        "rawProductUrlHash": "9e66d03790808926",
+        "rawImageUrlHash": "76f63568f563a45e",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071585758-12429408961",
+      "platform": "suning",
+      "title": "燕舞BD2AN423205R1F男大衣165-195(计价单位:件)藏青色 藏青色 165-195 30天发货",
+      "price": "3000.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "燕舞百帝劳保专卖店",
+      "productUrl": "https://product.suning.com/0071585758/12429408961.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/OUyoFZzW0f1eSLt-ZZyltg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 719,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "燕舞百帝劳保专卖店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071585758-12429408961",
+        "rawProductUrlHash": "fe9c5db4b1fd3a9f",
+        "rawImageUrlHash": "8a9ce5c722f02259",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443234385",
+      "platform": "suning",
+      "title": "惠铁防寒服防寒大衣棉绒棉大衣定制件 劳保棉大衣",
+      "price": "750.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443234385.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/T6ZmBJUiv0g4SLyrs2i9ww.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 720,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443234385",
+        "rawProductUrlHash": "cbaf5e21a9978063",
+        "rawImageUrlHash": "c423ccdb05a84006",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443234542",
+      "platform": "suning",
+      "title": "惠铁保安执勤棉服大衣 长款 件 保暖执勤服",
+      "price": "398.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443234542.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/3E6rrkk_fGy9z-uKJ9UAjA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 721,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443234542",
+        "rawProductUrlHash": "406fa6dfe1ea88f8",
+        "rawImageUrlHash": "cb96399483ea8d71",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443234683",
+      "platform": "suning",
+      "title": "惠铁防寒服寒区制服防寒大衣羽绒服 羽绒 件 防寒服寒区制服防寒大衣羽绒服",
+      "price": "999.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443234683.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/-L9t99fQjzelj_2unxYzvg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 722,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443234683",
+        "rawProductUrlHash": "5be3471299e2a51f",
+        "rawImageUrlHash": "8b3b2a1a70b4b371",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443234718",
+      "platform": "suning",
+      "title": "惠铁防寒服寒区制服防寒大衣羽绒服 XL 件 防寒劳保大衣",
+      "price": "999.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443234718.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/BTv7lC7ngzvPgBTu6fJP3Q.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 723,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443234718",
+        "rawProductUrlHash": "6754ba6a807ea56c",
+        "rawImageUrlHash": "ea40bba9d092840f",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443234761",
+      "platform": "suning",
+      "title": "惠铁加厚防寒劳保大衣羽绒服 羽绒 件 防寒羽绒服劳保大衣",
+      "price": "620.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443234761.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/qkvyevStHreWZWl2vmhglw.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 724,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443234761",
+        "rawProductUrlHash": "e07a78a1cefdbf09",
+        "rawImageUrlHash": "91a5c8310c7f52f3",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071596774-12448263958",
+      "platform": "suning",
+      "title": "吾卫世 加厚一体式成人雨衣 M-XL 件 雨衣",
+      "price": "59.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "吾卫世旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071596774/12448263958.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/EsJBLqbZmPA-4hYxpjs4GQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 725,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "吾卫世旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071596774-12448263958",
+        "rawProductUrlHash": "d3d160da2d87ba39",
+        "rawImageUrlHash": "6b58867be36f2c92",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071466165-12448263969",
+      "platform": "suning",
+      "title": "天鸣 保暖围脖 均码个 均码 保暖保温",
+      "price": "53.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "天鸣旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071466165/12448263969.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/s-uyItkGheU7swaTRfjXog.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 726,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "天鸣旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071466165-12448263969",
+        "rawProductUrlHash": "6b67f4c1e8aa41d7",
+        "rawImageUrlHash": "10f7dda02a335b27",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448265458",
+      "platform": "suning",
+      "title": "骏捷诺雨衣 半透白(简约款)ZY-2706半透白/件 坚韧防撕拉",
+      "price": "55.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448265458.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/8Y-iShv_xoVjB3SNSlWzUg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 727,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071611411-12448265458",
+        "rawProductUrlHash": "335de6713d0ba5e3",
+        "rawImageUrlHash": "fca78902c5a7d1e7",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071616411-12448284232",
+      "platform": "suning",
+      "title": "大羿之箭 羽绒马甲 175# 件 大羿之箭 羽绒马甲/175#/件",
+      "price": "220.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "大羿之箭旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071616411/12448284232.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/y72_UkyLj54Zwus95h5DYA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 728,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "大羿之箭旗舰店",
+        "salesText": "1800+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071616411-12448284232",
+        "rawProductUrlHash": "1b8820cb6a2fa18d",
+        "rawImageUrlHash": "19307a5e646179b3",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448292962",
+      "platform": "suning",
+      "title": "骏捷诺一次性地垫灰色/平方米 坚韧防撕拉",
+      "price": "20.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448292962.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/AZ2KEf3pdZHgbv2XcCJUEA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 729,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071611411-12448292962",
+        "rawProductUrlHash": "a1cfcb312f96a623",
+        "rawImageUrlHash": "ec2f5d9a043f6df3",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071619477-12443379626",
+      "platform": "suning",
+      "title": "惠铁防寒服亚寒区呢子大衣 亚寒 件 惠铁防寒服亚寒区呢子大衣",
+      "price": "999.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "惠铁服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071619477/12443379626.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/De6XN6CBzpQYF1tfs4crTw.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 730,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "惠铁服饰旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071619477-12443379626",
+        "rawProductUrlHash": "e501df9f7fade3cd",
+        "rawImageUrlHash": "497e8850f59a974d",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769677",
+      "platform": "suning",
+      "title": "啄木鸟爸爸秋装中年毛呢夹克男士外套春秋季中老年呢子上衣50岁60 新商品上架",
+      "price": "269.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769677.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/usFnkJ6bm7QiLBuVKVZZjQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 731,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769677",
+        "rawProductUrlHash": "1dc2b78c85f06558",
+        "rawImageUrlHash": "ff6e45af5f753c2c",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769450",
+      "platform": "suning",
+      "title": "啄木鸟毛呢大衣男中长款2025冬季新款风衣加厚羊毛双排扣呢子外套 新商品上架",
+      "price": "838.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769450.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/mxFpAedJFQe6xaYMlOLQzA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 732,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769450",
+        "rawProductUrlHash": "de22c6fd3cd120d1",
+        "rawImageUrlHash": "9272372750feb678",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769559",
+      "platform": "suning",
+      "title": "啄木鸟毛呢子夹克男士棒球领春秋季新款中老年人加厚爸爸冬装外套 新商品上架",
+      "price": "458.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769559.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/0jWxI-GlFPx4VQMn1unJ1g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 733,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769559",
+        "rawProductUrlHash": "0e793782f676ba04",
+        "rawImageUrlHash": "a047522031948e51",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0000000000-12439840188",
+      "platform": "suning",
+      "title": "美衣绒男士秋冬款工装大衣(品牌随库存变动) 结实耐用;质量稳定;做工精细",
+      "price": "1038.70",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "苏宁自营",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0000000000/12439840188.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/roZlyGzZ8-qD6Vhdi5sbUg.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 734,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "苏宁自营",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0000000000-12439840188",
+        "rawProductUrlHash": "e86365e90ef6b82f",
+        "rawImageUrlHash": "249d4ca47b53d0db",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071602729-12442632865",
+      "platform": "suning",
+      "title": "[高端轻便]花花公子男士休闲风衣外套防风保暖宽松正肩上衣 新商品上架",
+      "price": "274.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "迪优服装专营店",
+      "productUrl": "https://product.suning.com/0071602729/12442632865.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/YRETAQzTPvbaMb2RoNVxFg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 735,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "迪优服装专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071602729-12442632865",
+        "rawProductUrlHash": "62feca8a8586f13a",
+        "rawImageUrlHash": "6f96b61ec04b5f07",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12442796516",
+      "platform": "suning",
+      "title": "蒙企智品 运动外套 LM25/件 舒适柔软弹力透气潮流百搭",
+      "price": "306.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12442796516.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/9Yi8U1BewT1yXlcNLjsXTA.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 736,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12442796516",
+        "rawProductUrlHash": "f7bffb431f24cfa1",
+        "rawImageUrlHash": "a577969c1af5039a",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12447826237",
+      "platform": "suning",
+      "title": "蒙企智品 外套 QM6/件 高密防风舒适透气",
+      "price": "374.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12447826237.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/7kFFxUSNg40DVvok33ZevQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 737,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12447826237",
+        "rawProductUrlHash": "c414b986367ceb98",
+        "rawImageUrlHash": "9b17d98d9b2a8e89",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448004763",
+      "platform": "suning",
+      "title": "蒙企智品 夹克外套一体绒 QM19/件 高密防风舒适透气",
+      "price": "559.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448004763.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/qTIfAlazbTzZYF1g7Ng59g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 738,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448004763",
+        "rawProductUrlHash": "217ea97ed33578b9",
+        "rawImageUrlHash": "41e3680e934c648c",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448686367",
+      "platform": "suning",
+      "title": "蒙企智品女士软壳衣外套QM57/件 舒适",
+      "price": "419.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448686367.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/dTlN9n1gpbE5NbHKT1rmyw.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 739,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448686367",
+        "rawProductUrlHash": "b49f229cafcac41b",
+        "rawImageUrlHash": "961d69d2267bc53b",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448686680",
+      "platform": "suning",
+      "title": "蒙企智品女士短款风衣外套QM58/件 舒适",
+      "price": "379.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448686680.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/nswd6zRzkJlvAHHLmABJkA.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 740,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448686680",
+        "rawProductUrlHash": "ce514ec92d417d4e",
+        "rawImageUrlHash": "4361fc898093c402",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448688748",
+      "platform": "suning",
+      "title": "蒙企智品软壳衣夹克外套QM67/件 舒适",
+      "price": "479.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448688748.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/7rdPIGHoRn8-xbd-BsEdjA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 741,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448688748",
+        "rawProductUrlHash": "163ad931c50766ab",
+        "rawImageUrlHash": "6a1499bf305b3f27",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448688847",
+      "platform": "suning",
+      "title": "蒙企智品男款夹克外套QM69/件 舒适",
+      "price": "579.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448688847.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/JSX0fdHJfy9BNSYKL6511Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 742,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448688847",
+        "rawProductUrlHash": "2cbb5961bb13ca10",
+        "rawImageUrlHash": "4d01c813d3377ef4",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071601627-12448689642",
+      "platform": "suning",
+      "title": "蒙企智品休闲外套夹克QM73/件 舒适",
+      "price": "579.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "蒙企智品旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071601627/12448689642.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/7aAoxPugsLtnnO2KlgyUjg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 743,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "蒙企智品旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071601627-12448689642",
+        "rawProductUrlHash": "9e1957c0e3f0c5d7",
+        "rawImageUrlHash": "8817ec8b9381581a",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769437",
+      "platform": "suning",
+      "title": "啄木鸟冬季男士加绒加厚呢子西服中年保暖爸爸装单西外套上衣服C 新商品上架",
+      "price": "500.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769437.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/Z9GySeUWoH9Y1XCfmQomeg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 744,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769437",
+        "rawProductUrlHash": "d2fea3e9800e96d2",
+        "rawImageUrlHash": "5e2d8aea2e8d75bc",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769469",
+      "platform": "suning",
+      "title": "啄木鸟毛呢夹克男2025秋季新款中年立领短款加绒加厚呢子爸爸外套 新商品上架",
+      "price": "439.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769469.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/0ityYdTciuvePMkBH_Czaw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 745,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769469",
+        "rawProductUrlHash": "57a9475991d54e88",
+        "rawImageUrlHash": "94ad3f576994a07a",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769482",
+      "platform": "suning",
+      "title": "啄木鸟爸爸春装男士外套2024新款秋冬季翻领厚中老年人毛呢子夹克 新商品上架",
+      "price": "542.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769482.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/mKjSKBCHY27R05kc6nyINw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 746,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769482",
+        "rawProductUrlHash": "14852f312020c17f",
+        "rawImageUrlHash": "d444a41cfc1d2911",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769495",
+      "platform": "suning",
+      "title": "啄木鸟秋冬2024新款男士外套中老年人爸爸春装毛呢子厚款立领夹克 新商品上架",
+      "price": "542.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769495.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/RD3_FiQN8ey6Vr1bJtEXSA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 747,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769495",
+        "rawProductUrlHash": "5936e721d179dd8f",
+        "rawImageUrlHash": "d3b274347c47581a",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769508",
+      "platform": "suning",
+      "title": "啄木鸟2025春秋季新款中年男士毛呢子夹克高端中老年人爸爸装外套 新商品上架",
+      "price": "458.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769508.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/kWWHPRG9Cb4nk6lFiDPsgQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 748,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769508",
+        "rawProductUrlHash": "6ed663e13f5630ee",
+        "rawImageUrlHash": "085ef9ecff18847b",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769527",
+      "platform": "suning",
+      "title": "啄木鸟双面羊毛呢大衣男士中长款2025冬季新款高级感加厚呢子外套 新商品上架",
+      "price": "985.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769527.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/6o2EPbguWL6BehwHox3KsA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 749,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769527",
+        "rawProductUrlHash": "3aec7fbc60f670cf",
+        "rawImageUrlHash": "af1c9e73a2202e76",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769540",
+      "platform": "suning",
+      "title": "啄木鸟毛呢外套男2025冬季新款中山装羊毛大衣中老年爸爸呢子夹克 新商品上架",
+      "price": "838.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769540.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/Kto0L9q2eLfgH8XxzkyM1g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 750,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769540",
+        "rawProductUrlHash": "3f1c8263bd415d1a",
+        "rawImageUrlHash": "d549a9018806cf06",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769596",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装呢子外套加绒加厚保暖冬季中老年人毛呢大衣男长款 新商品上架",
+      "price": "416.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769596.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/32soOFmmg2b2WEQp6YXnRw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 751,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769596",
+        "rawProductUrlHash": "4a1f91e361888201",
+        "rawImageUrlHash": "d5ce28a72e603269",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769609",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装外套装中年加绒加厚毛呢子西装男中老年人50岁西服 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769609.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/ber0ejTQesYoFkOzzz9a0g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 752,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769609",
+        "rawProductUrlHash": "227d42e6bca01806",
+        "rawImageUrlHash": "5efb3972e32622d9",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769658",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装毛呢棉服外套加绒加厚款中老年棉衣男爷爷保暖棉袄 新商品上架",
+      "price": "353.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769658.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/ZXI12OGNZrvza4y_Ls1zGg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 753,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769658",
+        "rawProductUrlHash": "5393508093efeb3f",
+        "rawImageUrlHash": "e750a43bdb90b3fe",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769690",
+      "platform": "suning",
+      "title": "啄木鸟男士羊毛外套2024冬季加棉加厚毛呢大衣中长款高端呢子风衣 新商品上架",
+      "price": "584.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769690.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/e-AYnehJIhiKJP5-XXq8uw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 754,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769690",
+        "rawProductUrlHash": "dca65ff90468c82d",
+        "rawImageUrlHash": "dc3d6bab0552c287",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769709",
+      "platform": "suning",
+      "title": "啄木鸟纯羊毛男士外套2025冬季新款加厚立领毛呢夹克短款呢子大衣 新商品上架",
+      "price": "901.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769709.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/OCrAVIPc7YkcccxOIAdpHw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 755,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769709",
+        "rawProductUrlHash": "6dad6f3d6fa8baa0",
+        "rawImageUrlHash": "4a9f20f327c1b731",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769734",
+      "platform": "suning",
+      "title": "啄木鸟羊绒大衣男中长款冬季新款羊毛加厚毛呢风衣双排扣呢子外套 新商品上架",
+      "price": "796.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769734.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/CUbrUfdkRTQ27pfs8LKVNA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 756,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769734",
+        "rawProductUrlHash": "6fa469fa360b0daa",
+        "rawImageUrlHash": "58ace61d92fe6c9a",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769747",
+      "platform": "suning",
+      "title": "啄木鸟中年爸爸装夹克品牌正品春秋款棒球领毛呢子中老年男装外套 新商品上架",
+      "price": "353.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769747.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/wAZOhnAWUmLx92wDfQfGLA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 757,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769747",
+        "rawProductUrlHash": "024e7280ca6cbc74",
+        "rawImageUrlHash": "5cc43151a02299b7",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769760",
+      "platform": "suning",
+      "title": "啄木鸟中年男士毛呢夹克爸爸秋装外套秋冬季中老年呢子男装50岁60 新商品上架",
+      "price": "248.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769760.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/9Per_zKXz5i2z5vWFpUX4A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 758,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769760",
+        "rawProductUrlHash": "40cd30860233520c",
+        "rawImageUrlHash": "5654d00f5a207035",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769779",
+      "platform": "suning",
+      "title": "啄木鸟中年男士毛呢夹克爸爸秋装外套秋冬季中老年呢子男装50岁60 新商品上架",
+      "price": "269.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769779.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/dW7cZCPRoRepoBn4RT4JSw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 759,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769779",
+        "rawProductUrlHash": "4008b2ac22669f0d",
+        "rawImageUrlHash": "0823f3ed43c41347",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769816",
+      "platform": "suning",
+      "title": "啄木鸟中老年人毛呢夹克男爸爸冬装外套加绒加厚冬季爷爷保暖棉衣 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769816.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/lpeNUtj_EV9IeOpxj0clGA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 760,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769816",
+        "rawProductUrlHash": "64069c793a35c756",
+        "rawImageUrlHash": "8fea22b419d8f88e",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769835",
+      "platform": "suning",
+      "title": "啄木鸟冬季新款男士中年呢子大衣爸爸装保暖夹克外套加棉上衣服C 新商品上架",
+      "price": "458.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769835.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/I6XVdx44ANnC6rIA6vJazA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 761,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769835",
+        "rawProductUrlHash": "060fee6549ac8a8d",
+        "rawImageUrlHash": "ded51661632ae266",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769867",
+      "platform": "suning",
+      "title": "啄木鸟毛呢大衣男冬季中长款中老年可脱卸内胆羊毛呢子商务外套 新商品上架",
+      "price": "1048.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769867.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/IZQbgKdcnDifJ0bnjJyQ2A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 762,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769867",
+        "rawProductUrlHash": "8220cb79d9002e12",
+        "rawImageUrlHash": "2abb68275e2cdd3f",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769889",
+      "platform": "suning",
+      "title": "啄木鸟男士爸爸秋装外套秋冬季中老年人立领呢子男50岁60 新商品上架",
+      "price": "332.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769889.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/jYrksOv7tVXGBiMX-7USfA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 763,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769889",
+        "rawProductUrlHash": "b796773a0ee4efe8",
+        "rawImageUrlHash": "749ed5f9a87ede35",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769926",
+      "platform": "suning",
+      "title": "啄木鸟男士羊毛西服冬季加厚羽绒内胆保暖休闲西装双面毛呢子外套 新商品上架",
+      "price": "1132.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769926.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/zr6v-mphaml4Hwa4wz_9ZQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 764,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769926",
+        "rawProductUrlHash": "da896bed0dd21939",
+        "rawImageUrlHash": "baaa29a5da8345f4",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769951",
+      "platform": "suning",
+      "title": "啄木鸟羊毛大衣男中长款2025冬季新款中老年爸爸呢子加厚毛呢外套 新商品上架",
+      "price": "945.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769951.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/gLjdCSMtkNNStD-YHkYHYQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 765,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769951",
+        "rawProductUrlHash": "8245c03650d106cd",
+        "rawImageUrlHash": "82d39546eef89eb5",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769966",
+      "platform": "suning",
+      "title": "啄木鸟高端毛呢大衣男士秋冬季中年加厚外套休闲短款立领呢子夹克 新商品上架",
+      "price": "496.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769966.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/wb2v7ieS6pR9yKm-S9XM-g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 766,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769966",
+        "rawProductUrlHash": "5946c21342906d80",
+        "rawImageUrlHash": "e687866e4dcc7e89",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449769991",
+      "platform": "suning",
+      "title": "啄木鸟2025春秋季新款中年男士毛呢子夹克厚款中老年人爸爸装外套 新商品上架",
+      "price": "458.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449769991.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/4U9nJz20iN-32DhKEvRD_g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 767,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449769991",
+        "rawProductUrlHash": "3c6a4c8e77d7eea2",
+        "rawImageUrlHash": "f1d4f5ebb994d593",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770004",
+      "platform": "suning",
+      "title": "啄木鸟毛呢大衣男中长款2025冬季新款高级感羊毛加棉加厚呢子外套 新商品上架",
+      "price": "712.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770004.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/Rji-1ipKC3CisgdNZaw9eQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 768,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770004",
+        "rawProductUrlHash": "8880475b44e37559",
+        "rawImageUrlHash": "14389cb638d2002c",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770029",
+      "platform": "suning",
+      "title": "啄木鸟爸爸秋装毛呢外套秋冬季中老年夹克男士呢子商务上衣50岁60 新商品上架",
+      "price": "332.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770029.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/raqTk4knm205KX1mVp8Giw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 769,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770029",
+        "rawProductUrlHash": "95afd9fda75ac4a9",
+        "rawImageUrlHash": "c220607392cab617",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770048",
+      "platform": "suning",
+      "title": "啄木鸟金貂绒翻领短款毛呢大衣冬季男士韩版潮流呢子休闲冬装外套 新商品上架",
+      "price": "544.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770048.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/e_kfi6St-q30CjvZ-nGPqA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 770,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770048",
+        "rawProductUrlHash": "00664a7ef1ffdb19",
+        "rawImageUrlHash": "524c9f38e411850c",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770071",
+      "platform": "suning",
+      "title": "啄木鸟2025新款中年男士西服休闲格子商务西装外套爸爸春秋上衣C 新商品上架",
+      "price": "689.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770071.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/bXWG4HKOSouWJsgGXLmRnw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 771,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770071",
+        "rawProductUrlHash": "2ee6fcd5da9aba36",
+        "rawImageUrlHash": "5ea8f8682a50d350",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770097",
+      "platform": "suning",
+      "title": "啄木鸟2025秋季新款男士西服中年休闲西装外套春秋修身上衣爸爸装 新商品上架",
+      "price": "500.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770097.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/n1akoGnJPEnUa9ZxpqZ4aA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 772,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770097",
+        "rawProductUrlHash": "c647addfff7569a5",
+        "rawImageUrlHash": "554202cd0cc42f13",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770167",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装外套装中年西服男加绒加厚喜公公结婚礼服婚宴西装 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770167.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/2_EVNeb_ibEXXZX03WWATQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 773,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770167",
+        "rawProductUrlHash": "1dbcad5ae9ae2fab",
+        "rawImageUrlHash": "ff6fb86c80d40e49",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770216",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装外套装加绒加厚中年50岁西服男喜公公婚宴礼服西装 新商品上架",
+      "price": "311.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770216.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/8T9FLzAjKJwJM8i7gWIArQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 774,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770216",
+        "rawProductUrlHash": "b463e4b852a6dcff",
+        "rawImageUrlHash": "6fa0cde59219d895",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770313",
+      "platform": "suning",
+      "title": "啄木鸟爸爸秋冬装外套装中老年人加绒加厚西装男2025新款中年西服 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770313.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/xVLQ8Ve02vtd_WOPltD7KA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 775,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770313",
+        "rawProductUrlHash": "b88ea255c28da4d9",
+        "rawImageUrlHash": "56b78d4fa4efc82b",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770362",
+      "platform": "suning",
+      "title": "啄木鸟西服套装男士冬装结婚礼服2025秋冬新款加绒加厚西装外套K 新商品上架",
+      "price": "397.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770362.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/mOEOjA5O5OHGJP3xtL0BMA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 776,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770362",
+        "rawProductUrlHash": "2c62d50256babea7",
+        "rawImageUrlHash": "f994ebf2d10163d2",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770504",
+      "platform": "suning",
+      "title": "爸爸秋冬款外套装中老年人加绒加厚款西装男2024新款冬装中年西服 新商品上架",
+      "price": "353.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770504.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/4RNsdT2k-Yu8ioxFWR0F2Q.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 777,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770504",
+        "rawProductUrlHash": "b9bdf2242df37c04",
+        "rawImageUrlHash": "875c299ce382eb1a",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770553",
+      "platform": "suning",
+      "title": "啄木鸟休闲西服男士单西外套春季新款潮牌高端商务高级小西装男款 新商品上架",
+      "price": "628.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770553.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/SCBweesch57a_fPqiuJvOg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 778,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770553",
+        "rawProductUrlHash": "0c3c0c50349726ae",
+        "rawImageUrlHash": "57233dcd97e070c8",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770585",
+      "platform": "suning",
+      "title": "啄木鸟毛呢小西装男士爸爸秋装呢子外套秋冬季中老年人西服男上衣 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770585.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/Nqq-kPBfcHSYTr8wy39o-g.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 779,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770585",
+        "rawProductUrlHash": "07aee6c839479667",
+        "rawImageUrlHash": "44363d928864a435",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770598",
+      "platform": "suning",
+      "title": "啄木鸟羊毛西服男2025秋冬新款加厚毛呢便西男装呢子小西装外套C 新商品上架",
+      "price": "626.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770598.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/qyDyBZTGd8injCdAjoJ9Pg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 780,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770598",
+        "rawProductUrlHash": "47702e07c4ec0e99",
+        "rawImageUrlHash": "daa0691396f926b8",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770695",
+      "platform": "suning",
+      "title": "啄木鸟爸爸冬装外套装中年西服男加绒加厚喜公公结婚礼中老年西装 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770695.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/ifGbiDlVAP3v5FRgrgJicg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 781,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770695",
+        "rawProductUrlHash": "b8ebca0a77e47f5d",
+        "rawImageUrlHash": "fa83c48d553fe091",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770779",
+      "platform": "suning",
+      "title": "啄木鸟2025秋冬季小西装外套爸爸羊毛呢子加厚中年男士西服加厚C 新商品上架",
+      "price": "458.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770779.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/lA6VVT9EaFLh6iVL1AKLYw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 782,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770779",
+        "rawProductUrlHash": "5002bd152e677480",
+        "rawImageUrlHash": "8490ea54aa38d642",
+        "attributes": {
+          "category": "food"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770807",
+      "platform": "suning",
+      "title": "啄木鸟毛呢小西装男士爸爸秋装呢子外套秋冬季中老年人西服男上衣 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770807.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/6eOMVUoC7ET9QuhPzOvcrA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 783,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770807",
+        "rawProductUrlHash": "34648c6f8d20636b",
+        "rawImageUrlHash": "a7ee58f0738b6f53",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071643582-12449770820",
+      "platform": "suning",
+      "title": "啄木鸟毛呢西装男士爸爸秋装呢子外套秋冬季中老年西服上衣50岁60 新商品上架",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "广叶服饰专营店",
+      "productUrl": "https://product.suning.com/0071643582/12449770820.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/OV-dELnddkVfZru95ONYWw.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 784,
+        "keyword": "Tommy Hilfiger 外套",
+        "shopName": "广叶服饰专营店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/Tommy%20Hilfiger%20%E5%A4%96%E5%A5%97/#second-filter",
+        "pageNo": "4",
+        "itemId": "0071643582-12449770820",
+        "rawProductUrlHash": "0295b2cebaeedfd7",
+        "rawImageUrlHash": "521ce7f8a13fd62c",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448302268",
+      "platform": "suning",
+      "title": "骏捷诺一次性五格防盗扣餐盒100套/箱 坚韧防撕拉",
+      "price": "400.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448302268.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/qGo-PPOcMkFurWC-Q2Ed_A.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 785,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "38",
+        "itemId": "0071611411-12448302268",
+        "rawProductUrlHash": "afa1ac9020729b91",
+        "rawImageUrlHash": "2edb0fa4dbf417fd",
+        "attributes": {
+          "category": "electronics"
+        }
+      }
+    },
+    {
+      "externalId": "0071614977-12448312856",
+      "platform": "suning",
+      "title": "飞翔大雁 围脖 均码 条 抗寒保暖",
+      "price": "108.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "飞翔大雁劳保服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614977/12448312856.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/S9UPjuESqvToEj2B_wuU2Q.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 786,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "飞翔大雁劳保服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614977-12448312856",
+        "rawProductUrlHash": "4d9ae3688b1a1da2",
+        "rawImageUrlHash": "ecb7852656b48fe9",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614977-12448319455",
+      "platform": "suning",
+      "title": "飞翔大雁 高可视警示调车夏季服 M-4XL套 防刮防磨",
+      "price": "280.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "飞翔大雁劳保服饰旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614977/12448319455.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/Qo8ixM_kyx-ar80NhuvO2g.png_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 787,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "飞翔大雁劳保服饰旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614977-12448319455",
+        "rawProductUrlHash": "e3a03f53a1652c22",
+        "rawImageUrlHash": "938e2a5ff359a757",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614693-12448341264",
+      "platform": "suning",
+      "title": "红晨岛防寒羽绒服(170)(件) 防风保暖、时尚大方、吸湿透气",
+      "price": "1908.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "红晨岛旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614693/12448341264.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/zAza_cOM1hOTuI87hz4rrg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 788,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "红晨岛旗舰店",
+        "salesText": "3",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614693-12448341264",
+        "rawProductUrlHash": "1f7c7c42f623a9fd",
+        "rawImageUrlHash": "b532f606b0fe5b97",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071611411-12448387709",
+      "platform": "suning",
+      "title": "骏捷诺工作马甲橘红色均码/件 坚韧防撕拉",
+      "price": "120.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "骏捷诺劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071611411/12448387709.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/LJYC4rQYGs73TQEvN_Yqhg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 789,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "骏捷诺劳保旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071611411-12448387709",
+        "rawProductUrlHash": "a78942548cd83dd5",
+        "rawImageUrlHash": "e9d82305858dc6dd",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448413201",
+      "platform": "suning",
+      "title": "梓南北 工作服 ZN/F08 套 柔软舒适",
+      "price": "290.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448413201.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/EZckCdzNcs5Lj79LbYd4XQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 790,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "200+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448413201",
+        "rawProductUrlHash": "2c4593593af9f1c4",
+        "rawImageUrlHash": "cfb83b58d4e51891",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071617771-12448430141",
+      "platform": "suning",
+      "title": "际华宏达 雨衣雨裤套装 JHHD-016/套 际华宏达 雨衣雨裤套装 JHHD-016/套",
+      "price": "128.26",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "际华宏达旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617771/12448430141.html",
+      "imageUrl": "https://imgservice3.suning.cn/uimg1/b2c/image/9hOdJy_us5fuEHZq7YvZEA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 791,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "际华宏达旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617771-12448430141",
+        "rawProductUrlHash": "ce1f27d2d7f4b6ef",
+        "rawImageUrlHash": "ec5bbce7daf85708",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071617771-12448445869",
+      "platform": "suning",
+      "title": "际华宏达 冬季羽绒马甲 全码/件 际华宏达 冬季羽绒马甲 全码/件",
+      "price": "195.65",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "际华宏达旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071617771/12448445869.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/DXpijeKYRRUO6JK7SWKSMQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 792,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "际华宏达旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071617771-12448445869",
+        "rawProductUrlHash": "33a4444090a69099",
+        "rawImageUrlHash": "7361ead6921e7b36",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614726-12448448267",
+      "platform": "suning",
+      "title": "梓南北 马甲 MJ09 件 双层设计",
+      "price": "292.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "梓南北旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614726/12448448267.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/nBwVXVoEWMn84qfdpyscmQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 793,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "梓南北旗舰店",
+        "salesText": "300+",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614726-12448448267",
+        "rawProductUrlHash": "a695799e34faf468",
+        "rawImageUrlHash": "30570f798128827c",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071615709-12448461702",
+      "platform": "suning",
+      "title": "酷美智悦 劳保服 KM-ZY009 件 酷美智悦 劳保服 KM-ZY009 件",
+      "price": "550.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "酷美智悦旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071615709/12448461702.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/MgJqgaEOhs0Hyel80TF0Ww.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 794,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "酷美智悦旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071615709-12448461702",
+        "rawProductUrlHash": "2c42237e9a692599",
+        "rawImageUrlHash": "97b1555e90f77e96",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448471407",
+      "platform": "suning",
+      "title": "雅霖服 单层马甲YLF-ZKA001 件 下单备注颜色 均码 设计符合人体工学，不束缚活动",
+      "price": "27.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448471407.html",
+      "imageUrl": "https://imgservice4.suning.cn/uimg1/b2c/image/fiQUHMvwDQGAl-XLx00-7w.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 795,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448471407",
+        "rawProductUrlHash": "fbbe4e2e508d4472",
+        "rawImageUrlHash": "b5d863ed0b85d0d2",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071614351-12448471753",
+      "platform": "suning",
+      "title": "雅霖服 多口袋马甲YLF-ZKA011 件 下单备注颜色 均码 设计符合人体工学，不束缚活动",
+      "price": "62.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "雅霖服旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071614351/12448471753.html",
+      "imageUrl": "https://imgservice2.suning.cn/uimg1/b2c/image/0SBmQztC5XAUO0O-Jd23mA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 796,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "雅霖服旗舰店",
+        "salesText": "2",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071614351-12448471753",
+        "rawProductUrlHash": "2bc31b43a7180dcc",
+        "rawImageUrlHash": "d1dfe785b9c037a0",
+        "attributes": {
+          "category": "general"
+        }
+      }
+    },
+    {
+      "externalId": "0071613947-12448521354",
+      "platform": "suning",
+      "title": "喜事虹 迷彩套装 迷彩服作训服(帽子+T恤+上衣+裤子+腰带+鞋)6件 套 迷彩套装",
+      "price": "180.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "喜事虹劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613947/12448521354.html",
+      "imageUrl": "https://imgservice5.suning.cn/uimg1/b2c/image/1UVtvY574yWgyjE3vfJmoQ.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 797,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "喜事虹劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071613947-12448521354",
+        "rawProductUrlHash": "bf20d1c40d24acc5",
+        "rawImageUrlHash": "c8f7c9ca07e6df87",
+        "attributes": {
+          "category": "shoe"
+        }
+      }
+    },
+    {
+      "externalId": "0071613947-12448521371",
+      "platform": "suning",
+      "title": "喜事虹 迷彩套装 迷彩服作训服(帽子+上衣+裤子+腰带 )4件 套 帽子+上衣+裤子+腰带",
+      "price": "180.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "喜事虹劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613947/12448521371.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/cmSMDnzH67oo1z8okEMOzA.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 798,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "喜事虹劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071613947-12448521371",
+        "rawProductUrlHash": "3dd5931ea4b57246",
+        "rawImageUrlHash": "6ee4b5395d95451b",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    },
+    {
+      "externalId": "0071613947-12448521376",
+      "platform": "suning",
+      "title": "喜事虹 迷彩套装 迷彩服作训服(帽子+T恤+裤子+腰带 )4件 套 帽子+T恤+裤子+腰带",
+      "price": "150.00",
+      "currency": "CNY",
+      "stockStatus": "in_stock",
+      "shopName": "喜事虹劳保旗舰店",
+      "shopType": "official",
+      "productUrl": "https://product.suning.com/0071613947/12448521376.html",
+      "imageUrl": "https://imgservice1.suning.cn/uimg1/b2c/image/k4J9DG_Tj-mRnritrLhDbg.jpg_400w_400h_4e",
+      "rawPayload": {
+        "source": "local_collected_product_data",
+        "batchSource": "collected_all_20260606",
+        "sourceFile": "suning(1).json",
+        "originalRowIndex": 799,
+        "keyword": "Jack Jones 男士 夹克",
+        "shopName": "喜事虹劳保旗舰店",
+        "salesText": "0",
+        "pageUrl": "https://search.suning.com/%E5%A4%B9%E5%85%8B/&iy=0&isNoResult=0&corrected=1_Jack%20Jones%20%E7%94%B7%E5%A3%AB%20%E5%A4%B9%E5%85%8B&cp=26#second-filter",
+        "pageNo": "39",
+        "itemId": "0071613947-12448521376",
+        "rawProductUrlHash": "d6bb1c6eb46ae718",
+        "rawImageUrlHash": "9d758a4554919cdd",
+        "attributes": {
+          "category": "apparel"
+        }
+      }
+    }
+  ]
+}

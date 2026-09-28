@@ -1,0 +1,9 @@
+{
+  "module": {
+    "name": "scheduler",
+    "type": "har",
+    "deviceTypes": [
+      "phone"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "shopping-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intelligent shopping assistant for HarmonyOS Edge AI scheduling.",
+  "packageManager": "npm@11.12.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "model-search:proxy": "node services/model-search-proxy/server.mjs"
+  },
+  "devDependencies": {}
+}
