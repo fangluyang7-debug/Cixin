@@ -2,11 +2,11 @@ import { common } from '@kit.AbilityKit';
 import deviceInfo from '@ohos.deviceInfo';
 import picker from '@ohos.file.picker';
 import fs from '@ohos.file.fs';
-import { ConstrainedPolicyConfig, PolicyMode, SchedulerLogEntry, SchedulerService, WorkflowHandle, Unsubscribe } from 'scheduler';
+import { ConstrainedPolicyConfig, PolicyMode, SchedulerLogEntry, SchedulerService, TaskStatus, WorkflowHandle, Unsubscribe } from 'scheduler';
 import { Product } from '../models/Product';
 import { DataInitService } from './DataInitService';
 import { NeuralEmbeddingIndex } from './NeuralEmbeddingIndex';
-import { ShoppingTaskService } from './ShoppingTaskService';
+import { OfflineDiagnosticService } from './OfflineDiagnosticService';
 import { ExperimentTrial, exportTrialRecords } from './ExperimentRecords';
 
 // A separate bounded capture survives the SDK's rolling audit window.
@@ -31,6 +31,7 @@ export class ExperimentService {
     return ExperimentService.instance;
   }
   public isRunning(): boolean { return this.running; }
+  public wasCancelled(): boolean { return this.cancelled; }
 
   public async cancel(): Promise<void> {
     this.cancelled = true;
@@ -38,10 +39,10 @@ export class ExperimentService {
     if (this.activeBackground !== null) { await this.activeBackground.cancel(); }
   }
 
-  public async run(): Promise<number> {
+  public async run(context: common.Context): Promise<number> {
     if (this.running) { throw new Error('实验正在进行'); }
     const scheduler = SchedulerService.getInstance();
-    const shopping = ShoppingTaskService.getInstance();
+    const diagnostic = OfflineDiagnosticService.getInstance();
     if (scheduler.isPaused()) { throw new Error('请先恢复全局调度'); }
     const metrics = scheduler.getMetricsSnapshot();
     if (metrics.runningCount > 0 || metrics.queuedCount > 0) { throw new Error('请等待现有任务结束或取消暂停任务后再开始实验'); }
@@ -56,7 +57,7 @@ export class ExperimentService {
       } else { this.droppedEvents++; }
     });
     try {
-      await DataInitService.waitUntilReady();
+      await DataInitService.checkAndInitData(context);
       const modes: PolicyMode[] = [PolicyMode.FIXED_PERFORMANCE, PolicyMode.FIXED_POWER_SAVING, PolicyMode.ADAPTIVE];
       const queries: string[] = ['运动鞋', '耐克500元以内', '华为'];
       const queryIds: string[] = ['shoes', 'nike_under_500', 'huawei'];
@@ -71,12 +72,12 @@ export class ExperimentService {
             for (let q: number = 0; q < queries.length && !this.cancelled; q++) {
               const policy = scheduler.getConstrainedPolicy();
               const started: number = Date.now();
-              this.activeBackground = background ? shopping.warmup() : null;
+              this.activeBackground = background ? diagnostic.warmup() : null;
               let backgroundEnd: number | null = null;
               const backgroundPromise = this.activeBackground === null ? null : this.activeBackground.result.then((result) => {
                 backgroundEnd = Date.now(); return result;
               });
-              this.activeSearch = shopping.search(queries[q]);
+              this.activeSearch = diagnostic.search(queries[q]);
               const result = await this.activeSearch.result;
               const searchEnd: number = Date.now();
               // Bound experiment duration under thermal pause; cancellation still waits for actual settlement.
@@ -100,6 +101,10 @@ export class ExperimentService {
                 backgroundStatus: backgroundStatus, backgroundRows: rows,
                 samplePhase: this.trials.length === 0 ? 'first_in_session_not_cold_proof' : 'subsequent_in_session' });
               this.activeSearch = null; this.activeBackground = null;
+              if (!this.cancelled && (result.status !== TaskStatus.SUCCEEDED ||
+                (background && backgroundStatus !== TaskStatus.SUCCEEDED))) {
+                throw new Error(`DIAGNOSTIC_TASK_FAILED:search=${result.status}:${result.reasonCode ?? 'unknown'},background=${backgroundStatus}`);
+              }
             }
           }
         }

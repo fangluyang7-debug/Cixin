@@ -2,6 +2,7 @@ import { AbilityConstant, ConfigurationConstant, UIAbility, Want } from '@kit.Ab
 import { hilog } from '@kit.PerformanceAnalysisKit';
 import { CloudApiConfig } from '../services/CloudApiConfig';
 import { ShoppingTaskService } from '../services/ShoppingTaskService';
+import { OfflineDiagnosticService } from '../services/OfflineDiagnosticService';
 import { LocalPolicyStore } from '../services/LocalPolicyStore';
 import { SchedulerMonitorPublisher } from '../services/SchedulerMonitorPublisher';
 import { window } from '@kit.ArkUI';
@@ -116,6 +117,7 @@ export default class EntryAbility extends UIAbility {
       return;
     }
     ShoppingTaskService.getInstance().initialize(this.schedulerService);
+    OfflineDiagnosticService.getInstance().initialize(this.schedulerService);
     this.deviceStateAdapter = new HarmonyDeviceStateAdapter((patch: RealDeviceStatePatch): void => {
       if (this.schedulerService.isInitialized()) {
         this.schedulerService.updateRealDeviceState(patch);
@@ -127,6 +129,7 @@ export default class EntryAbility extends UIAbility {
       await this.deviceStateAdapter.stop();
       this.deviceStateAdapter = null;
       await ShoppingTaskService.getInstance().dispose();
+      await OfflineDiagnosticService.getInstance().dispose();
       await this.schedulerService.shutdown();
       return;
     }
@@ -148,6 +151,7 @@ export default class EntryAbility extends UIAbility {
     }
     if (this.schedulerService.isInitialized()) {
       await ShoppingTaskService.getInstance().dispose();
+      await OfflineDiagnosticService.getInstance().dispose();
       await this.schedulerService.shutdown();
     }
   }

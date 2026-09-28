@@ -978,8 +978,11 @@ struct SchedulerPanelPage {
     this.experimentRunning = true; this.isBusy = true;
     this.experimentMessage = '正在执行真实任务，请勿切换模式或注入状态；可停止并导出已有结果。';
     try {
-      const count: number = await ExperimentService.getInstance().run();
-      this.experimentMessage = `实验结束：${count} 条搜索记录。请导出 JSON，结果包含失败与取消。`;
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      const count: number = await ExperimentService.getInstance().run(context);
+      this.experimentMessage = ExperimentService.getInstance().wasCancelled() ?
+        `实验已停止：保留 ${count} 条搜索记录，可导出 JSON。` :
+        `实验结束：${count} 条搜索记录。请导出 JSON，结果包含失败与取消。`;
     } catch (error) { this.experimentMessage = `实验未完成：${error}`; }
     finally { this.experimentRunning = false; this.isBusy = false; this.refreshData(); }
   }
