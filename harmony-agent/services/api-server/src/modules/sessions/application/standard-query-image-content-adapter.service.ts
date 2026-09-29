@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { DeviceDispatchService } from '../../../core/runtime/device-dispatch.service';
+import { PhoneDispatchService } from '../../runtime/phone-dispatch.service';
 import { Optional } from '@nestjs/common';
 import { RuntimeWorkScope } from '../../../core/runtime/runtime-work-scope';
 import { InternalServerErrorException } from '@nestjs/common';
@@ -14,7 +15,8 @@ import { NormalizedSubjectBox } from './query-image-preprocess-adapter.interface
 
 @Injectable()
 export class StandardQueryImageContentAdapterService implements QueryImageContentAdapter {
-  constructor(@Optional() private readonly dispatch?: DeviceDispatchService) {}
+  constructor(@Optional() private readonly dispatch?: DeviceDispatchService,
+    @Optional() private readonly phoneDispatch?: PhoneDispatchService) {}
   async readMetadata(signedUrl: string, expectedHash?: string): Promise<QueryImageMetadata> {
     const buffer = await this.fetchImageBuffer(signedUrl, expectedHash);
     const metadata = await sharp(buffer, { failOn: 'none' }).metadata();
@@ -30,6 +32,22 @@ export class StandardQueryImageContentAdapterService implements QueryImageConten
     jpegQuality: number;
   }): Promise<QueryImageCropResult> {
     const imageBuffer = await this.fetchImageBuffer(input.signedUrl, input.expectedHash);
+    const ownerId = RuntimeWorkScope.ownerId();
+    if (ownerId && this.phoneDispatch) {
+      const signal = RuntimeWorkScope.signal(30_000);
+      try {
+        const phone = await this.phoneDispatch.cropForShopping(ownerId, input.signedUrl, imageBuffer, input, signal);
+        if (phone) {
+          RuntimeWorkScope.recordPlacement({ capability: 'image.crop.v1', mode: 'PHONE_DEMO',
+            actualDeviceId: phone.result.strategy.replace('phone_crop_demo_', ''), phoneJobId: phone.jobId });
+          return phone.result;
+        }
+      } catch (error) {
+        if (signal.aborted) throw error;
+        RuntimeWorkScope.recordPlacement({ capability: 'image.crop.v1', mode: 'PHONE_DEMO',
+          actualDeviceId: 'cloud-runtime', reason: (error as Error).message });
+      }
+    }
     if (this.dispatch) return this.dispatch.crop(imageBuffer, input, () => this.cropBuffer(imageBuffer, input));
     return this.cropBuffer(imageBuffer, input);
   }

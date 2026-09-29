@@ -65,6 +65,22 @@ export class PhoneDispatchController {
       value.fence as number, value.norms as number[], value.computedMs as number));
   }
 
+  @Post('devices/:deviceId/jobs/:jobId/crop-result')
+  async cropResult(@Req() request: AuthenticatedRequest, @Param('deviceId') deviceId: string,
+    @Param('jobId') jobId: string, @Body() body: unknown) {
+    const value = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+    return ok(await this.dispatch.cropResult(request.user!.userId, deviceId, jobId,
+      value.fence as number, value.imageBase64 as string, value.inputHash as string,
+      value.computedMs as number));
+  }
+
+  @Post('devices/:deviceId/jobs/:jobId/crop-failure')
+  async cropFailure(@Req() request: AuthenticatedRequest, @Param('deviceId') deviceId: string,
+    @Param('jobId') jobId: string, @Body() body: unknown) {
+    const value = body && typeof body === 'object' ? body as Record<string, unknown> : {};
+    return ok(await this.dispatch.cropFailure(request.user!.userId, deviceId, jobId, value.fence as number));
+  }
+
   @Post('devices/:deviceId/jobs/:jobId/stop-ack')
   async stopAck(@Req() request: AuthenticatedRequest, @Param('deviceId') deviceId: string,
     @Param('jobId') jobId: string, @Body() body: unknown) {

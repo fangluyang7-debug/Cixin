@@ -16,6 +16,9 @@ try {
   for (const statement of phoneMigration.split(';').map(value => value.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(statement);
   const phoneFenceMigration = await readFile(new URL('./migrations/000006_phone_dispatch_fence/migration.sql', import.meta.url), 'utf8');
   for (const statement of phoneFenceMigration.split(';').map(value => value.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(statement);
+  const cropColumns = await prisma.$queryRawUnsafe('PRAGMA table_info("PhoneDispatchJob")');
+  if (!cropColumns.some(column => column.name === 'kind')) await prisma.$executeRawUnsafe('ALTER TABLE "PhoneDispatchJob" ADD COLUMN "kind" TEXT NOT NULL DEFAULT \'vector.norm.demo\'');
+  if (!cropColumns.some(column => column.name === 'resultJson')) await prisma.$executeRawUnsafe('ALTER TABLE "PhoneDispatchJob" ADD COLUMN "resultJson" TEXT');
   if (await tableExists('QuerySession')) {
     const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("QuerySession")');
     for (const column of ['stateVersion', 'requestRevision']) {

@@ -7,13 +7,15 @@ import { createRequire } from 'node:module';
 const directory = await mkdtemp(join(tmpdir(), 'phone-dispatch-'));
 process.env.DATABASE_URL = 'file:' + join(directory, 'test.db').replaceAll('\\', '/');
 process.env.PHONE_DISPATCH_EXPERIMENT_ENABLED = 'true';
+process.env.PHONE_DISPATCH_SHOPPING_DEMO_ENABLED = 'true';
 const require = createRequire(import.meta.url);
+const sharp = require('sharp');
 const { PrismaClient } = require('@prisma/client');
 const { PhoneDispatchService } = require('../services/api-server/dist/src/modules/runtime/phone-dispatch.service.js');
 const db = new PrismaClient();
 
 async function migrate() {
-  for (const name of ['000005_phone_dispatch', '000006_phone_dispatch_fence']) {
+  for (const name of ['000005_phone_dispatch', '000006_phone_dispatch_fence', '000007_phone_crop_demo']) {
     const sql = await readFile(new URL(`../services/api-server/prisma/migrations/${name}/migration.sql`, import.meta.url), 'utf8');
     for (const statement of sql.split(';').map(item => item.trim()).filter(Boolean)) {
       await db.$executeRawUnsafe(statement);
@@ -70,13 +72,51 @@ try {
   await service.cancel('owner-A', activeLease.jobId);
   await service.acknowledgeStop('worker-B', device.deviceId, activeLease.jobId, activeLease.fence);
   await service.cancel('owner-A', activeLease.jobId === concurrentA.jobId ? concurrentB.jobId : concurrentA.jobId);
+  const imageBytes = await sharp({ create: { width: 80, height: 80, channels: 3,
+    background: { r: 35, g: 65, b: 95 } } }).jpeg().toBuffer();
+  await service.lease('worker-B', device.deviceId); // refresh the worker heartbeat
+  const cropPromise = service.cropForShopping('owner-A', 'https://example.test/image.jpg', imageBytes,
+    { box: { x: 0, y: 0, width: 1, height: 1 }, paddingRatio: 0, targetSize: 64, jpegQuality: 80 },
+    new AbortController().signal);
+  let cropJob;
+  for (let i = 0; i < 30; i++) {
+    cropJob = await db.phoneDispatchJob.findFirst({ where: { kind: 'image.crop.v1' } });
+    if (cropJob) break;
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  assert.ok(cropJob);
+  const cropLease = (await service.lease('worker-B', device.deviceId)).job;
+  assert.equal(cropLease.kind, 'image.crop.v1');
+  assert.equal(cropLease.crop.inputHash, cropJob.inputHash);
+  const cropOutput = await sharp(imageBytes).resize(64, 64).jpeg().toBuffer();
+  await assert.rejects(service.cropResult('worker-B', device.deviceId, cropJob.id,
+    cropLease.fence, cropOutput.toString('base64'), 'wrong-hash', 4));
+  const cropReceipt = await service.cropResult('worker-B', device.deviceId, cropJob.id,
+    cropLease.fence, cropOutput.toString('base64'), cropJob.inputHash, 4);
+  assert.equal(cropReceipt.state, 'COMPLETED');
+  const cropped = await cropPromise;
+  assert.equal(cropped.jobId, cropJob.id);
+  assert.deepEqual(cropped.result.buffer, cropOutput);
+  const failedCropPromise = service.cropForShopping('owner-A', 'https://example.test/image.jpg', imageBytes,
+    { box: { x: 0, y: 0, width: 1, height: 1 }, paddingRatio: 0, targetSize: 64, jpegQuality: 80 },
+    new AbortController().signal);
+  let failedCrop;
+  for (let i = 0; i < 30; i++) {
+    failedCrop = await db.phoneDispatchJob.findFirst({ where: { kind: 'image.crop.v1', state: 'PENDING' } });
+    if (failedCrop) break;
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  assert.ok(failedCrop);
+  const failedLease = (await service.lease('worker-B', device.deviceId)).job;
+  assert.equal((await service.cropFailure('worker-B', device.deviceId, failedCrop.id, failedLease.fence)).state, 'FAILED');
+  await assert.rejects(failedCropPromise);
   const revokedJob = await service.submit('owner-A', device.deviceId);
   const revokedLease = (await service.lease('worker-B', device.deviceId)).job;
   await service.revoke('owner-A', device.deviceId);
   assert.equal((await service.lease('worker-B', device.deviceId)).stopJobId, revokedJob.jobId);
   await service.acknowledgeStop('worker-B', device.deviceId, revokedJob.jobId, revokedLease.fence);
   await assert.rejects(service.submit('owner-A', device.deviceId));
-  console.log('phone-dispatch: pairing, ownership, lease, result, cancel, expiry, revoke PASS');
+  console.log('phone-dispatch: pairing, ownership, lease, crop, result, cancel, expiry, revoke PASS');
 } finally {
   await db.$disconnect();
   await rm(directory, { recursive: true, force: true });

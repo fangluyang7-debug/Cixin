@@ -1,10 +1,22 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { Prisma } from '@prisma/client';
+import sharp = require('sharp');
 import { PrismaService } from '../../persistence/prisma/prisma.service';
+import { QueryImageCropResult } from '../sessions/application/query-image-content-adapter.interface';
 
 const hash = (value: string): string => createHash('sha256').update(value).digest('hex');
 const LEASE_MS = 60_000;
+const CROP_WAIT_MS = 25_000;
+
+interface CropInput {
+  imageUrl: string;
+  inputHash: string;
+  region: { left: number; top: number; width: number; height: number };
+  targetSize: number;
+  jpegQuality: number;
+  original: { width: number; height: number; format: string | null };
+}
 
 function fixture(): number[][] {
   return Array.from({ length: 512 }, (_, i) =>
@@ -100,6 +112,79 @@ export class PhoneDispatchService {
     return this.publicJob(job);
   }
 
+  // An explicit, off-by-default demo route for a real shopping image. The worker
+  // must be recently polling; otherwise the normal cloud crop remains available.
+  async cropForShopping(ownerUserId: string, imageUrl: string, imageBytes: Buffer,
+    parameters: { box: { x: number; y: number; width: number; height: number };
+      paddingRatio: number; targetSize: number; jpegQuality: number }, signal: AbortSignal):
+    Promise<{ jobId: string; result: QueryImageCropResult } | null> {
+    if (process.env.PHONE_DISPATCH_SHOPPING_DEMO_ENABLED !== 'true' ||
+        process.env.PHONE_DISPATCH_EXPERIMENT_ENABLED !== 'true') return null;
+    this.enabled();
+    if (!/^https:\/\//.test(imageUrl) || imageUrl.length > 4096 || imageBytes.length > 8 * 1024 * 1024 ||
+        !Number.isInteger(parameters.targetSize) || parameters.targetSize < 64 || parameters.targetSize > 1024) return null;
+    const device = await this.prisma.phoneDispatchDevice.findFirst({
+      where: { ownerUserId, status: 'active', lastSeenAt: { gt: new Date(Date.now() - 10_000) } },
+      orderBy: { lastSeenAt: 'desc' },
+    });
+    if (!device) return null;
+    const active = await this.prisma.phoneDispatchJob.count({
+      where: { deviceId: device.id, state: { in: ['PENDING', 'LEASED', 'STOP_REQUESTED'] } },
+    });
+    if (active > 0) return null;
+    const metadata = await sharp(imageBytes, { limitInputPixels: 16 * 1024 * 1024 }).metadata();
+    if (!metadata.width || !metadata.height) return null;
+    const width = metadata.width, height = metadata.height, box = parameters.box;
+    const cx = (box.x + box.width / 2) * width, cy = (box.y + box.height / 2) * height;
+    const side = Math.min(Math.max(box.width * width, box.height * height) *
+      (1 + parameters.paddingRatio * 2), Math.max(width, height));
+    const left = Math.max(0, Math.min(width - 1, Math.round(cx - side / 2)));
+    const top = Math.max(0, Math.min(height - 1, Math.round(cy - side / 2)));
+    const right = Math.max(left + 1, Math.min(width, Math.round(cx + side / 2)));
+    const bottom = Math.max(top + 1, Math.min(height, Math.round(cy + side / 2)));
+    const input: CropInput = {
+      imageUrl, inputHash: '',
+      region: { left, top, width: right - left, height: bottom - top },
+      targetSize: parameters.targetSize, jpegQuality: parameters.jpegQuality,
+      original: { width, height, format: metadata.format ?? null },
+    };
+    // Hash raw bytes, not a signed URL whose query string can rotate.
+    input.inputHash = createHash('sha256').update(imageBytes).digest('hex');
+    const job = await this.prisma.phoneDispatchJob.create({
+      data: { id: 'phonejob_' + randomUUID(), ownerUserId, workerUserId: device.workerUserId,
+        deviceId: device.id, state: 'PENDING', kind: 'image.crop.v1',
+        inputJson: JSON.stringify(input), inputHash: input.inputHash },
+    });
+    const deadline = Date.now() + CROP_WAIT_MS;
+    try {
+      while (Date.now() < deadline) {
+        signal.throwIfAborted();
+        const current = await this.prisma.phoneDispatchJob.findUniqueOrThrow({ where: { id: job.id } });
+        if (current.state === 'COMPLETED' && current.resultJson) {
+          const stored = JSON.parse(current.resultJson) as { imageBase64: string };
+          const bytes = Buffer.from(stored.imageBase64, 'base64');
+          if (createHash('sha256').update(bytes).digest('hex') !== current.resultHash) {
+            throw new Error('PHONE_CROP_RESULT_HASH_MISMATCH');
+          }
+          await this.prisma.phoneDispatchJob.update({ where: { id: job.id },
+            data: { inputJson: '{}', resultJson: null } });
+          return { jobId: job.id, result: {
+            buffer: bytes, metadata: input.original, cropRegionPx: input.region,
+            strategy: 'phone_crop_demo_' + device.id,
+          } };
+        }
+        if (['FAILED', 'CANCELLED_SETTLED'].includes(current.state)) throw new Error('PHONE_CROP_FAILED');
+        await new Promise(resolve => setTimeout(resolve, 250));
+      }
+      throw new Error('PHONE_CROP_TIMEOUT');
+    } catch (error) {
+      await this.cancel(ownerUserId, job.id);
+      await this.prisma.phoneDispatchJob.update({ where: { id: job.id },
+        data: { inputJson: '{}', resultJson: null } });
+      throw error;
+    }
+  }
+
   async get(ownerUserId: string, jobId: string) {
     this.enabled();
     const job = await this.prisma.phoneDispatchJob.findFirst({ where: { id: jobId, ownerUserId } });
@@ -163,7 +248,10 @@ export class PhoneDispatchService {
         }
         throw error;
       }
-      if (updated.count === 1) return { job: { jobId: candidate.id, rows: JSON.parse(candidate.inputJson),
+      if (updated.count === 1) return { job: { jobId: candidate.id, kind: candidate.kind,
+        ...(candidate.kind === 'image.crop.v1'
+          ? { crop: JSON.parse(candidate.inputJson) }
+          : { rows: JSON.parse(candidate.inputJson) }),
         inputHash: candidate.inputHash, fence: candidate.fence + 1, deadlineAt: leaseUntil.toISOString() },
         stopJobId: null };
     }
@@ -180,6 +268,7 @@ export class PhoneDispatchService {
     }
     const job = await this.prisma.phoneDispatchJob.findFirst({ where: { id: jobId, workerUserId, deviceId } });
     if (!job) throw new NotFoundException('JOB_NOT_FOUND');
+    if (job.kind !== 'vector.norm.demo') throw new BadRequestException('RESULT_KIND_INVALID');
     if (job.fence !== fence || !['LEASED', 'STOP_REQUESTED'].includes(job.state)) {
       throw new ConflictException('STALE_OR_REVOKED_LEASE');
     }
@@ -200,6 +289,61 @@ export class PhoneDispatchService {
     });
     if (updated.count !== 1) throw new ConflictException('STALE_OR_REVOKED_LEASE');
     return this.publicJob((await this.prisma.phoneDispatchJob.findUniqueOrThrow({ where: { id: jobId } })));
+  }
+
+  async cropResult(workerUserId: string, deviceId: string, jobId: string, fence: number,
+    imageBase64: string, inputHash: string, computedMs: number) {
+    this.enabled();
+    if (!Number.isSafeInteger(fence) || fence < 1 || !Number.isSafeInteger(computedMs) ||
+        computedMs < 0 || computedMs > LEASE_MS || typeof imageBase64 !== 'string' ||
+        imageBase64.length < 100 || imageBase64.length > 1_400_000 ||
+        !/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64)) throw new BadRequestException('CROP_RESULT_INVALID');
+    const job = await this.prisma.phoneDispatchJob.findFirst({ where: { id: jobId, workerUserId, deviceId } });
+    if (!job || job.kind !== 'image.crop.v1') throw new NotFoundException('JOB_NOT_FOUND');
+    if (job.fence !== fence || !['LEASED', 'STOP_REQUESTED'].includes(job.state)) {
+      throw new ConflictException('STALE_OR_REVOKED_LEASE');
+    }
+    if (job.state === 'STOP_REQUESTED' || !job.leaseUntil || job.leaseUntil.getTime() < Date.now()) {
+      await this.prisma.phoneDispatchJob.updateMany({
+        where: { id: jobId, fence, state: { in: ['LEASED', 'STOP_REQUESTED'] } },
+        data: { state: 'CANCELLED_SETTLED', finishedAt: new Date() },
+      });
+      return this.publicJob(await this.prisma.phoneDispatchJob.findUniqueOrThrow({ where: { id: jobId } }));
+    }
+    if (inputHash !== job.inputHash) throw new BadRequestException('CROP_INPUT_HASH_MISMATCH');
+    const input = JSON.parse(job.inputJson) as CropInput;
+    const bytes = Buffer.from(imageBase64, 'base64');
+    if (bytes.length > 1_000_000 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+      throw new BadRequestException('CROP_IMAGE_INVALID');
+    }
+    const metadata = await sharp(bytes, { limitInputPixels: 1024 * 1024 }).metadata();
+    if (metadata.format !== 'jpeg' || metadata.width !== input.targetSize ||
+        metadata.height !== input.targetSize) throw new BadRequestException('CROP_DIMENSION_INVALID');
+    const updated = await this.prisma.phoneDispatchJob.updateMany({
+      where: { id: jobId, fence, state: 'LEASED' },
+      data: { state: 'COMPLETED', resultHash: createHash('sha256').update(bytes).digest('hex'),
+        resultJson: JSON.stringify({ imageBase64 }), computedMs, finishedAt: new Date() },
+    });
+    if (updated.count !== 1) throw new ConflictException('STALE_OR_REVOKED_LEASE');
+    return this.publicJob(await this.prisma.phoneDispatchJob.findUniqueOrThrow({ where: { id: jobId } }));
+  }
+
+  async cropFailure(workerUserId: string, deviceId: string, jobId: string, fence: number) {
+    this.enabled();
+    if (!Number.isSafeInteger(fence) || fence < 1) throw new BadRequestException('FENCE_INVALID');
+    const job = await this.prisma.phoneDispatchJob.findFirst({ where: { id: jobId, workerUserId, deviceId } });
+    if (!job || job.kind !== 'image.crop.v1') throw new NotFoundException('JOB_NOT_FOUND');
+    if (job.fence !== fence || !['LEASED', 'STOP_REQUESTED'].includes(job.state)) {
+      throw new ConflictException('STALE_OR_REVOKED_LEASE');
+    }
+    const state = job.state === 'STOP_REQUESTED' || !job.leaseUntil || job.leaseUntil.getTime() < Date.now()
+      ? 'CANCELLED_SETTLED' : 'FAILED';
+    const updated = await this.prisma.phoneDispatchJob.updateMany({
+      where: { id: jobId, workerUserId, deviceId, fence, state: job.state },
+      data: { state, finishedAt: new Date() },
+    });
+    if (updated.count !== 1) throw new ConflictException('STALE_OR_REVOKED_LEASE');
+    return this.publicJob(await this.prisma.phoneDispatchJob.findUniqueOrThrow({ where: { id: jobId } }));
   }
 
   async acknowledgeStop(workerUserId: string, deviceId: string, jobId: string, fence: number) {

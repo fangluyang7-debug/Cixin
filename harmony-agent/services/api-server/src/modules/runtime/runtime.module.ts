@@ -58,7 +58,7 @@ class ShoppingPluginRegistration implements OnModuleInit {
     AgentRuntimeService,
     ShoppingPluginRegistration,
   ],
-  exports: [DeviceDispatchService,
+  exports: [DeviceDispatchService, PhoneDispatchService,
     ExecutorRegistryService, RuntimeRunnerService, CloudReadinessService,
     ToolRegistryService,
     PerformanceRegistryService,

@@ -1,4 +1,7 @@
 import { http } from '@kit.NetworkKit';
+import { image } from '@kit.ImageKit';
+import cryptoFramework from '@ohos.security.cryptoFramework';
+import util from '@ohos.util';
 import { CloudApiConfig } from '../services/CloudApiConfig';
 
 interface Reply<T> { success: boolean; data?: T; }
@@ -7,7 +10,15 @@ interface Claimed { deviceId: string; ownerUserId: string; }
 interface Device { id: string; status: string; }
 interface Revoked { deviceId: string; status: string; }
 interface Job { jobId: string; state: string; fence: number; computedMs: number | null; resultHash: string | null; }
-interface LeasedJob { jobId: string; rows: number[][]; fence: number; }
+interface CropRegion { left: number; top: number; width: number; height: number; }
+interface CropInput {
+  imageUrl: string;
+  inputHash: string;
+  region: CropRegion;
+  targetSize: number;
+  jpegQuality: number;
+}
+interface LeasedJob { jobId: string; kind: string; rows?: number[][]; crop?: CropInput; fence: number; }
 interface Lease { job: LeasedJob | null; stopJobId: string | null; fence: number; }
 
 @Entry
@@ -108,6 +119,49 @@ struct CloudPhoneDispatchPage {
     this.timer = setInterval(() => { this.workOnce().catch(() => {}); }, 1200);
   }
 
+  private async cropImage(input: CropInput): Promise<string> {
+    if (!input.imageUrl.startsWith('https://') || input.targetSize < 64 || input.targetSize > 1024 ||
+        input.region.width < 1 || input.region.height < 1) { throw new Error('CROP_INPUT_INVALID'); }
+    const client = http.createHttp();
+    let source: image.ImageSource | undefined = undefined;
+    let pixel: image.PixelMap | undefined = undefined;
+    let packer: image.ImagePacker | undefined = undefined;
+    try {
+      const response = await client.request(input.imageUrl, {
+        method: http.RequestMethod.GET, expectDataType: http.HttpDataType.ARRAY_BUFFER,
+        connectTimeout: 10000, readTimeout: 15000
+      });
+      if (response.responseCode !== 200 || !(response.result instanceof ArrayBuffer)) {
+        throw new Error('CROP_IMAGE_FETCH_FAILED');
+      }
+      const bytes = new Uint8Array(response.result);
+      if (bytes.length === 0 || bytes.length > 8 * 1024 * 1024) { throw new Error('CROP_IMAGE_SIZE_INVALID'); }
+      const md = cryptoFramework.createMd('SHA256');
+      await md.update({ data: bytes });
+      const digest = await md.digest();
+      const actualHash = Array.from(digest.data).map((value: number): string =>
+        value.toString(16).padStart(2, '0')).join('');
+      if (actualHash !== input.inputHash) { throw new Error('CROP_IMAGE_HASH_MISMATCH'); }
+      source = image.createImageSource(response.result);
+      pixel = await source.createPixelMap({
+        desiredRegion: { x: input.region.left, y: input.region.top,
+          size: { width: input.region.width, height: input.region.height } },
+        desiredSize: { width: input.targetSize, height: input.targetSize }
+      });
+      packer = image.createImagePacker();
+      const packed = await packer.packing(pixel, {
+        format: 'image/jpeg', quality: Math.max(40, Math.min(95, input.jpegQuality))
+      });
+      if (packed.byteLength === 0 || packed.byteLength > 1_000_000) { throw new Error('CROP_OUTPUT_SIZE_INVALID'); }
+      return new util.Base64Helper().encodeToStringSync(new Uint8Array(packed));
+    } finally {
+      if (pixel) { await pixel.release(); }
+      if (source) { await source.release(); }
+      if (packer) { await packer.release(); }
+      client.destroy();
+    }
+  }
+
   private async workOnce(): Promise<void> {
     if (this.busy || !this.workerRunning) { return; }
     this.busy = true;
@@ -122,6 +176,35 @@ struct CloudPhoneDispatchPage {
         const job = lease.job;
         this.jobId = job.jobId;
         this.status = 'B 已接取：' + job.jobId;
+        if (job.kind === 'image.crop.v1' && job.crop) {
+          this.status = 'B 正在处理购物图片：' + job.jobId;
+          try {
+            const started = Date.now();
+            const imageBase64 = await this.cropImage(job.crop);
+            const check = await this.call<Lease>(http.RequestMethod.POST, root + '/lease');
+            if (check.stopJobId === job.jobId) {
+              await this.call<Job>(http.RequestMethod.POST,
+                root + '/jobs/' + encodeURIComponent(job.jobId) + '/stop-ack',
+                JSON.stringify({ fence: job.fence }));
+              this.status = 'B 已停止购物图片任务：' + job.jobId;
+              return;
+            }
+            const cropped = await this.call<Job>(http.RequestMethod.POST,
+              root + '/jobs/' + encodeURIComponent(job.jobId) + '/crop-result',
+              JSON.stringify({ fence: job.fence, imageBase64: imageBase64,
+                inputHash: job.crop.inputHash, computedMs: Date.now() - started }));
+            this.status = 'B 购物图片回执：' + cropped.state + '；' + job.jobId;
+          } catch (error) {
+            try {
+              await this.call<Job>(http.RequestMethod.POST,
+                root + '/jobs/' + encodeURIComponent(job.jobId) + '/crop-failure',
+                JSON.stringify({ fence: job.fence }));
+            } catch (_) { /* The cloud retains the lease if failure settlement cannot be confirmed. */ }
+            this.status = 'B 图片处理失败：' + (error as Error).message;
+          }
+          return;
+        }
+        if (!job.rows) { throw new Error('UNKNOWN_JOB_KIND'); }
         if (this.slowMode) {
           const waitUntil = Date.now() + 8000;
           while (Date.now() < waitUntil) {

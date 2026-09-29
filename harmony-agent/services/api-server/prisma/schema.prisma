@@ -82,9 +82,11 @@ model PhoneDispatchJob {
   workerUserId String
   deviceId     String
   state        String
+  kind         String    @default("vector.norm.demo")
   inputJson    String
   inputHash    String
   resultHash   String?
+  resultJson   String?
   computedMs   Int?
   fence        Int       @default(0)
   leasedAt     DateTime?
