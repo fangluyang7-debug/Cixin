@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../persistence/prisma/prisma.service';
 
 const hash = (value: string): string => createHash('sha256').update(value).digest('hex');
@@ -139,6 +140,10 @@ export class PhoneDispatchService {
       where: { workerUserId, deviceId, state: 'STOP_REQUESTED' }, orderBy: { createdAt: 'asc' },
     });
     if (stop) return { job: null, stopJobId: stop.id, fence: stop.fence };
+    const active = await this.prisma.phoneDispatchJob.findFirst({
+      where: { workerUserId, deviceId, state: 'LEASED' }, select: { id: true },
+    });
+    if (active) return { job: null, stopJobId: null };
     if (device.status !== 'active') return { job: null, stopJobId: null };
     for (let attempt = 0; attempt < 3; attempt++) {
       const candidate = await this.prisma.phoneDispatchJob.findFirst({
@@ -146,10 +151,18 @@ export class PhoneDispatchService {
       });
       if (!candidate) return { job: null, stopJobId: null };
       const now = new Date(), leaseUntil = new Date(now.getTime() + LEASE_MS);
-      const updated = await this.prisma.phoneDispatchJob.updateMany({
-        where: { id: candidate.id, state: 'PENDING' },
-        data: { state: 'LEASED', fence: { increment: 1 }, leasedAt: now, leaseUntil },
-      });
+      let updated;
+      try {
+        updated = await this.prisma.phoneDispatchJob.updateMany({
+          where: { id: candidate.id, state: 'PENDING' },
+          data: { state: 'LEASED', fence: { increment: 1 }, leasedAt: now, leaseUntil },
+        });
+      } catch (error) {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+          return { job: null, stopJobId: null };
+        }
+        throw error;
+      }
       if (updated.count === 1) return { job: { jobId: candidate.id, rows: JSON.parse(candidate.inputJson),
         inputHash: candidate.inputHash, fence: candidate.fence + 1, deadlineAt: leaseUntil.toISOString() },
         stopJobId: null };

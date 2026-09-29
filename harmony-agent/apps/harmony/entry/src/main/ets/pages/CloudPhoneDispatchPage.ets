@@ -5,6 +5,7 @@ interface Reply<T> { success: boolean; data?: T; }
 interface Pairing { code: string; expiresAt: string; }
 interface Claimed { deviceId: string; ownerUserId: string; }
 interface Device { id: string; status: string; }
+interface Revoked { deviceId: string; status: string; }
 interface Job { jobId: string; state: string; fence: number; computedMs: number | null; resultHash: string | null; }
 interface LeasedJob { jobId: string; rows: number[][]; fence: number; }
 interface Lease { job: LeasedJob | null; stopJobId: string | null; fence: number; }
@@ -18,6 +19,7 @@ struct CloudPhoneDispatchPage {
   @State status: string = '云端合成计算验收；不会处理购物数据';
   @State role: string = '未选择';
   @State workerRunning: boolean = false;
+  @State slowMode: boolean = false;
   private timer: number = -1;
   private busy: boolean = false;
 
@@ -77,6 +79,14 @@ struct CloudPhoneDispatchPage {
     } catch (error) { this.status = '派发失败：' + (error as Error).message; }
   }
 
+  private async revokeDevice(): Promise<void> {
+    try {
+      const revoked = await this.call<Revoked>(http.RequestMethod.POST,
+        '/devices/' + encodeURIComponent(this.deviceId) + '/revoke');
+      this.status = '设备已撤销：' + revoked.status;
+    } catch (error) { this.status = '撤销设备失败：' + (error as Error).message; }
+  }
+
   private async refreshJob(): Promise<void> {
     try {
       const job = await this.call<Job>(http.RequestMethod.GET, '/jobs/' + encodeURIComponent(this.jobId));
@@ -111,6 +121,21 @@ struct CloudPhoneDispatchPage {
       } else if (lease.job !== null) {
         const job = lease.job;
         this.jobId = job.jobId;
+        this.status = 'B 已接取：' + job.jobId;
+        if (this.slowMode) {
+          const waitUntil = Date.now() + 8000;
+          while (Date.now() < waitUntil) {
+            await new Promise<void>((resolve: () => void) => { setTimeout(resolve, 500); });
+            const check = await this.call<Lease>(http.RequestMethod.POST, root + '/lease');
+            if (check.stopJobId === job.jobId) {
+              await this.call<Job>(http.RequestMethod.POST,
+                root + '/jobs/' + encodeURIComponent(job.jobId) + '/stop-ack',
+                JSON.stringify({ fence: job.fence }));
+              this.status = 'B 已停止执行并回执：' + job.jobId;
+              return;
+            }
+          }
+        }
         const started = Date.now();
         const norms: number[] = [];
         for (const row of job.rows) { norms.push(Math.hypot(...row)); }
@@ -137,10 +162,14 @@ struct CloudPhoneDispatchPage {
           .onChange((value: string) => { this.code = value; }).width('100%')
         Button('B：领取配对').onClick(() => { this.claim().catch(() => {}); }).width('100%')
         Button('A：刷新已配对设备').onClick(() => { this.refreshDevices().catch(() => {}); }).width('100%')
+        Button('A：撤销已配对设备').onClick(() => { this.revokeDevice().catch(() => {}); })
+          .enabled(this.deviceId.length > 0).width('100%')
         Button('A：派发 512×8 向量任务').onClick(() => { this.submit().catch(() => {}); })
           .enabled(this.deviceId.length > 0).width('100%')
         Button('B：开始接取').onClick(() => this.startWorker())
           .enabled(this.deviceId.length > 0 && !this.workerRunning).width('100%')
+        Button(this.slowMode ? 'B：关闭 8 秒延迟' : 'B：开启 8 秒延迟（取消测试）')
+          .onClick(() => { this.slowMode = !this.slowMode; }).width('100%')
         Button('B：停止接取').onClick(() => this.stop())
           .enabled(this.workerRunning).width('100%')
         Button('A：刷新任务').onClick(() => { this.refreshJob().catch(() => {}); })
