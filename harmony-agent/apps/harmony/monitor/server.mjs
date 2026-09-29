@@ -125,6 +125,7 @@ function cleanEvent(event) {
   return {
     ...pick(event, ['status', 'queuedAt', 'startedAt', 'finishedAt',
       'queueDurationMs', 'executionDurationMs', 'totalDurationMs', 'stopRequestedAt']),
+    errorCode: safeReason(event.errorCode),
     taskId: safeCode(event.taskId, /^[A-Za-z0-9_.:-]{1,96}$/),
     taskType: safeCode(event.taskType),
     capability: safeCapability(event.capability),

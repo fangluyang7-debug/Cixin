@@ -210,7 +210,9 @@ function renderEvents(events) {
   list.replaceChildren();
   if (!events.length) emptyState(list, '尚无已完成的调度事件');
 
-  const newestFirst = events.slice().reverse();
+  // The phone snapshot already sends newest events first. Reversing it makes the
+  // latest-decision panel show an older CREATED event after a task succeeds.
+  const newestFirst = events;
   for (const event of newestFirst) {
     const row = document.createElement('article');
     row.className = 'event-row';
@@ -229,7 +231,7 @@ function renderEvents(events) {
 
     const meta = document.createElement('div');
     meta.className = 'event-subline';
-    appendText(meta, `${event.taskType ?? '--'} · ${event.status ?? '--'}`);
+    appendText(meta, `${event.taskType ?? '--'} · ${event.status ?? '--'}${event.errorCode ? ` · ${event.errorCode}` : ''}`);
     appendText(meta, milliseconds(event.totalDurationMs));
     row.append(meta);
 
@@ -237,7 +239,8 @@ function renderEvents(events) {
     const plan = event.executionPlan ?? {};
     const audit = plan.policyAudit ?? {};
     const planned = plan.executionProfile?.id ?? '--';
-    const executed = actual.profileId ?? (audit.actualConfirmed ? audit.actualProfileId : '未确认');
+    const executed = actual.profileId ?? (actual.cloudRunId ? '云端运行已回执' :
+      (audit.actualConfirmed ? audit.actualProfileId : '未确认'));
     const detail = document.createElement('div');
     detail.className = 'event-detail';
     detail.textContent = `排队 ${milliseconds(event.queueDurationMs)} · 执行 ${milliseconds(event.executionDurationMs)} · 计划 ${planned} / 实际 ${executed}`;
@@ -290,7 +293,8 @@ function renderLatestEvent(event) {
     byId('actualProfile').textContent = actual.cloudRunId ?? '等待云端回执';
     byId('actualConfig').textContent = `关联 taskId ${actual.cloudTaskId ?? '未记录'} · 实际请求 ${milliseconds(actual.cloudTiming?.requestMs)} · 上传 ${milliseconds(actual.cloudTiming?.uploadMs)} · 下载 ${milliseconds(actual.cloudTiming?.downloadMs)} · 阶段 ${(actual.routeEvents ?? []).map(item => item.phase).join(' → ') || '--'}`;
   }
-  byId('decisionReason').textContent = audit.fallbackReason ?? plan.reasonCodes?.join(' · ') ?? '未提供原因码';
+  byId('decisionReason').textContent = [event.errorCode, audit.fallbackReason ?? plan.reasonCodes?.join(' · ')]
+    .filter(Boolean).join(' · ') || '未提供原因码';
   byId('decisionTime').textContent = `TIME ${clock(event.finishedAt ?? event.startedAt ?? event.queuedAt)}`;
   renderDecisionFlags(event);
 }
