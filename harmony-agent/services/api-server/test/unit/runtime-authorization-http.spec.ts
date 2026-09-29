@@ -59,7 +59,7 @@ describe('Runtime HTTP authorization', () => {
   });
   afterAll(async () => { await app?.close(); });
   it('rejects anonymous and tampered tokens on all user runtime surfaces', async () => {
-    for (const path of ['runs', 'snapshot', 'events', 'tools', 'runs/' + own]) {
+    for (const path of ['runs', 'snapshot', 'events', 'tools', 'runs/' + own, 'runs/by-client-task/client-a']) {
       await request(app.getHttpServer()).get('/api/v1/runtime/' + path).expect(401);
     }
     await request(app.getHttpServer()).get('/api/v1/runtime/runs').set('Authorization', a + 'tampered').expect(401);
@@ -78,6 +78,9 @@ describe('Runtime HTTP authorization', () => {
     expect(snapshot.body.data.performanceSamples).toEqual([]);
     await request(app.getHttpServer()).get(`/api/v1/runtime/runs/${own}`).set('Authorization', b).expect(404);
     await request(app.getHttpServer()).get(`/api/v1/runtime/runs/${own}`).set('Authorization', a).expect(200);
+    const mapped = await request(app.getHttpServer()).get('/api/v1/runtime/runs/by-client-task/client-a').set('Authorization', a).expect(200);
+    expect(mapped.body.data).toMatchObject({ runId: own, clientTaskId: 'client-a' });
+    await request(app.getHttpServer()).get('/api/v1/runtime/runs/by-client-task/client-a').set('Authorization', b).expect(404);
   });
   it('checks owner before cancellation and client telemetry, regardless of supplied owner', async () => {
     await request(app.getHttpServer()).post(`/api/v1/runtime/runs/${own}/cancel`).set('Authorization', b).send({ ownerUserId: 'a' }).expect(404);

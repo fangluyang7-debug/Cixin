@@ -86,6 +86,22 @@ export class ProductPoolController {
     );
   }
 
+  @Post('embeddings/fill-missing')
+  async fillMissingEmbeddings(
+    @Headers('x-maintenance-token') maintenanceToken: string | undefined,
+    @Body() body: { embeddingKind?: string; limit?: number; dryRun?: boolean },
+  ) {
+    this.assertMaintenanceToken(maintenanceToken);
+    if (body?.dryRun !== true && body?.dryRun !== false) {
+      throw new BadRequestException('DRY_RUN_REQUIRED');
+    }
+    return ok(await this.productPoolService.fillMissingEmbeddings({
+      embeddingKind: body.embeddingKind,
+      limit: body.limit,
+      dryRun: body.dryRun,
+    }));
+  }
+
   @Post('batches/delete')
   async deleteImportBatch(
     @Headers('x-maintenance-token') maintenanceToken: string | undefined,

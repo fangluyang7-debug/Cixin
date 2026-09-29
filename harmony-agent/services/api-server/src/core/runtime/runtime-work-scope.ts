@@ -3,6 +3,7 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 export interface RuntimeWorkMeasurements {
   attemptId?: string;
   placementDecisions?: Record<string, unknown>[];
+  modelCalls?: Array<{ purpose: string; modelId: string }>;
   storageReadMs: number;
   storageWriteMs: number;
   modelMs: number;
@@ -11,6 +12,12 @@ interface WorkScope { deadline?: number; ownerId?: string; pending: Set<Promise<
 const scopes = new AsyncLocalStorage<WorkScope>();
 
 export class RuntimeWorkScope {
+  static recordModelCall(purpose: string, modelId: string): void {
+    const scope = scopes.getStore();
+    if (scope && /^[a-z0-9_.-]{1,80}$/i.test(purpose) && /^[a-z0-9_.-]{1,120}$/i.test(modelId)) {
+      (scope.measurements.modelCalls ??= []).push({ purpose, modelId });
+    }
+  }
   static settlement<T>(work: () => Promise<T>): Promise<T> { return scopes.exit(work); }
   static recordAttempt(attemptId:string):void { const scope=scopes.getStore(); if(scope)scope.measurements.attemptId=attemptId; }
   static recordPlacement(value: Record<string,unknown>): void { const scope=scopes.getStore(); if(scope) { const records=scope.measurements.placementDecisions ?? []; if(records.length<16) records.push(value); scope.measurements.placementDecisions=records; } }

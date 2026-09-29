@@ -106,6 +106,15 @@ export class RuntimeController {
     return ok({ runs: this.runs.listOwned(request.user!.userId) });
   }
 
+  @Get("runs/by-client-task/:taskId")
+  getRunByClientTaskId(@Param("taskId") taskId: string, @Req() request: AuthenticatedRequest) {
+    if (!taskId || taskId.length > 128) throw new BadRequestException('CLIENT_TASK_ID_INVALID');
+    const run = this.runs.requireOwnedByClientTaskId(taskId, request.user!.userId);
+    return ok({ runId: run.runId, clientTaskId: taskId, status: run.status,
+      executionState: run.executionState ?? 'settled', stopRequestedAt: run.stopRequestedAt ?? null,
+      updatedAt: run.updatedAt });
+  }
+
   @Get("runs/:runId")
   getRun(@Param("runId") runId: string, @Req() request: AuthenticatedRequest) {
     const run = this.runs.requireOwned(runId, request.user!.userId);

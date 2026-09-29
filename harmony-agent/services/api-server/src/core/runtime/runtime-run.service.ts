@@ -242,6 +242,13 @@ export class RuntimeRunService {
     return this.list().filter(run => Boolean(userId) && run.ownerUserId === userId);
   }
 
+  requireOwnedByClientTaskId(taskId: string, userId: string) {
+    const run = [...this.runs.values()].find(candidate =>
+      Boolean(userId) && candidate.ownerUserId === userId && candidate.taskGraph?.clientTaskId === taskId);
+    if (!run) throw new NotFoundException('RUNTIME_RUN_NOT_FOUND');
+    return run;
+  }
+
   get(runId: string) {
     return this.runs.get(runId) ?? null;
   }

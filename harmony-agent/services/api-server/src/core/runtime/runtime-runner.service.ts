@@ -125,7 +125,7 @@ export class RuntimeRunnerService {
               executorId: assignment.executorId, startedAt: assignment.startedAt!,
               finishedAt: assignment.finishedAt, latencyMs: performance.now() - began,
               latencyScope: 'execution_only', memoryPeakMb: process.memoryUsage().rss / 1048576,
-              metadata: { workflowId: graph.graphId, attemptId: measurements.attemptId ?? null, placementDecisions: measurements.placementDecisions ?? [],
+              metadata: { workflowId: graph.graphId, attemptId: measurements.attemptId ?? null, placementDecisions: measurements.placementDecisions ?? [], modelCalls: measurements.modelCalls ?? [],
                 segmentedTiming: { storageReadMs: measurements.storageReadMs, storageWriteMs: measurements.storageWriteMs, modelMs: measurements.modelMs, queueMs: 0, uploadMs: null, downloadMs: null,
                 executionMs: Math.max(0, performance.now() - began - measurements.storageReadMs - measurements.storageWriteMs) },
                 segmentSource: 'server-monotonic-clock', finishRssMb: process.memoryUsage().rss / 1048576, memoryPeakMeasured: false, memorySource: 'process-rss-at-stage-finish', transferTiming: 'not-observable-on-server',

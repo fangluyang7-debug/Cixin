@@ -14,6 +14,7 @@ import {
   ConversationIntent,
   ConversationTurnParseInput,
   ConversationTurnParseResult,
+  EnhancedTextQuery,
   IdentifyShoeInput,
   ModelAdapter,
   ProductCategoryResult,
@@ -68,6 +69,24 @@ export class OpenAiCompatibleModelAdapterService implements ModelAdapter {
     private readonly promptRegistry: PromptRegistryService,
     private readonly profileSchemaRegistry: ProfileSchemaRegistryService,
   ) {}
+
+  async enhanceTextQuery(input: { message: string; category: string }): Promise<EnhancedTextQuery> {
+    const model = this.resolveVisionConfig("profile");
+    if (!model) throw new InternalServerErrorException("HIGH_QUALITY_MODEL_NOT_CONFIGURED");
+    const response = await RuntimeWorkScope.measure('modelMs', () => this.callJsonCompletion({
+      ...model,
+      maxTokens: 120,
+      messages: [
+        { role: "system", content: "Expand a shopping search query. Return JSON only: {\"keywords\":[...]}. Include up to 4 short product attributes or synonyms grounded in the user's request. Do not invent a brand, budget, or product category." },
+        { role: "user", content: JSON.stringify({ message: input.message, category: input.category }) },
+      ],
+    }));
+    const keywords = Array.isArray(response.keywords) ? response.keywords
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0 && value.length <= 40)
+      .slice(0, 4) : [];
+    RuntimeWorkScope.recordModelCall('high_quality_text', model.modelName);
+    return { keywords, modelId: model.modelName };
+  }
 
   async identifyShoe(input: IdentifyShoeInput): Promise<ProductProfileResult> {
     const vision = this.resolveVisionConfig("profile");

@@ -1359,6 +1359,59 @@ export class ProductPoolService implements OnApplicationBootstrap {
     };
   }
 
+  /** Fill compatible coverage gaps without deleting or replacing any existing vector. */
+  async fillMissingEmbeddings(options: { embeddingKind?: string; limit?: number; dryRun: boolean }) {
+    this.assertRealEmbeddingProvider();
+    const embeddingKind = this.normalizeEmbeddingKind(options.embeddingKind);
+    const provider = this.config.get<string>('embedding.provider');
+    const modelName = this.config.get<string>('embedding.modelName');
+    const dimension = this.config.get<number>('embedding.dimension');
+    if (!provider || !modelName || !dimension) throw new BadRequestException('EMBEDDING_CONFIG_MISSING');
+    const limit = this.clampPositiveInteger(options.limit, 25, 50);
+    const products = await this.prisma.product.findMany({
+      where: { tagStatus: 'verified' }, orderBy: { createdAt: 'asc' },
+    });
+    const existing = await this.prisma.productImageEmbedding.findMany({
+      where: { provider, modelName, dimension, embeddingKind },
+      select: { productId: true, vectorJson: true },
+    });
+    const covered = new Set(existing.filter(row => {
+      try {
+        const vector: unknown = JSON.parse(row.vectorJson);
+        return Array.isArray(vector) && vector.length === dimension &&
+          vector.every(value => typeof value === 'number' && Number.isFinite(value)) &&
+          vector.some(value => value !== 0);
+      } catch { return false; }
+    }).map(row => row.productId));
+    const incompatible = new Set(existing.filter(row => !covered.has(row.productId)).map(row => row.productId));
+    const missing = products.filter(product => !covered.has(product.id));
+    if (options.dryRun) return { dryRun: true, embeddingKind, missingCount: missing.length,
+      selectedProductIds: missing.slice(0, limit).map(product => product.id), attemptedCount: 0,
+      succeededCount: 0, failedCount: 0, failures: [] };
+    const failures: Array<{ productId: string; code: string }> = [];
+    let succeededCount = 0;
+    for (const product of missing.slice(0, limit)) {
+      try {
+        if (incompatible.has(product.id)) throw new Error('INVALID_EXISTING_VECTOR');
+        const stillPresent = await this.prisma.productImageEmbedding.findFirst({
+          where: { productId: product.id, provider, modelName, dimension, embeddingKind }, select: { id: true },
+        });
+        if (!stillPresent) await this.createEmbeddingsForExistingProduct(product, [embeddingKind]);
+        const created = await this.prisma.productImageEmbedding.findFirst({
+          where: { productId: product.id, provider, modelName, dimension, embeddingKind }, select: { id: true },
+        });
+        if (!created) throw new Error('VISUAL_SOURCE_UNAVAILABLE');
+        succeededCount++;
+      } catch {
+        failures.push({ productId: product.id, code: 'EMBEDDING_FILL_FAILED' });
+      }
+    }
+    void this.invalidateStatsCache('missing_product_embeddings_filled');
+    return { dryRun: false, embeddingKind, missingCount: missing.length,
+      selectedProductIds: missing.slice(0, limit).map(product => product.id),
+      attemptedCount: Math.min(limit, missing.length), succeededCount, failedCount: failures.length, failures };
+  }
+
   private scheduleImportBatch(batchId: string) {
     if (this.runningImportBatches.has(batchId)) return;
     this.runningImportBatches.add(batchId);

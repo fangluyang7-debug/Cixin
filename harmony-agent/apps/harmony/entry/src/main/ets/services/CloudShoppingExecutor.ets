@@ -51,7 +51,7 @@ interface CloudTaskProfile {
   allowCloud: boolean; privacy: string; inputBytes: number; deadlineMs: number;
   template: TaskTemplate; context: TaskContext;
 }
-interface CloudRequestInput { message?: string; assetId?: string; imageArtifact?: ArtifactRef; }
+interface CloudRequestInput { message?: string; assetId?: string; imageArtifact?: ArtifactRef; highQuality?: boolean; }
 interface CloudTaskRequest {
   baseVersion?: number; requestRevision?: number;
   taskId: string; operation: string; sessionId?: string; input: CloudRequestInput;
@@ -104,6 +104,7 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       input.imageArtifact = uploaded.imageArtifact;
     }
     const body: CloudRequestInput = input.bodyJson === undefined ? { message: input.query, assetId: input.assetId, imageArtifact: input.imageArtifact } : JSON.parse(input.bodyJson) as CloudRequestInput;
+    if (input.operation === 'text') { body.highQuality = context.highQuality === true; }
     input.preparedBody = body;
     context.remoteTask = { taskKind: input.photoUri === undefined ? 'text' : 'vision', latencyClass: 'interactive',
       input: { modality: input.photoUri === undefined ? 'text' : 'image', bytes: utf8Bytes(JSON.stringify(body)) + 8192,

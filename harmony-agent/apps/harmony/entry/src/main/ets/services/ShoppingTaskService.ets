@@ -17,6 +17,7 @@ export class ShoppingTaskService {
   private client: SchedulerClient | null = null;
   private runtime: SchedulerRuntime | null = null;
   private sequence: number = 0;
+  public lastSubmittedTaskId: string = '';
   private versions: Map<string, number> = new Map<string, number>();
   private revisions: Map<string, number> = new Map<string, number>();
   private readonly template: TaskTemplate = {
@@ -90,6 +91,7 @@ export class ShoppingTaskService {
       bodyJson: bodyJson, baseVersion: sessionId === undefined ? undefined : this.versions.get(sessionId), requestRevision: revision,
       operation: operation, query: query, photoUri: photoUri, sessionId: sessionId,
       deviceProfile: state, context: context, template: this.template };
+    this.lastSubmittedTaskId = input.taskId;
     return this.requireClient().submit<CloudShoppingInput, ShoppingResult>('product_search', input, context);
   }
   // Legacy Product[] API is an explicit projection; new consumers retain the full result.

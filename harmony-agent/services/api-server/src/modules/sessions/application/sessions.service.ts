@@ -501,7 +501,11 @@ export class SessionsService {
     const category = normalizeProductCategory(
       dto.categoryHint ?? languageAnalysis.categoryMentions.at(-1) ?? languageAnalysis.correctedText,
     );
-    const keywords = this.normalizeKeywords(dto.keywords, message);
+    let keywords = this.normalizeKeywords(dto.keywords, message);
+    if (dto.highQuality === true && languageAnalysis.route === "search") {
+      const enhanced = await this.modelAdapter.enhanceTextQuery({ message, category });
+      keywords = this.normalizeKeywords([...keywords, ...enhanced.keywords], message);
+    }
     const userMemoryContext = options.userId
       ? await this.userMemoryContext.getContext(options.userId, category)
       : null;
@@ -1866,6 +1870,9 @@ export class SessionsService {
       tooLongCode: "TEXT_SESSION_MESSAGE_TOO_LONG",
     });
     if (dto.categoryHint) normalizeProductCategory(dto.categoryHint);
+    if (dto.highQuality !== undefined && typeof dto.highQuality !== "boolean") {
+      throw new BadRequestException("TEXT_SESSION_HIGH_QUALITY_INVALID");
+    }
   }
 
   private shouldStartProductSearch(message: string) {

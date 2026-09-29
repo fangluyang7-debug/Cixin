@@ -54,6 +54,11 @@ export interface ProductTagInput {
   rawPayload?: Record<string, unknown>;
 }
 
+export interface EnhancedTextQuery {
+  keywords: string[];
+  modelId: string;
+}
+
 export interface CandidateVisualVerificationInput {
   queryProfile: ProductProfileResult;
   queryImageUrl?: string | null;
@@ -187,6 +192,7 @@ export interface ConversationRejectedOperation {
 }
 
 export interface ModelAdapter {
+  enhanceTextQuery(input: { message: string; category: string }): Promise<EnhancedTextQuery>;
   identifyShoe(input: IdentifyShoeInput): Promise<ProductProfileResult>;
   classifyProductCategory(input: {
     imageUrl: string;

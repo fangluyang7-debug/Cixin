@@ -4,4 +4,5 @@ export class CreateTextSessionDto {
   filters?: Record<string, unknown>;
   entrySource?: 'android_app' | 'test_app' | 'unknown';
   categoryHint?: string;
+  highQuality?: boolean;
 }
