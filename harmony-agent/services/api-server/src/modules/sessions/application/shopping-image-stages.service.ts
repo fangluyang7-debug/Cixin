@@ -19,7 +19,7 @@ import { SESSION_PRODUCT_PROFILE_ADAPTER, SessionProductProfileAdapter } from '.
 import { SessionsService } from './sessions.service';
 import { CandidatesService } from '../../candidates/application/candidates.service';
 import { createId } from '../../../common/utils/id';
-import { normalizeProductCategory } from '../../../common/catalog/product-categories';
+import { normalizeProductCategory, productCategoryKeywords } from '../../../common/catalog/product-categories';
 import { NormalizedSubjectBox } from './query-image-preprocess-adapter.interface';
 
 interface ImageRequest {
@@ -200,10 +200,24 @@ export class ShoppingImageStagesService {
       }
       case 'vector-search': {
         if (!this.search.searchFastAnnShoes) throw new Error('RUNTIME_VECTOR_SEARCH_UNAVAILABLE');
-        state.candidates = await this.search.searchFastAnnShoes({ assetId: state.asset!.id,
+        const searchInput = { assetId: state.asset!.id,
           keywords: state.profile!.keywords, profile: state.profile, queryEmbedding: state.embedding!.vector,
           queryImageUrl: state.imageUrl, category: state.category, embeddingKind: 'visual', limit: 100,
-          filters: { ...state.dto.filters, categoryScope: state.category } });
+          filters: { ...state.dto.filters, categoryScope: state.category } } as const;
+        state.candidates = await this.search.searchFastAnnShoes(searchInput);
+        const primaryCount = state.candidates.length;
+        if (primaryCount === 0) {
+          context.signal.throwIfAborted();
+          // Inferred brand/color can be wrong or absent from the catalog. Keep all user filters
+          // and the image embedding; relax only model-inferred profile constraints on an empty result.
+          const categoryProfile: ProductProfileResult = { ...state.profile!, category: state.category ?? 'general',
+            brand: null, modelLine: null, colorFamily: null, colorway: null, shoeType: null, size: null,
+            color: null, styleTags: [], sceneTags: [], keywords: productCategoryKeywords(state.category),
+            confidence: 0, raw: { source: 'category_only_empty_result_retry' } };
+          state.candidates = await this.search.searchFastAnnShoes({ ...searchInput,
+            keywords: categoryProfile.keywords, profile: categoryProfile });
+        }
+        RuntimeWorkScope.recordImageSearch(primaryCount, state.candidates.length, primaryCount === 0);
         break;
       }
       case 'price-stock': {

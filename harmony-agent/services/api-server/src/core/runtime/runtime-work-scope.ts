@@ -4,6 +4,7 @@ export interface RuntimeWorkMeasurements {
   attemptId?: string;
   placementDecisions?: Record<string, unknown>[];
   modelCalls?: Array<{ purpose: string; modelId: string }>;
+  imageSearch?: { primaryCount: number; fallbackCount: number; fallbackUsed: boolean };
   storageReadMs: number;
   storageWriteMs: number;
   modelMs: number;
@@ -12,6 +13,13 @@ interface WorkScope { deadline?: number; ownerId?: string; pending: Set<Promise<
 const scopes = new AsyncLocalStorage<WorkScope>();
 
 export class RuntimeWorkScope {
+  static recordImageSearch(primaryCount: number, fallbackCount: number, fallbackUsed: boolean): void {
+    const scope = scopes.getStore();
+    if (scope && Number.isInteger(primaryCount) && primaryCount >= 0 && primaryCount <= 100 &&
+        Number.isInteger(fallbackCount) && fallbackCount >= 0 && fallbackCount <= 100) {
+      scope.measurements.imageSearch = { primaryCount, fallbackCount, fallbackUsed };
+    }
+  }
   static recordModelCall(purpose: string, modelId: string): void {
     const scope = scopes.getStore();
     if (scope && /^[a-z0-9_.-]{1,80}$/i.test(purpose) && /^[a-z0-9_.-]{1,120}$/i.test(modelId)) {

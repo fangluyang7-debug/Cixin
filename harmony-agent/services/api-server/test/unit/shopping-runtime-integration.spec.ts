@@ -51,7 +51,7 @@ function fixture(healthy = true, readOnly = false) {
     storage as any, content as any, profiles as any, embeddings as any, search as any);
   const runtime = new ShoppingRuntimeService(registry, runner, runs, sessions as any, {} as any, stages, prisma as any);
   runtime.onModuleInit();
-  return { runtime, runs, performance, content, profiles, search, sessions, assets, prisma };
+  return { runtime, runs, performance, content, profiles, search, sessions, assets, prisma, seed };
 }
 
 const measuredRoute = () => ({ source: 'measured', transferAuthorized: true, observedAt: new Date().toISOString(),
@@ -79,6 +79,23 @@ describe('Shopping Runtime integration', () => {
     expect(run.telemetry[0].metadata?.segmentedTiming).toEqual(expect.objectContaining({ uploadMs: null, downloadMs: null }));
     // A first sample must not trap the workflow below minimumPerformanceSamples.
     await expect(test.runtime.execute('shopping.image', { userId: 'user-a', dto: { assetId: 'asset_test' } })).resolves.toBeDefined();
+  });
+  it('retries an empty image result with category scope while preserving user filters', async () => {
+    const test = fixture();
+    test.profiles.identifyProductProfile.mockResolvedValue({ category: 'shoe', brand: 'IncorrectBrand', color: 'blue',
+      colorFamily: 'blue', keywords: ['blue running shoe'], styleTags: [], sceneTags: [], confidence: 0.9, raw: {} });
+    test.search.searchFastAnnShoes.mockReset().mockResolvedValueOnce([]).mockResolvedValueOnce([test.seed]);
+    const result = await test.runtime.execute('shopping.image', { userId: 'user-a', dto: {
+      assetId: 'asset_test', filters: { priceMax: 500, stockOnly: true } } });
+    const calls = test.search.searchFastAnnShoes.mock.calls;
+    expect(calls).toHaveLength(2);
+    expect(calls[0][0].profile.brand).toBe('IncorrectBrand');
+    expect(calls[1][0].profile).toMatchObject({ category: 'shoe', brand: null, color: null, colorFamily: null });
+    expect(calls[1][0].filters).toEqual(calls[0][0].filters);
+    expect(calls[1][0].filters).toMatchObject({ priceMax: 500, stockOnly: true, categoryScope: 'shoe' });
+    expect(test.sessions.writeRuntimeCandidateSnapshot.mock.calls[0][0].candidates).toHaveLength(1);
+    expect(test.runs.get(result.runtimeRunId)?.telemetry.find(item => item.toolId === 'shopping.stage.vector-search')?.metadata?.imageSearch)
+      .toEqual({ primaryCount: 0, fallbackCount: 1, fallbackUsed: true });
   });
   it('blocks unavailable cloud without invoking a business service or inventing samples', async () => {
     const test = fixture(false);
