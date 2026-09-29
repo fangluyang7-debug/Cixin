@@ -26,7 +26,7 @@ export struct SearchResults {
         Column({ space: 8 }) {
           Image(this.photoUri).width('100%').height(190).objectFit(ImageFit.Contain).backgroundColor('#EEEEEE')
           Row() {
-            Text('已选图片 · 尚未接入图像识别').fontSize(12).fontColor('#444748').layoutWeight(1)
+            Text('已选图片 · 云端图像检索').fontSize(12).fontColor('#444748').layoutWeight(1)
             Button('重选').fontSize(12).height(32).fontColor('#00513F').backgroundColor('#D7F8ED').onClick(this.onPhoto)
           }.width('100%')
         }.width('100%')

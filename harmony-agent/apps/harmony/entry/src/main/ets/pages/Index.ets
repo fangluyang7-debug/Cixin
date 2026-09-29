@@ -379,15 +379,25 @@ struct Index {
       this.products = []; this.lastQuery = ''; this.plan = ''; this.receiptText = '';
       this.summary = '正在上传图片并执行云端检索'; this.loading = true;
       const handle = this.tasks.searchImageResult(this.photoUri); this.activeSearch = handle;
+      this.currentTaskId = this.tasks.lastSubmittedTaskId;
+      this.runAudit = this.currentTaskId + ' · 等待云端运行';
       const searchResult = await handle.result;
       if (generation !== this.photoGeneration) { return; }
       this.loading = false;
       if (searchResult.status === TaskStatus.SUCCEEDED && searchResult.output !== null) {
         this.latestShoppingResult = searchResult.output;
+        this.runAudit = searchResult.output.taskId + ' → ' + searchResult.output.runtimeRunId + ' · 成功';
+        this.auditRun(searchResult.output.taskId).catch(() => {});
         this.tasks.remember(searchResult.output);
         this.products = searchResult.output.products ?? []; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
-      } else { this.summary = searchResult.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(searchResult.reasonCode); }
-    } catch (_) { this.loading = false; this.summary = '图片选择或云端检索失败，请检查配置与网络'; }
+      } else {
+        this.summary = searchResult.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(searchResult.reasonCode);
+        this.auditRun(this.currentTaskId).catch(() => {});
+      }
+    } catch (_) {
+      this.loading = false; this.summary = '图片选择或云端检索失败，请检查配置与网络';
+      if (this.currentTaskId !== '') { this.auditRun(this.currentTaskId).catch(() => {}); }
+    }
   }
   private async openSource(): Promise<void> {
     if (this.selected === null || !safeProductUrl(this.selected.productUrl)) {
