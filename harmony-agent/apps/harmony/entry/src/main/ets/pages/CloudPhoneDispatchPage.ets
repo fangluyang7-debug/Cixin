@@ -27,7 +27,7 @@ struct CloudPhoneDispatchPage {
   @State code: string = '';
   @State deviceId: string = '';
   @State jobId: string = '';
-  @State status: string = '云端合成计算验收；不会处理购物数据';
+  @State status: string = '配对后，B 可接取合成任务及已授权的购物图片裁剪';
   @State role: string = '未选择';
   @State workerRunning: boolean = false;
   @State slowMode: boolean = false;
@@ -238,7 +238,7 @@ struct CloudPhoneDispatchPage {
     Scroll() {
       Column({ space: 14 }) {
         Text('云端双机派发验收').fontSize(23).fontWeight(FontWeight.Bold).width('100%')
-        Text('仅用合成向量测试配对、派发、回执和取消。两台手机均需联网并配置相同的 HTTPS API。')
+        Text('两台手机需联网并配置相同 HTTPS API。购物图片仅在 B 已配对、在线轮询且演示开关开启时派发；失败会回到云端处理。')
           .fontSize(13).fontColor('#66736D').width('100%')
         Button('A：生成配对码').onClick(() => { this.createPairing().catch(() => {}); }).width('100%')
         TextInput({ text: this.code, placeholder: 'A 显示的配对码；在 B 输入' })
