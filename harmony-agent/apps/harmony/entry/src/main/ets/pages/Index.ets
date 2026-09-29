@@ -17,7 +17,10 @@ import { cloudFailureText, feedbackReceiptText, numericPrice, platformLabel, pro
 
 interface SubjectBoxInput { x: number; y: number; width: number; height: number; }
 interface SubjectSelectionInput { box: SubjectBoxInput; selectionSource: string; }
-interface RunAuditData { runId: string; status: string; executionState: string; }
+interface ModelCallAudit { purpose: string; modelId: string; }
+interface RunTelemetryMetadataAudit { modelCalls?: ModelCallAudit[]; }
+interface RunTelemetryAudit { metadata?: RunTelemetryMetadataAudit; }
+interface RunAuditData { runId: string; status: string; executionState: string; telemetry?: RunTelemetryAudit[]; }
 interface RunAuditEnvelope { success: boolean; data?: RunAuditData; }
 
 enum CommerceTab { HOME, CATALOG, RADAR, SAVED, PROFILE }
@@ -168,14 +171,43 @@ struct Index {
         this.pendingWorkflowId = this.activeSearch.workflowId;
       }
       this.activeSearch.signal({ type: type }).catch(() => {});
-      if (this.currentTaskId !== '' && (type === TaskSignalType.PAGE_LEFT || type === TaskSignalType.CANCEL)) {
+      if (this.currentTaskId !== '') {
         const taskId = this.currentTaskId;
-        setTimeout(() => { this.auditRun(taskId).catch(() => {}); }, 2000);
+        this.requestCloudCancel(taskId).catch(() => {});
+        setTimeout(() => { this.auditRun(taskId).catch(() => {}); }, 3000);
+        setTimeout(() => { this.auditRun(taskId).catch(() => {}); }, 8000);
       }
       this.activeSearch = null;
     }
     if (this.loading) { this.summary = '搜索已停止'; }
     this.loading = false;
+  }
+  private async requestCloudCancel(taskId: string): Promise<void> {
+    if (!CloudApiConfig.isAuthenticated()) { return; }
+    for (let attempt: number = 0; attempt < 3; attempt++) {
+      const client = http.createHttp();
+      try {
+        const response = await client.request(CloudApiConfig.getBaseUrl() + '/api/v1/runtime/runs/by-client-task/' + encodeURIComponent(taskId), {
+          method: http.RequestMethod.GET, header: CloudApiConfig.requestHeaders(), connectTimeout: 5000, readTimeout: 5000
+        });
+        if (response.responseCode === 200 && typeof response.result === 'string') {
+          const body = JSON.parse(response.result) as RunAuditEnvelope;
+          if (body.success && body.data && body.data.executionState !== 'settled') {
+            const cancelClient = http.createHttp();
+            try {
+              await cancelClient.request(CloudApiConfig.getBaseUrl() + '/api/v1/runtime/runs/' + encodeURIComponent(body.data.runId) + '/cancel', {
+                method: http.RequestMethod.POST, header: CloudApiConfig.requestHeaders(), extraData: '{}',
+                connectTimeout: 5000, readTimeout: 5000
+              });
+            } finally { cancelClient.destroy(); }
+          }
+          return;
+        }
+        if (response.responseCode !== 404) { return; }
+      } catch (_) { return; }
+      finally { client.destroy(); }
+      await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    }
   }
   private async auditRun(taskId: string): Promise<void> {
     if (!CloudApiConfig.isAuthenticated()) { return; }
@@ -184,11 +216,26 @@ struct Index {
       const response = await client.request(CloudApiConfig.getBaseUrl() + '/api/v1/runtime/runs/by-client-task/' + encodeURIComponent(taskId), {
         method: http.RequestMethod.GET, header: CloudApiConfig.requestHeaders(), connectTimeout: 10000, readTimeout: 15000
       });
-      if (response.responseCode === 404) { this.runAudit = taskId + ' · 云端未创建运行'; return; }
+      if (response.responseCode === 404) {
+        if (taskId === this.currentTaskId) { this.runAudit = taskId + ' · 云端未创建运行'; }
+        return;
+      }
       if (response.responseCode !== 200 || typeof response.result !== 'string') { return; }
       const body = JSON.parse(response.result) as RunAuditEnvelope;
       if (body.success && body.data) {
-        this.runAudit = taskId + ' → ' + body.data.runId + ' · ' + body.data.status + ' / ' + body.data.executionState;
+        const detail = await client.request(CloudApiConfig.getBaseUrl() + '/api/v1/runtime/runs/' + encodeURIComponent(body.data.runId), {
+          method: http.RequestMethod.GET, header: CloudApiConfig.requestHeaders(), connectTimeout: 10000, readTimeout: 15000
+        });
+        let models = '';
+        if (detail.responseCode === 200 && typeof detail.result === 'string') {
+          const run = JSON.parse(detail.result) as RunAuditEnvelope;
+          const calls = run.data?.telemetry?.flatMap((item: RunTelemetryAudit) => item.metadata?.modelCalls ?? []) ?? [];
+          models = calls.map((item: ModelCallAudit) => item.purpose + ':' + item.modelId).join(', ');
+        }
+        if (taskId === this.currentTaskId) {
+          this.runAudit = taskId + ' → ' + body.data.runId + ' · ' + body.data.status + ' / ' + body.data.executionState +
+            (models === '' ? '' : ' · ' + models);
+        }
       }
     } finally { client.destroy(); }
   }
@@ -231,6 +278,7 @@ struct Index {
       }
       this.latestShoppingResult = result.output;
       this.runAudit = result.output.taskId + ' → ' + result.output.runtimeRunId + ' · 成功';
+      this.auditRun(result.output.taskId).catch(() => {});
       this.tasks.remember(result.output);
       this.products = result.output.products ?? [];
       this.summary = `找到 ${this.products.length} 件云端商品 · ${Date.now() - started} ms`;
@@ -446,6 +494,8 @@ struct Index {
       Text(this.cloudStatus).fontSize(12)
       Text('最近一次云端运行').fontSize(16).fontWeight(FontWeight.Medium).width('100%')
       Text(this.runAudit).fontSize(12).fontColor('#444748').width('100%')
+      Button('刷新云端运行状态').fontSize(12).enabled(this.currentTaskId !== '')
+        .onClick(() => { this.auditRun(this.currentTaskId).catch(() => {}); })
       Text('电脑实时监控').fontSize(18).fontWeight(FontWeight.Medium).width('100%')
       Text('电脑和手机连接同一可信 Wi-Fi 后，运行电脑端监控服务，再填写电脑局域网地址与配对码。只推送调度状态、资源指标和任务事件，不包含搜索内容、图片或商品列表。')
         .fontSize(12).fontColor('#747878').width('100%')
