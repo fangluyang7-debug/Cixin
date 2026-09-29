@@ -583,6 +583,39 @@ struct Index {
     finally { if (generation === this.generation) { this.loading = false; } }
   }
   @Builder
+  private SessionChip(label: string, active: boolean, action: () => void) {
+    Button(label).height(32).fontSize(12).fontWeight(FontWeight.Medium)
+      .fontColor(active ? '#00513F' : '#424848')
+      .backgroundColor(active ? '#DDF4EB' : '#F2F4F3')
+      .borderRadius(10).padding({ left: 12, right: 12 })
+      .margin({ right: 7, bottom: 7 }).onClick(action)
+  }
+  @Builder
+  private SessionTools() {
+    Column({ space: 8 }) {
+      Row() {
+        Text('会话工具').fontSize(13).fontWeight(FontWeight.Medium).fontColor('#1A1C1C').layoutWeight(1)
+        Text('按需调整结果').fontSize(11).fontColor('#747878')
+      }.width('100%')
+      Flex({ wrap: FlexWrap.Wrap }) {
+        this.SessionChip('修改画像', this.editProfile, () => { this.editProfile = !this.editProfile; })
+        if (this.photoUri !== '') {
+          this.SessionChip('调整主体', this.editSubject, () => { this.editSubject = !this.editSubject; })
+        }
+        this.SessionChip('读取会话', false, () => this.sessionAction('read'))
+        this.SessionChip('刷新匹配', false, () => this.sessionAction('refine'))
+        this.SessionChip('更多商品', false, () => this.sessionAction('more'))
+        this.SessionChip('商品库价格', false, () => this.sessionAction('prices'))
+        if (this.query.trim().length > 0) {
+          this.SessionChip('继续提问', false,
+            () => this.sessionAction('turn', JSON.stringify({ message: this.query })))
+        }
+      }.width('100%')
+    }.width('100%').alignItems(HorizontalAlign.Start)
+      .padding({ left: 12, right: 5, top: 12, bottom: 5 })
+      .backgroundColor('#FFFFFF').borderRadius(16)
+  }
+  @Builder
   private Body() {
     if (this.showHistory) { this.History() }
     else if (this.selected !== null) { ProductDetail({ product: this.selected }) }
@@ -591,16 +624,8 @@ struct Index {
         onSearch: (value: string) => this.search(value), onFill: (value: string) => { this.query = value; },
         onPhoto: () => this.choosePhoto(), onOpen: (item: Product) => this.openProduct(item), onSave: (item: Product) => this.toggleSaved(item) })
     } else if (this.tab === CommerceTab.RADAR) {
-      if (this.latestShoppingResult?.sessionId) {
-        Flex({ wrap: FlexWrap.Wrap }) {
-          Button('修改画像').enabled(!this.loading).onClick(() => { this.editProfile = !this.editProfile; })
-          if (this.photoUri !== '') { Button('调整主体').enabled(!this.loading).onClick(() => { this.editSubject = !this.editSubject; }) }
-          Button('读取会话').enabled(!this.loading).onClick(() => this.sessionAction('read'))
-          Button('刷新匹配').enabled(!this.loading).onClick(() => this.sessionAction('refine'))
-          Button('更多商品').enabled(!this.loading).onClick(() => this.sessionAction('more'))
-          Button('商品库价格').enabled(!this.loading).onClick(() => this.sessionAction('prices'))
-          Button('继续提问').enabled(!this.loading && this.query.trim().length > 0).onClick(() => this.sessionAction('turn', JSON.stringify({ message: this.query })))
-        }
+      if (this.latestShoppingResult?.sessionId && !this.loading) {
+        this.SessionTools()
         if (this.editProfile) {
           TextInput({ text: this.profileBrand, placeholder: '品牌（留空清除）' }).onChange((value: string) => { this.profileBrand = value; })
           TextInput({ text: this.profileColor, placeholder: '颜色（留空清除）' }).onChange((value: string) => { this.profileColor = value; })
@@ -647,12 +672,14 @@ struct Index {
             }
             if (this.tab === CommerceTab.RADAR) {
               if (!this.feedbackEnabled && this.ready) {
-                Row() {
-                  Text('偶尔回答使用感受（可选）').fontSize(12).layoutWeight(1)
-                  Toggle({ type: ToggleType.Switch, isOn: this.feedbackEnabled }).selectedColor('#009576')
-                    .onChange((value: boolean) => this.setConsent(value))
-                }.width('100%')
-                Text('仅保存在本机，不记录搜索内容或图片。').fontSize(11).fontColor('#747878').width('100%')
+                Column({ space: 4 }) {
+                  Row() {
+                    Text('偶尔回答使用感受（可选）').fontSize(12).layoutWeight(1)
+                    Toggle({ type: ToggleType.Switch, isOn: this.feedbackEnabled }).selectedColor('#009576')
+                      .onChange((value: boolean) => this.setConsent(value))
+                  }.width('100%')
+                  Text('仅保存在本机，不记录搜索内容或图片。').fontSize(11).fontColor('#747878').width('100%')
+                }.width('100%').padding(12).backgroundColor('#F4F7F6').borderRadius(14)
               } else if (this.feedback === null && this.feedbackStatus === '可以回答本次体验题') {
                 Button('回答本次体验题').height(36).fontSize(12).onClick(() => this.requestFeedback())
               }
