@@ -1,6 +1,8 @@
 {
   "src": [
     "pages/Index",
-    "pages/SchedulerPanelPage"
+    "pages/SchedulerPanelPage",
+    "pages/DualPhoneLabPage",
+    "pages/CloudPhoneDispatchPage"
   ]
 }

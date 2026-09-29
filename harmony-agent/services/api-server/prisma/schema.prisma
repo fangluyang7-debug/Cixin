@@ -51,6 +51,51 @@ model UserCredential {
   user         User     @relation(fields: [userId], references: [id])
 }
 
+// Phone-to-cloud experimental dispatch. These records are separate from shopping
+// sessions so a test cannot commit commerce state.
+model PhoneDispatchPairing {
+  id           String    @id
+  ownerUserId  String
+  codeHash     String    @unique
+  expiresAt    DateTime
+  claimedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([ownerUserId, expiresAt])
+}
+
+model PhoneDispatchDevice {
+  id           String   @id
+  ownerUserId  String
+  workerUserId String
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+  lastSeenAt   DateTime @default(now())
+
+  @@index([ownerUserId, status])
+  @@index([workerUserId, status])
+}
+
+model PhoneDispatchJob {
+  id           String    @id
+  ownerUserId  String
+  workerUserId String
+  deviceId     String
+  state        String
+  inputJson    String
+  inputHash    String
+  resultHash   String?
+  computedMs   Int?
+  fence        Int       @default(0)
+  leasedAt     DateTime?
+  leaseUntil   DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([ownerUserId, createdAt])
+  @@index([workerUserId, deviceId, state])
+}
+
 model QuerySession {
   stateVersion Int @default(0)
   requestRevision Int @default(0)

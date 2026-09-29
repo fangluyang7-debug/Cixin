@@ -12,6 +12,8 @@ try {
   if(!attemptColumns.some(column=>column.name==='instanceJson')) await prisma.$executeRawUnsafe("ALTER TABLE TaskAttempt ADD COLUMN instanceJson TEXT NOT NULL DEFAULT '{}'");
   const sessionMigration = await readFile(new URL('./migrations/000004_session_mutations/migration.sql', import.meta.url), 'utf8');
   for (const statement of sessionMigration.split(';').map(value => value.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(statement);
+  const phoneMigration = await readFile(new URL('./migrations/000005_phone_dispatch/migration.sql', import.meta.url), 'utf8');
+  for (const statement of phoneMigration.split(';').map(value => value.trim()).filter(Boolean)) await prisma.$executeRawUnsafe(statement);
   if (await tableExists('QuerySession')) {
     const columns = await prisma.$queryRawUnsafe('PRAGMA table_info("QuerySession")');
     for (const column of ['stateVersion', 'requestRevision']) {
