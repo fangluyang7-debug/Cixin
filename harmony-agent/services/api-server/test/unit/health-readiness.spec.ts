@@ -77,6 +77,9 @@ describe('Cloud readiness', () => {
       JSON.parse(options.body).messages?.[0]?.content instanceof Array);
     expect(visionRequest).toBeDefined();
     expect(JSON.parse(visionRequest[1].body)).not.toHaveProperty('thinking');
+    const chatRequest = (global.fetch as jest.Mock).mock.calls.find(([, options]) =>
+      JSON.parse(options.body).messages?.[0]?.content === 'Reply OK.');
+    expect(JSON.parse(chatRequest[1].body).max_tokens).toBe(128);
   });
   it('blocks when configured models fail', async () => {
     global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 403 });

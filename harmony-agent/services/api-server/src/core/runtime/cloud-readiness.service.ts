@@ -151,7 +151,9 @@ export class CloudReadinessService {
       background: { r: 255, g: 255, b: 255 } } }).png().toBuffer()).toString('base64');
     const body = kind === 'embedding' ? { model, dimensions: this.config.get<number>('embedding.dimension'),
       input: [{ type: 'image_url', image_url: { url: probeImage } }] } : {
-      model, max_tokens: kind === 'vision' ? 128 : 16, messages: [{ role: 'user', content: kind === 'vision' ? [
+      // Reasoning-capable chat models can spend a tiny token budget before
+      // producing visible content, which made a healthy provider look empty.
+      model, max_tokens: 128, messages: [{ role: 'user', content: kind === 'vision' ? [
         { type: 'text', text: 'Return a short JSON object describing this image.' },
         { type: 'image_url', image_url: { url: probeImage } },
       ] : 'Reply OK.' }],
