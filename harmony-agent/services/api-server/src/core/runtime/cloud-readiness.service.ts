@@ -71,9 +71,9 @@ export class CloudReadinessService {
           checks[kind] = { available: false, durationMs: 0, reason: 'MODEL_INTEGRATION_DEFERRED' };
           return Promise.resolve();
         }
-        // Multimodal embedding can legitimately take longer than a tiny chat
-        // readiness request; a premature probe must not disable text search.
-        return measure(kind, () => this.probeModel(kind), kind === 'embedding' ? 20000 : 10000);
+        // Leave time to parse the provider response after the 15-second request
+        // deadline so the outer check does not win the race prematurely.
+        return measure(kind, () => this.probeModel(kind), 17000);
       }),
     ]);
     const [catalog, textCatalog] = await Promise.all([this.checkCatalog('visual'), this.checkCatalog('multimodal')]);
@@ -167,7 +167,7 @@ export class CloudReadinessService {
     try {
       response = await fetch(endpoint, {
         method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body), signal: AbortSignal.timeout(kind === 'embedding' ? 18000 : 8000),
+        body: JSON.stringify(body), signal: AbortSignal.timeout(15000),
       });
     } catch { throw new Error('MODEL_PROBE_TIMEOUT'); }
     if (!response.ok) throw new Error(`MODEL_PROBE_HTTP_${response.status}`);
