@@ -73,12 +73,17 @@ describe('Cloud readiness', () => {
     expect(JSON.stringify(left)).not.toContain('apiKey');
     const embeddingRequest = (global.fetch as jest.Mock).mock.calls.find(([url]) => url.endsWith('/embeddings/multimodal'));
     expect(JSON.parse(embeddingRequest[1].body).dimensions).toBe(2);
+    const visionRequest = (global.fetch as jest.Mock).mock.calls.find(([, options]) =>
+      JSON.parse(options.body).messages?.[0]?.content instanceof Array);
+    expect(visionRequest).toBeDefined();
+    expect(JSON.parse(visionRequest[1].body)).not.toHaveProperty('thinking');
   });
   it('blocks when configured models fail', async () => {
-    global.fetch = jest.fn().mockResolvedValue({ ok: false });
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 403 });
     const { readiness } = fixture();
     await expect(new HealthController(readiness).getReadiness()).rejects.toThrow();
     expect((await readiness.check()).checks.vision.available).toBe(false);
+    expect((await readiness.check()).checks.vision.reason).toBe('VISION_PROBE_FAILED:MODEL_PROBE_HTTP_403');
   });
   it('does not treat COS configuration as a successful probe', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('unavailable'));

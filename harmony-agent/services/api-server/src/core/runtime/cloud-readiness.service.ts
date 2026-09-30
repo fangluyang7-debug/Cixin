@@ -52,9 +52,11 @@ export class CloudReadinessService {
           timer = setTimeout(() => reject(new Error('PROBE_TIMEOUT')), 10000);
         })]);
         checks[name] = { available: true, durationMs: Date.now() - start };
-      } catch {
+      } catch (error) {
         // Never expose provider response bodies, signed URLs or credentials.
-        checks[name] = { available: false, durationMs: Date.now() - start, reason: `${name.toUpperCase()}_PROBE_FAILED` };
+        const safeCode = error instanceof Error && /^MODEL_PROBE_(?:HTTP_[45]\d\d|TIMEOUT|INVALID_RESPONSE)$/.test(error.message)
+          ? ':' + error.message : '';
+        checks[name] = { available: false, durationMs: Date.now() - start, reason: `${name.toUpperCase()}_PROBE_FAILED${safeCode}` };
       } finally { if (timer) clearTimeout(timer); }
     };
     await Promise.all([
@@ -139,29 +141,33 @@ export class CloudReadinessService {
     const prefix = kind === 'embedding' ? 'embedding' : `modelProviders.${kind}`;
     const baseUrl = this.config.get<string>(`${prefix}.baseUrl`)?.replace(/\/$/, '');
     const apiKey = this.config.get<string>(`${prefix}.apiKey`);
-    const model = this.config.get<string>(`${prefix}.modelName`);
+    const model = kind === 'vision' ? this.config.get<string>('modelProviders.vision.sceneModels.profile')?.trim() ||
+      this.config.get<string>('modelProviders.vision.modelName') : this.config.get<string>(`${prefix}.modelName`);
     if (!baseUrl || !apiKey || !model || !baseUrl.startsWith('https://')) throw new Error('MODEL_CONFIG_MISSING');
     const probeImage = 'data:image/png;base64,' + (await sharp({ create: { width: 64, height: 64, channels: 3,
       background: { r: 255, g: 255, b: 255 } } }).png().toBuffer()).toString('base64');
     const body = kind === 'embedding' ? { model, dimensions: this.config.get<number>('embedding.dimension'),
       input: [{ type: 'image_url', image_url: { url: probeImage } }] } : {
-      model, max_tokens: 16, thinking: { type: 'disabled' }, messages: [{ role: 'user', content: kind === 'vision' ? [
-        { type: 'text', text: 'Describe this image in one word.' },
+      model, max_tokens: kind === 'vision' ? 128 : 16, messages: [{ role: 'user', content: kind === 'vision' ? [
+        { type: 'text', text: 'Return a short JSON object describing this image.' },
         { type: 'image_url', image_url: { url: probeImage } },
       ] : 'Reply OK.' }],
     };
     const normalized = baseUrl.replace(/\/api\/coding\/v3$/, '/api/v3');
     const endpoint = kind === 'embedding' ? (normalized.endsWith('/embeddings/multimodal') ? normalized :
       normalized.endsWith('/embeddings') ? normalized + '/multimodal' : normalized + '/embeddings/multimodal') : baseUrl + '/chat/completions';
-    const response = await fetch(endpoint, {
-      method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
-    });
-    if (!response.ok) throw new Error('MODEL_PROBE_FAILED');
+    let response: Response;
+    try {
+      response = await fetch(endpoint, {
+        method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
+      });
+    } catch { throw new Error('MODEL_PROBE_TIMEOUT'); }
+    if (!response.ok) throw new Error(`MODEL_PROBE_HTTP_${response.status}`);
     const result = await response.json() as { data?: Array<{ embedding?: number[] }> | { embedding?: number[] }; embedding?: number[]; choices?: Array<{ message?: { content?: string } }> };
     const vector = Array.isArray(result.data) ? result.data[0]?.embedding : result.data?.embedding ?? result.embedding;
     if (kind === 'embedding' ? !vector?.length || !vector.every(Number.isFinite) || vector.length !== this.config.get<number>('embedding.dimension') : !result.choices?.[0]?.message?.content?.trim()) {
-      throw new Error('MODEL_CAPABILITY_UNAVAILABLE');
+      throw new Error('MODEL_PROBE_INVALID_RESPONSE');
     }
   }
 }
