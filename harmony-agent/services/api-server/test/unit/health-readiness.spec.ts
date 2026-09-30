@@ -6,7 +6,7 @@ import { TencentCosStorageAdapterService } from '../../src/adapters/storage/tenc
 
 describe('Cloud readiness', () => {
   const originalFetch = global.fetch;
-  afterEach(() => { global.fetch = originalFetch; });
+  afterEach(() => { global.fetch = originalFetch; jest.restoreAllMocks(); });
   function fixture(modelMode = 'required') {
     const model = { baseUrl: 'https://provider.invalid/v1', apiKey: 'test', modelName: 'model' };
     const prisma = { productImageEmbedding: { findMany: jest.fn().mockResolvedValue([{ id: 'v', productId: 'p', vectorJson: '[1,2]' }]) }, product: { count: jest.fn().mockResolvedValue(1), findFirst: jest.fn().mockResolvedValue({ id: 'p' }) } };
@@ -84,6 +84,19 @@ describe('Cloud readiness', () => {
     await expect(new HealthController(readiness).getReadiness()).rejects.toThrow();
     expect((await readiness.check()).checks.vision.available).toBe(false);
     expect((await readiness.check()).checks.vision.reason).toBe('VISION_PROBE_FAILED:MODEL_PROBE_HTTP_403');
+  });
+  it('does not hammer a rate-limited model with repeated readiness probes', async () => {
+    const now = jest.spyOn(Date, 'now').mockReturnValue(1000000);
+    global.fetch = jest.fn().mockResolvedValue({ ok: false, status: 429 });
+    const { readiness } = fixture();
+    const first = await readiness.check();
+    expect(first.checks.vision.reason).toBe('VISION_PROBE_FAILED:MODEL_PROBE_HTTP_429');
+    now.mockReturnValue(1059000);
+    expect(await readiness.check()).toBe(first);
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    now.mockReturnValue(1061000);
+    await readiness.check();
+    expect(global.fetch).toHaveBeenCalledTimes(6);
   });
   it('does not treat COS configuration as a successful probe', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('unavailable'));

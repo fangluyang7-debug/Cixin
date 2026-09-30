@@ -35,7 +35,10 @@ export class CloudReadinessService {
     if (this.cached && this.cached.expiresAt > Date.now()) return this.cached.result;
     if (this.pending) return this.pending;
     this.pending = this.probe().then(result => {
-      this.cached = { result, expiresAt: Date.now() + (result.available ? 30000 : 5000) };
+      // A provider's 429 is often a minute-scale limit. Probing it every five seconds
+      // can prolong the outage and spend the remaining quota before a user request.
+      const providerLimited = Object.values(result.checks).some(check => check.reason?.endsWith('MODEL_PROBE_HTTP_429'));
+      this.cached = { result, expiresAt: Date.now() + (providerLimited ? 60000 : result.available ? 30000 : 15000) };
       return result;
     }).finally(() => { this.pending = undefined; });
     return this.pending;
