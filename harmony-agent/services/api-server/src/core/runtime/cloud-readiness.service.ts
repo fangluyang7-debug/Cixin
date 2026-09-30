@@ -47,12 +47,12 @@ export class CloudReadinessService {
   private async probe(): Promise<CloudReadiness> {
     const checks: CloudReadiness['checks'] = {};
     const modelMode = this.config.get<string>('runtime.cloudModelMode') === 'deferred' ? 'deferred' : 'required';
-    const measure = async (name: string, work: () => Promise<unknown>) => {
+    const measure = async (name: string, work: () => Promise<unknown>, timeoutMs = 10000) => {
       const start = Date.now();
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([work(), new Promise<never>((_, reject) => {
-          timer = setTimeout(() => reject(new Error('PROBE_TIMEOUT')), 10000);
+          timer = setTimeout(() => reject(new Error('PROBE_TIMEOUT')), timeoutMs);
         })]);
         checks[name] = { available: true, durationMs: Date.now() - start };
       } catch (error) {
@@ -71,7 +71,9 @@ export class CloudReadinessService {
           checks[kind] = { available: false, durationMs: 0, reason: 'MODEL_INTEGRATION_DEFERRED' };
           return Promise.resolve();
         }
-        return measure(kind, () => this.probeModel(kind));
+        // Multimodal embedding can legitimately take longer than a tiny chat
+        // readiness request; a premature probe must not disable text search.
+        return measure(kind, () => this.probeModel(kind), kind === 'embedding' ? 20000 : 10000);
       }),
     ]);
     const [catalog, textCatalog] = await Promise.all([this.checkCatalog('visual'), this.checkCatalog('multimodal')]);
@@ -165,7 +167,7 @@ export class CloudReadinessService {
     try {
       response = await fetch(endpoint, {
         method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body), signal: AbortSignal.timeout(8000),
+        body: JSON.stringify(body), signal: AbortSignal.timeout(kind === 'embedding' ? 18000 : 8000),
       });
     } catch { throw new Error('MODEL_PROBE_TIMEOUT'); }
     if (!response.ok) throw new Error(`MODEL_PROBE_HTTP_${response.status}`);
