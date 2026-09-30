@@ -281,6 +281,7 @@ struct Index {
       this.auditRun(result.output.taskId).catch(() => {});
       this.tasks.remember(result.output);
       this.products = result.output.products ?? [];
+      this.catalog = this.products.slice();
       this.summary = `找到 ${this.products.length} 件云端商品 · ${Date.now() - started} ms`;
       this.histories = [query].concat(this.histories.filter((item: string) => item !== query)).slice(0, 20);
       await handle.signal({ type: TaskSignalType.RESULT_DISPLAYED,
@@ -389,7 +390,8 @@ struct Index {
         this.runAudit = searchResult.output.taskId + ' → ' + searchResult.output.runtimeRunId + ' · 成功';
         this.auditRun(searchResult.output.taskId).catch(() => {});
         this.tasks.remember(searchResult.output);
-        this.products = searchResult.output.products ?? []; this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
+        this.products = searchResult.output.products ?? []; this.catalog = this.products.slice();
+        this.summary = '图片检索完成，共 ' + this.products.length + ' 件商品';
       } else {
         this.summary = searchResult.status === TaskStatus.CANCELLED ? '搜索已取消或过期' : cloudFailureText(searchResult.reasonCode);
         this.auditRun(this.currentTaskId).catch(() => {});
@@ -474,7 +476,8 @@ struct Index {
   private Collection(items: Product[], title: string) {
     Column({ space: 16 }) {
       Text(title).fontSize(22).fontWeight(FontWeight.Bold).width('100%')
-      if (items.length === 0) { Text('暂无商品').fontSize(14).fontColor('#747878').padding(32) }
+      if (items.length === 0) { Text(title === '最近搜索商品' ? '完成一次搜索后，结果会显示在这里' : '暂无商品')
+        .fontSize(14).fontColor('#747878').padding(32) }
       Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.SpaceBetween }) {
         ForEach(items, (product: Product) => {
           Column() {
@@ -580,10 +583,12 @@ struct Index {
           const previous = this.products;
           this.products = previous.concat(output.products.filter((item: Product) => !previous.some((old: Product) => old.candidateItemId === item.candidateItemId)));
         } else { this.products = output.products; }
+        this.catalog = this.products.slice();
       }
       if (typeof output.answer === 'string') { this.summary = output.answer; }
       else if (output.answer !== null) { this.summary = output.answer.text; }
-      else if (output.prices !== null) { this.summary = '已读取 ' + output.prices.length + ' 条商品库价格'; }
+      else if (output.prices !== null) { this.summary = output.prices.length === 0 ?
+        '暂无历史价格；当前商品价格可在候选卡片查看' : '已读取 ' + output.prices.length + ' 条商品库价格'; }
       else { this.summary = '会话已更新，共 ' + this.products.length + ' 件商品'; }
     } catch (_) { if (generation === this.generation) { this.summary = '会话更新失败，请读取最新会话后重试'; } }
     finally { if (generation === this.generation) { this.loading = false; } }
@@ -656,7 +661,7 @@ struct Index {
         },
         onOpen: (item: Product) => this.openProduct(item), onSave: (item: Product) => this.toggleSaved(item),
         onRetry: () => this.search(this.lastQuery), onCancel: () => this.invalidate(TaskSignalType.CANCEL), onPhoto: () => this.choosePhoto() })
-    } else if (this.tab === CommerceTab.CATALOG) { this.Collection(this.catalog, '云端商品') }
+    } else if (this.tab === CommerceTab.CATALOG) { this.Collection(this.catalog, '最近搜索商品') }
     else if (this.tab === CommerceTab.SAVED) { this.Collection(this.saved, `本次清单 · ${this.saved.length}`) }
     else { this.Profile() }
   }
