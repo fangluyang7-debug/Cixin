@@ -276,6 +276,10 @@ export class SchedulerService implements SchedulerRuntime {
     return this.initialized;
   }
 
+  public isDebugInjectionEnabled(): boolean {
+    return this.config?.enableDebugInjection === true;
+  }
+
   public getPolicyMode(): PolicyMode {
     this.requireInitialized();
     return this.policyMode;

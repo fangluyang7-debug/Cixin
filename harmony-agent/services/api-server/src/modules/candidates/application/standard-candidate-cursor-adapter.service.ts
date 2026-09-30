@@ -81,11 +81,22 @@ export class StandardCandidateCursorAdapterService implements CandidateCursorAda
     limit: number;
     sortRule?: string | null;
   }) {
+    const filterHash = this.hashFilter(input.filter);
     const cursor = input.cursorId
       ? await this.prisma.candidatePaginationCursor.findUnique({ where: { id: input.cursorId } })
       : await this.findActive(input.candidateSnapshotId);
+    if (input.cursorId && !cursor) throw new GoneException('CANDIDATE_CURSOR_EXPIRED');
+    // An implicit request asks for the current session page. Profile/refine/subject edits
+    // can invalidate the previous cursor without the caller holding its ID. Rebind it
+    // to the current snapshot; an explicitly supplied stale cursor still fails below.
+    const current = cursor && (input.cursorId ||
+      (cursor.sessionId === input.sessionId &&
+        cursor.candidateSnapshotId === input.candidateSnapshotId &&
+        cursor.preprocessSnapshotId === (input.preprocessSnapshotId ?? null) &&
+        cursor.filterHash === filterHash && cursor.expiresAt.getTime() >= Date.now()))
+      ? cursor : null;
     const usableCursor =
-      cursor ??
+      current ??
       (await this.createForSnapshot({
         sessionId: input.sessionId,
         candidateSnapshotId: input.candidateSnapshotId,
@@ -101,7 +112,7 @@ export class StandardCandidateCursorAdapterService implements CandidateCursorAda
       sessionId: input.sessionId,
       candidateSnapshotId: input.candidateSnapshotId,
       preprocessSnapshotId: input.preprocessSnapshotId ?? null,
-      filterHash: this.hashFilter(input.filter),
+      filterHash,
     });
 
     return usableCursor;

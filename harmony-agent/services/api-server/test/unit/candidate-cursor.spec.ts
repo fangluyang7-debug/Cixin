@@ -29,6 +29,9 @@ describe('StandardCandidateCursorAdapterService', () => {
     const prisma = {
       candidatePaginationCursor: {
         findUnique: jest.fn(),
+        findFirst: jest.fn(),
+        deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
+        create: jest.fn(),
       },
     };
     const adapter = new StandardCandidateCursorAdapterService(
@@ -64,5 +67,32 @@ describe('StandardCandidateCursorAdapterService', () => {
         limit: 30,
       }),
     ).rejects.toBeInstanceOf(GoneException);
+  });
+
+  it('rebinds an implicit cursor after a profile changes the filter', async () => {
+    const filter = { color: '黑色' };
+    const { adapter, prisma, hash } = harness(filter);
+    prisma.candidatePaginationCursor.findFirst.mockResolvedValue(cursor({ filterHash: 'old-filter' }));
+    prisma.candidatePaginationCursor.create.mockImplementation(async ({ data }) => cursor({
+      id: data.id, filterHash: hash, offset: data.offset,
+    }));
+
+    const renewed = await adapter.resolveForSnapshot({ sessionId: 'session_1',
+      candidateSnapshotId: 'snapshot_1', preprocessSnapshotId: 'preprocess_1',
+      filter, offset: 30, limit: 30 });
+
+    expect(renewed.filterHash).toBe(hash);
+    expect(renewed.offset).toBe(30);
+    expect(prisma.candidatePaginationCursor.deleteMany).toHaveBeenCalledWith({
+      where: { candidateSnapshotId: 'snapshot_1' },
+    });
+  });
+
+  it('rejects an explicitly named cursor that no longer exists', async () => {
+    const { adapter, prisma } = harness({});
+    prisma.candidatePaginationCursor.findUnique.mockResolvedValue(null);
+    await expect(adapter.resolveForSnapshot({ cursorId: 'deleted', sessionId: 'session_1',
+      candidateSnapshotId: 'snapshot_1', filter: {}, offset: 30, limit: 30 }))
+      .rejects.toBeInstanceOf(GoneException);
   });
 });

@@ -987,6 +987,18 @@ struct SchedulerPanelPage {
     finally { this.experimentRunning = false; this.isBusy = false; this.refreshData(); }
   }
 
+  private async runDirectComparison(): Promise<void> {
+    if (this.isBusy || this.experimentRunning) { return; }
+    this.experimentRunning = true; this.isBusy = true;
+    this.experimentMessage = '同一离线索引交错执行直调与调度路径；请保持设备状态稳定。';
+    try {
+      const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
+      await ExperimentService.getInstance().runDirectComparison(context);
+      this.experimentMessage = ExperimentService.getInstance().directComparisonSummary();
+    } catch (error) { this.experimentMessage = `直调对照未完成：${error}`; }
+    finally { this.experimentRunning = false; this.isBusy = false; this.refreshData(); }
+  }
+
   private async exportRealExperiment(): Promise<void> {
     try {
       const context = this.getUIContext().getHostContext() as common.UIAbilityContext;
@@ -1473,6 +1485,14 @@ struct SchedulerPanelPage {
               Button('停用策略优化').fontSize(12).onClick(() => {
                 this.schedulerService.disablePolicyOptimization(); this.refreshMetricsAndLogs();
               })
+              Button('恢复基线策略').fontSize(12).onClick(() => {
+                const policy = this.schedulerService.getConstrainedPolicy();
+                policy.version = `baseline-${Date.now()}`;
+                policy.mode = ConstrainedPolicyMode.OBSERVE;
+                policy.rolloutPercent = 0;
+                this.schedulerService.configureConstrainedPolicy(policy);
+                this.refreshMetricsAndLogs();
+              })
               Row() {
                 Text('本地体验反馈').fontSize(14).layoutWeight(1)
                 Toggle({ type: ToggleType.Switch, isOn: this.localFeedbackEnabled }).onChange((enabled: boolean) => {
@@ -1574,6 +1594,7 @@ struct SchedulerPanelPage {
             this.sectionTitle('真实负载采样实验', 'CPU 文本推理、向量检索与分块缓存；不包含模拟等待任务')
             Text(this.experimentMessage).fontSize(13).width('100%')
             Button('运行真实采样实验').enabled(!this.isBusy).onClick(() => { this.runRealExperiment(); })
+            Button('运行直调/调度对照').enabled(!this.isBusy).onClick(() => { this.runDirectComparison(); })
             Button('停止实验').enabled(this.experimentRunning).onClick(() => { ExperimentService.getInstance().cancel(); })
             Row() {
               Text('导出质量评测结果 ID（仅固定测试语料）').fontSize(13).layoutWeight(1)
@@ -1590,6 +1611,7 @@ struct SchedulerPanelPage {
             // Decision Model Reasoning Rationale Card
             this.DecisionModelReasoningCard()
 
+            if (this.schedulerService.isDebugInjectionEnabled()) {
             this.sectionTitle('调试仿真注入与场景模拟 (系统原生 API 默认实时监测中)', '默认通过 @kit.BasicServicesKit 实时监测手机电量与温度；以下按钮仅供调试测试故障注入')
 
             this.debugInjectionStatusBar()
@@ -1803,6 +1825,7 @@ struct SchedulerPanelPage {
               .backgroundColor(Color.White)
               .borderRadius(12)
               .border({ width: 1, color: '#D0D5DD' })
+            }
             }
 
             this.sectionTitle('运行指标统计', '最新任务即时反馈 + 最近窗口聚合')
