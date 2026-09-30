@@ -101,6 +101,17 @@ describe('Cloud readiness', () => {
     await readiness.check();
     expect(global.fetch).toHaveBeenCalledTimes(6);
   });
+  it('gives multimodal embedding a longer readiness deadline than chat', async () => {
+    const timeout = jest.spyOn(AbortSignal, 'timeout');
+    const timers = jest.spyOn(global, 'setTimeout');
+    global.fetch = jest.fn().mockImplementation(async (url: string) => ({ ok: true,
+      json: async () => url.endsWith('/embeddings/multimodal') ? { data: [{ embedding: [1, 2] }] } :
+        { choices: [{ message: { content: 'OK' } }] } }));
+    await fixture().readiness.check();
+    expect(timeout).toHaveBeenCalledWith(18000);
+    expect(timeout).toHaveBeenCalledWith(8000);
+    expect(timers.mock.calls.some(([, ms]) => ms === 20000)).toBe(true);
+  });
   it('does not treat COS configuration as a successful probe', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('unavailable'));
     const { readiness, storage } = fixture(); storage.probeReadWrite.mockRejectedValue(new Error('private url'));
