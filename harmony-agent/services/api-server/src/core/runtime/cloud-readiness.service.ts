@@ -22,6 +22,10 @@ interface CatalogProbe {
   counts: NonNullable<CloudReadiness['catalog']>;
 }
 
+const MODEL_PROBE_TIMEOUT_MS = 30000;
+const MODEL_PROBE_OUTER_TIMEOUT_MS = MODEL_PROBE_TIMEOUT_MS + 3000;
+const CATALOG_VALIDATION_TIMEOUT_MS = 25000;
+
 @Injectable()
 export class CloudReadinessService {
   private cached?: { expiresAt: number; result: CloudReadiness };
@@ -71,9 +75,9 @@ export class CloudReadinessService {
           checks[kind] = { available: false, durationMs: 0, reason: 'MODEL_INTEGRATION_DEFERRED' };
           return Promise.resolve();
         }
-        // Leave time to parse the provider response after the 15-second request
+        // Leave time to parse the provider response after the request
         // deadline so the outer check does not win the race prematurely.
-        return measure(kind, () => this.probeModel(kind), 17000);
+        return measure(kind, () => this.probeModel(kind), MODEL_PROBE_OUTER_TIMEOUT_MS);
       }),
     ]);
     const [catalog, textCatalog] = await Promise.all([this.checkCatalog('visual'), this.checkCatalog('multimodal')]);
@@ -114,7 +118,7 @@ export class CloudReadinessService {
       let cursor: string | undefined;
       let scanned = 0;
       for (;;) {
-        if (Date.now() - began > 8000 || scanned >= 100000) throw new Error('INDEX_VALIDATION_LIMIT');
+        if (Date.now() - began > CATALOG_VALIDATION_TIMEOUT_MS || scanned >= 100000) throw new Error('INDEX_VALIDATION_LIMIT');
         const rows = await this.prisma.productImageEmbedding.findMany({
           where: { provider, modelName, dimension, embeddingKind, ...(cursor ? { id: { gt: cursor } } : {}) },
           select: { id: true, productId: true, vectorJson: true }, orderBy: { id: 'asc' }, take: 500,
@@ -130,6 +134,7 @@ export class CloudReadinessService {
         }
         scanned += rows.length;
         cursor = rows[rows.length - 1].id;
+        counts.coveredProductCount = covered.size;
         if (rows.length < 500) break;
       }
       counts.coveredProductCount = covered.size;
@@ -167,7 +172,7 @@ export class CloudReadinessService {
     try {
       response = await fetch(endpoint, {
         method: 'POST', headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body), signal: AbortSignal.timeout(15000),
+        body: JSON.stringify(body), signal: AbortSignal.timeout(MODEL_PROBE_TIMEOUT_MS),
       });
     } catch { throw new Error('MODEL_PROBE_TIMEOUT'); }
     if (!response.ok) throw new Error(`MODEL_PROBE_HTTP_${response.status}`);

@@ -118,7 +118,7 @@ export class CloudShoppingExecutor implements WorkloadExecutor<CloudShoppingInpu
       if (!this.observedNetwork) { this.routes.invalidate(key, 'NETWORK_IDENTITY_UNAVAILABLE_REFRESH'); }
       context.routeCandidate = await this.routes.prepare(key, context.remoteTask,
         new HttpRouteProbe(endpoint, 'cloud-shopping-api', CloudApiConfig.requestHeaders(), signal, deadlineAt,
-          'shopping.' + (input.operation === 'image_upload' ? 'image' : input.operation)), 10000);
+          'shopping.' + (input.operation === 'image_upload' ? 'image' : input.operation)), 25000);
       context.routeCandidate.networkKey = key;
       if (key === this.routeKey(input)) { return; }
       this.routes.invalidate(key, 'NETWORK_CHANGED_DURING_PROBE');

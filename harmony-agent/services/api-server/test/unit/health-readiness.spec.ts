@@ -101,15 +101,15 @@ describe('Cloud readiness', () => {
     await readiness.check();
     expect(global.fetch).toHaveBeenCalledTimes(6);
   });
-  it('allows 15 seconds for each model request before the outer deadline', async () => {
+  it('allows 30 seconds for each model request before the outer deadline', async () => {
     const timeout = jest.spyOn(AbortSignal, 'timeout');
     const timers = jest.spyOn(global, 'setTimeout');
     global.fetch = jest.fn().mockImplementation(async (url: string) => ({ ok: true,
       json: async () => url.endsWith('/embeddings/multimodal') ? { data: [{ embedding: [1, 2] }] } :
         { choices: [{ message: { content: 'OK' } }] } }));
     await fixture().readiness.check();
-    expect(timeout.mock.calls.filter(([ms]) => ms === 15000)).toHaveLength(3);
-    expect(timers.mock.calls.filter(([, ms]) => ms === 17000)).toHaveLength(3);
+    expect(timeout.mock.calls.filter(([ms]) => ms === 30000)).toHaveLength(3);
+    expect(timers.mock.calls.filter(([, ms]) => ms === 33000)).toHaveLength(3);
   });
   it('does not treat COS configuration as a successful probe', async () => {
     global.fetch = jest.fn().mockRejectedValue(new Error('unavailable'));
